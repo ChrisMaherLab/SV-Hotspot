@@ -45,7 +45,6 @@ You also need to add the installation location to your PATH or add it to ~/.bach
 ```
 export PATH=/SOME/PATH/src:$PATH
 ```
-<br>
 <b>CHANGING TOOL PATH (IMPORTANT) </b>
 
 Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
