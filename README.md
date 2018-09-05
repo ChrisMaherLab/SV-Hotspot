@@ -1,7 +1,8 @@
 # SV-HotSpot
-
+<img align="left" width="150" src="images/logo.png">
 SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression. 
 
+##
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -37,7 +38,7 @@ $ chmod +x install.sh
 $ ./install.sh -o /SOME/PATH/
 ```
 
-Note that you need to change /SOME/PATH/ to wherever you want to install the tool. 
+Note that you need to change ```/SOME/PATH/``` to wherever you want to install the tool. 
  
 You also need to add the installation location to your PATH or add it to ~/.bachrc file before running the tool: 
 
@@ -50,11 +51,11 @@ $\color{red}{\text{CHANING TOOL PATH (IMPORTANT) }}$
 
 Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
 
-
 ```
 my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
 ```
-<br>
+Note that you also need to change the path of Rscript. For linux, this is usually ```/usr/bin/Rscript``` and for MAc OS X is ```/usr/local/bin/Rscript```. If your Rscript path is different from ```/usr/bin/Rscript```, you need to open all R files availalbe at "src" folder and change this line ```/usr/bin/Rscript``` to your Rscript path. 
+
 To test the tool, just type the following command which shows the usage of the tool assuming the tool src directory in the PATH otherwise you need to provide the whole path to the main file:
 
 ```
