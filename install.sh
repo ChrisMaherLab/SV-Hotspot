@@ -17,28 +17,26 @@ dest_dir=${args[1]}
 echo
 echo "Creating installation folder..."
 
-#if [ ! -d $dest_dir ]; then
-#    mkdir -p $dest_dir
-#fi
+if [ ! -d $dest_dir ]; then
+    mkdir -p $dest_dir
+fi
 
 ### write the installation directory to a file 
-#echo $dest_dir > installation.path.txt
 echo
 echo "Copying files to the installation folder..."
-#cp -r src annotations test_data $dest_dir
+cp -r src annotations test_data $dest_dir
 #cd $dest_dir
 
 #### make all files executable files 
-#echo "adding +x mode"
-#chmod +x "$dest_dir"/src/*.pl
+echo "adding +x mode"
+chmod +x "$dest_dir"/src/*
 
-#echo "Please add $(pwd)/$dest_dir to your PATH. See details at https://github.com/ChrisMaherLab/SV-HotSpot."  
-#echo "Please make you you have installed the prerequisites. See details at https://github.com/ChrisMaherLab/INTEGRATE-Vis."
-#echo "Done!"
+echo "Please add $(pwd)/$dest_dir to your PATH. See details at https://github.com/ChrisMaherLab/SV-Hotspot."  
+echo "Please make you you have installed the prerequisites. See details at https://github.com/ChrisMaherLab/SV-Hotspot."
 
-echo "----------------"
-echo "Prerequisites"
 echo "---------------"
+echo "Prerequisites"
+echo "--------------"
 echo
 echo "Please make sure you have installed the following tools and they are available in the PATH:"
 echo
