@@ -33,7 +33,7 @@ Download SV-HotSpot from github repository at https://github.com/ChrisMaherLab/S
 
 ```
 $ unzip SV-Hotspot-master.zip
-$ cd SV-Hotspot-master/SV-HotSpot_v1.0.0
+$ cd SV-Hotspot-master/SV-HotSpot
 $ chmod +x install.sh
 $ ./install.sh -o /SOME/PATH/
 ```
@@ -46,8 +46,7 @@ You also need to add the installation location to your PATH or add it to ~/.bach
 export PATH=/SOME/PATH/src:$PATH
 ```
 <br>
-$\color{red}{\text{CHANING TOOL PATH (IMPORTANT) }}$
-
+<b>CHANGING TOOL PATH (IMPORTANT) </b>
 
 Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
 
@@ -84,7 +83,7 @@ Optional files:
 All other parameters are optional and a default value was assigned to each (run ```sv-hotspot.pl --help``` for more details). 
 
 <br>
-$\color{red}{\text{IMPORTANT NOTES:}}$
+<b>IMPORTANT NOTES:</b>
 
 * To prepare all your files, please look carefully at the examples provided in <b>test_data</b> and do accordingly. 
 * All files headers should be the same as the ones in the examples files. 
@@ -108,7 +107,9 @@ To test the tool, we have provided an example data specifically for identifying 
 To test the tool, just run the following command:
 
 ```
-sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test_data/exp.tsv -c test_data/cna.tsv --chip-seq test_data/H2K27ac.bg -o /SOME/PATH --t-amp 1.4 --t-del 0.5 -p 0.05
+sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test_data/exp.tsv 
+              -c test_data/cna.tsv --chip-cov test_data/H2K27ac.bg -o /SOME/PATH --t-amp 1.4 
+              --t-del 0.5 -p 0.05 --chip-cov-lbl H2K27ac --roi-lbl enhancers
 ```
 
 Note that you need to change /SOME/PATH with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
