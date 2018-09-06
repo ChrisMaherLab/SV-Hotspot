@@ -118,6 +118,7 @@ Note that you need to change ```/SOME/PATH``` with the output drectory you want.
 ### Example of Tool Visualization 
 <img align="center" src="images/AR.png" alt="visualization example">
 
+<br>
 ### References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
