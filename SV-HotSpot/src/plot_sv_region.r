@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
 
 # Find regions/peaks whose SVs altered expression of nearby genes
 # Written by Abdallah Eteleeb & Ha Dang
@@ -166,7 +166,8 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
     p1 = (ggplot(dup_del)
     + geom_segment(aes(x=pos1, xend=pos2, y=samp, yend=samp, color=svtype))
     + theme_bw(base_size=8)
-    + coord_cartesian(xlim=c(left, right))
+    #+ coord_cartesian(xlim=c(left, right))
+    + coord_cartesian(xlim=c(min(x$pos), max(x$pos)))
     + ylab('Duplications &\nDeletions freq.')
     + scale_x_continuous(breaks=brks)
     + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
@@ -303,9 +304,6 @@ if (is.cn.avail) {
 
 }
 
-#### compute chip-seq average 
-#chip = avgChipOverWindows(chip.seq)
-
 ### extract feature column 
 annot <- read.table(paste0(out.dir,"/temp/genes.bed"), header =T, sep="\t", check.names=F, comment.char = "$")
 colnames(annot) <- c('chr', 'start', 'stop', 'gene', 'score', 'strand') 
@@ -386,9 +384,16 @@ for (i in 1:nrow(res)){
     cat('\n','Plotting peak', pk, '\n')
     p.corr <- res[res$p.name==pk, c('p.chr','p.start','p.stop', 'pct.samples', 'num.samples')]
     
+    ### extract effected genes 
     effected.genes <- unlist(strsplit(res$genes.effected[i],  "\\|"))
+
+    ### keep genes that have expression data
+    effected.genes <-  effected.genes[effected.genes %in% exp[,feature.col]]
+    if (length(effected.genes) ==0 ) { next }
+ 
+    ### extract locus information for effected genes 
     genes.in.peak <- genes.and.peaks[genes.and.peaks$p.name==pk,c('g.chr','g.start','g.stop','gene','g.score','g.strand','dist','g.pos')]
-    
+
     ### extract peak data
     pp = pks[pks$p.name==pk & pks$sample %in% shared.samples, ]
     pp.cn = pks.cn[pks.cn$p.name==pk & pks.cn$sample %in% shared.samples, ]
@@ -410,8 +415,7 @@ for (i in 1:nrow(res)){
     p.genes.res <- NULL
     for (j in 1:length(effected.genes)) {
       g = effected.genes[j]
-      #g.pval = sv.genes[sv.genes$gene==g & sv.genes$peak_name==pk, 'sv_vs_others_pval']
-      
+           
       if (is.cn.avail) {
       	### extract gene copy number samples  
       	g.neut.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="neut",'sample'])
@@ -454,21 +458,17 @@ for (i in 1:nrow(res)){
       }
     
 
-      ### plot the expression 
+      ### plot the expression for SV samples 
       g.exp$sample.status <- factor(g.exp$sample.status, levels=c('non-SVs', 'SVs'))
       e1 <- ggplot(g.exp, aes(x=sample.status, y=log2(gene.exp+1))) + geom_boxplot(aes(fill=sample.status)) + theme_bw()
       #e1 <- e1 + stat_summary(fun.data = give.n, geom = "text", size=5) 
-      e1 <- e1 + labs(x='', y='Log2(expression)') + ggtitle('')
+      e1 <- e1 + labs(x='', y='Log2(expression)') + ggtitle('Expression Profiles of SV samples')
       e1 <- e1 + theme(axis.text.x=element_text(size=10, vjust=0.5, color="black"),
                        axis.text.y=element_text(size=12, color="black"),
                        axis.title=element_text(size=14), panel.background=element_blank(),
-                       plot.title = element_text(size = 14, hjust=0.5, color="black"),
-                       #panel.border = element_blank(),
-                       #panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                       #axis.line = element_blank(), axis.ticks=element_blank(),
+                       plot.title = element_text(size = 14, hjust=0.5, color="black", face="bold"),
                        legend.position="none")
-                       #legend.key.size = unit(1,"cm"), legend.title=element_blank(), legend.text=element_text(size=14))    
-      e1 = e1 + scale_fill_manual(name="", values =c("non-SVs"="skyblue", "SVs"="orange2"))
+      e1 = e1 + scale_fill_manual(name="", values =c("non-SVs"="gray", "SVs"="orange2"))
       e1 = e1 + scale_x_discrete(labels=c(paste0("non-SVs\n(n=",nrow(g.exp[g.exp$sample.status=="non-SVs",]),")"), paste0("SVs\n(n=",nrow( g.exp[g.exp$sample.status=="SVs",]),")")))
       e1 = e1 + geom_signif(comparisons=list(c('non-SVs','SVs')))
 
@@ -497,31 +497,32 @@ for (i in 1:nrow(res)){
         ### construct the list for all possible values 
 	amp.grp = as.character(unique(g.exp$group[g.exp$group %in% c("GNPN","GAPN", "GNPA","GAPA")])) 
 	del.grp = as.character(unique(g.exp$group[g.exp$group %in% c("GNPN", "GDPN", "GNPD", "GDPD")])) 
-	if (length(amp.grp) > 1) { 
+   
+	if (length(amp.grp) > 2) { 
   	   amp.cmps = data.frame(combn(amp.grp,2), stringsAsFactors = F)
   	   ampCMPlist = as.list(amp.cmps[,1:ncol(amp.cmps)]) 
 	} else { ampCMPlist = NULL }
 
-	if (length(del.grp) > 1) { 
+	if (length(del.grp) > 2) { 
   	   del.cmps = data.frame(combn(del.grp,2), stringsAsFactors = F)
   	   delCMPlist = as.list(del.cmps[,1:ncol(del.cmps)]) 
 	} else { delCMPlist = NULL}
 
 	myCMPlist = c(ampCMPlist, delCMPlist)
 
+        if (length(amp.grp) == 2) { myCMPlist[[length(myCMPlist)+1]] = amp.grp }
+        if (length(del.grp) ==2) { myCMPlist[[length(myCMPlist)+1]] = del.grp }
+
       	e2 <- ggplot(g.exp, aes(x=group, y=log2(gene.exp+1))) + geom_boxplot(aes(fill=group)) + theme_bw()
       	#e2 <- e2 + stat_summary(fun.data = give.n, geom = "text", size=5) 
-      	e2 <- e2 + labs(x='', y='Log2(expression)') + ggtitle('')
+      	e2 <- e2 + labs(x='', y='Log2(expression)') + ggtitle('Expression Profiles of SV samples with CN status')
       	e2 <- e2 + theme(axis.text.x=element_text(size=10, vjust=0.5, color="black"),
                        axis.text.y=element_text(size=12, color="black"),
                        axis.title=element_text(size=14), panel.background=element_blank(),
-                       plot.title = element_text(size = 14, hjust=0.5, color="black"),
-                       #panel.border = element_blank(),
-                       #panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                       #axis.line = element_blank(), axis.ticks=element_blank(),
+                       plot.title = element_text(size = 14, hjust=0.5, color="black", face="bold"),
                        legend.position="none")
-                       #legend.key.size = unit(1,"cm"), legend.title=element_blank(), legend.text=element_text(size=14))    
-      	e2 = e2 + scale_fill_manual(name="", values = c("GNPN"="gray", "GAPN"="#f03b20", "GNPA"="#feb24c", "GAPA"="salmon")) 
+      	e2 = e2 + scale_fill_manual(name="", values = c("GNPN"="gray", "GAPN"="#f03b20", "GNPA"="#b53f4d", "GAPA"="salmon", 
+                                                        "GDPN"="#a6bddb", "GNPD"="#2c7fb8", "GDPD"="skyblue2")) 
       	e2 = e2 + scale_x_discrete(labels=lbls)
         e2 = e2 + geom_signif(comparisons=myCMPlist , step_increase=0.1)
       }
@@ -553,7 +554,6 @@ for (i in 1:nrow(res)){
     }  ### end of genes in the current peak 
    
 }     ### end of peaks 
-
 
 
 
