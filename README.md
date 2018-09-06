@@ -1,5 +1,5 @@
 # SV-HotSpot
-<img align="left" width="150" src="images/logo.png">
+<img align="left" width="150" src="images/logo.png" alt="tool logo">
 SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression. 
 
 ##
@@ -116,7 +116,7 @@ sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test
 Note that you need to change ```/SOME/PATH``` with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
 
 ### Example of Tool Visualization 
-[embed]images/AR.pdf[/embed]
+<img align="center" src="images/AR.png" alt="visualization example">
 
 ### References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
