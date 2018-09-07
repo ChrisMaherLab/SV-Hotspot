@@ -37,7 +37,7 @@ my $chrom="ALL";
 my $sv_type="ALL";
 my $merge_dist=1000;
 my $temp_keep='0';
-my $plot_peaks="F";
+my $plot_top_peaks=10;
 my $num_nearby_genes=4;
 my $chip_cov='0';
 my $chip_cov_lbl="";
@@ -66,7 +66,7 @@ GetOptions
     'd|group-dist-size=i' => \$merge_dist,
     'k|num-nearby-genes=i' => \$num_nearby_genes,
     'chip-cov=s' =>\$chip_cov,
-    'plot-peaks=s' => \$plot_peaks,
+    'plot-top-peaks=s' => \$plot_peaks,
     'chip-cov-lbl=s' => \$chip_cov_lbl,
     'roi-lbl=s' => \$roi_lbl,
     'keep-temp=s' => \$temp_keep
@@ -121,9 +121,15 @@ print " SV types to analyze: $sv_type\n";
 print " Distance for merging peaks: $merge_dist\n"; 
 print " Number of nearby genes: $num_nearby_genes\n"; 
 print " chip-Seq file: $chip_cov\n"; 
-#print " Plot peaks $plot_peaks="";
+print " Plot top peaks: $plot_top_peaks\n";
 print " Keep temporary file: $temp_keep\n"; 
 print "########################################################\n\n";
+
+################################################################
+###### check if all files have a format the tool accepts ###### 
+
+
+################################################################
 
 #print "\n-------------------------------------------\n";
 #print "Preparing breakpoint data ...\n";
@@ -180,7 +186,7 @@ if ($expr_file & $cn_file) {
       print "Processing chip-seq data, please wait as this may take several minutes\n";
       system("process_chip_data.r $chip_cov $output_dir");
    } 
-   system ("plot_sv_region.r $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl");
+   system ("plot_peaks.r $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $plot_top_peaks");
 } else {
   print "Both expression and copy number data are required to generate visualization\n";
   exit(0);
@@ -226,7 +232,7 @@ sub usage
    print("\t--chip-cov-lbl\t\t\tchip-seq coverage label\t<string>\t[ the chip-seq coverage label used in the plot (e.g. histone name) ]\n");
    print("\t--roi-lbl\t\t\tregion of int. label\t<string>\t[ the region of interest label used in  the plot (e.g. enhancers) ]\n");
 
-   #print("\t--plot-peaks\t\t\tplot peaks\t\t<string>\t[ if this option is enabled (T), all peaks with genes of interest will be plotted. default: F ]\n");
+   print("\t--plot-top-peaks\t\t\tplot top # peaks\t\t<int>\t[ Plot the top # number of peaks. default: 10 ]\n");
    print("\t--keep-temp\t\t\tkeep intermediate files\t<string>\t[ if this option is enabled (T), all intermediate temporary files will be kept. default: F ]\n");
 
    print ("\n");

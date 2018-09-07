@@ -48,28 +48,30 @@ if (!feature.col==colnames(exp)[1]) {
 }
 
 #### read copy number data and overlap with peaks and genes 
+### create directory for copy number data  
+dir.create(paste0(out.dir,'/processed_cn_data'))
 cat('Reading copy number data...\n\n')
 if (file.exists(cn.file)) {
    cn_file <- read.table(cn.file, header =T, check.names=F, sep="\t", stringsAsFactors = F, comment.char="")
-   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir,"/peaks/all_peaks.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/temp/peaks_with_cn.bed"))
-   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir, "/temp/genes.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/temp/genes_with_cn.bed"))
+   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir,"/peaks/all_peaks.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/processed_cn_data/peaks_with_cn.bed"))
+   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir, "/temp/genes.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/processed_cn_data/genes_with_cn.bed"))
    #system(paste0("intersectBed -wo -a ",annot.file," -b ",cn.file," | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/temp/genes_with_cn.bed"))
 
    #### add cn.call column to peaks with copy number  
-   pks.cn <-read.table(paste0(out.dir,'/temp/peaks_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
+   pks.cn <-read.table(paste0(out.dir,'/processed_cn_data/peaks_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
    colnames(pks.cn) <- c('p.name', 'sample','cn.value')
    pks.cn$cn.call <- "neut"
    pks.cn[pks.cn$cn.value > t.amp, 'cn.call'] <- "amp"
    pks.cn[pks.cn$cn.value < t.del, 'cn.call'] <- "del"
-   write.table(pks.cn, file=paste0(out.dir,'/temp/peaks_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
+   write.table(pks.cn, file=paste0(out.dir,'/processed_cn_data/peaks_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
 
    #### add cn.call column to genes with copy number 
-   genes.cn <- read.table(paste0(out.dir,'/temp/genes_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
+   genes.cn <- read.table(paste0(out.dir,'/processed_cn_data/genes_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
    colnames(genes.cn) <- c('gene', 'sample','cn.value')
    genes.cn$cn.call <- "neut"
    genes.cn[genes.cn$cn.value > t.amp, 'cn.call'] <- "amp"
    genes.cn[genes.cn$cn.value < t.del, 'cn.call'] <- "del"
-   write.table(genes.cn, file=paste0(out.dir,'/temp/genes_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
+   write.table(genes.cn, file=paste0(out.dir,'/processed_cn_data/genes_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
 
 } else {
   stop ("Copy number file wasn't found!.\n")
@@ -238,9 +240,9 @@ for (i in 1:nrow(res)){
   pk.genes.effected <- unique(as.character(p.genes.res[p.genes.res$p_value < pval, 'gene']))
   
   if (length(pk.genes.effected) != 0) {
-    d2 <- data.frame(p.name=p, genes.effected = paste(pk.genes.effected,collapse = "|"))
+    d2 <- data.frame(p.name=p, genes.effected = paste(pk.genes.effected,collapse = "|"), peak.pval = SVs_vs_non.SVs$p.value)
   } else {
-    d2 <- data.frame(p.name=p, genes.effected=NA)
+    d2 <- data.frame(p.name=p, peak.pval = SVs_vs_non.SVs$p.value, genes.effected=NA, peak.pval = SVs_vs_non.SVs$p.value)
   }
   
   #### combine results 
@@ -251,6 +253,7 @@ for (i in 1:nrow(res)){
 
 ### merge and write resulls
 res.final <- merge(res, final.res, sort =F)
+res.final <- res.final[order(res.final$peak.pval), ]
 write.table(res.final, file=paste0(out.dir, '/annotated_peaks_summary_final.tsv'), sep="\t", quote=F, row.names=F)
 
 #### extract significant genes and write results 
