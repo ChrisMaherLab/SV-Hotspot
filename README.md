@@ -1,5 +1,5 @@
 # SV-HotSpot
-<img align="left" width="150" src="images/logo.png">
+<img align="left" width="150" src="images/logo.png" alt="tool logo">
 SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression. 
 
 ##
@@ -65,7 +65,7 @@ The tool requires as an inpute the following:
 
 1. Genome name as an abbreviation (e.g. hg38, hg19, mm9, mm10, etc.)
 
-2. Structural variants file in [BEDPE format](https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format) (Example of how to prepare this file is available in <b>test_data</b> folder)
+2. Structural variants file in [BEDPE format](https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format) (Example of how to prepare this file is available in <b>test_data</b> folder).
 
 3. Expression data in a matrix format where the first column represents the feature (e.g. gene) and columns represents samples. See the example provided at <b>test_data</b> folder. 
 
@@ -82,9 +82,11 @@ Optional files:
 All other parameters are optional and a default value was assigned to each (run ```sv-hotspot.pl --help``` for more details). 
 
 <br>
+
 <b>IMPORTANT NOTES:</b>
 
 * To prepare all your files, please look carefully at the examples provided in <b>test_data</b> and do accordingly. 
+* Structural variant types must be in the format of THREE letters. Possible SV types the tool accepts are: ```BND, DEL, DUP, INS, INV```. 
 * All files headers should be the same as the ones in the examples files. 
 * The chromosome names in all files should be consistent and in the format of <b>chr#</b>. 
 * The feature name in the annotation file should be the same as the one in the expression file. 
@@ -113,6 +115,10 @@ sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test
 
 Note that you need to change ```/SOME/PATH``` with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
 
+### Example of tool visualization 
+<img align="center" src="images/AR.png" alt="visualization example">
+
+##
 ### References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
