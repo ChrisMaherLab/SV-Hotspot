@@ -7,7 +7,7 @@ SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at 
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will help you to install and use SV-HotSpot tool. Please read carefully all instructions before using the tool. Also make sure that all prerequisites and R packages are installed with the versions specified.  
 
 ### Prerequisites
 
