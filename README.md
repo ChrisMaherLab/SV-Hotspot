@@ -134,9 +134,9 @@ plot-peak.pl -p pX.58 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_da
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
 
-### How to cite SV-HotSpot?
+## How to cite SV-HotSpot?
 
 Coming soon .... 
 
-### Contact
+## Contact
 Abdallah Eteleeb: eteleeb@gmail.com
