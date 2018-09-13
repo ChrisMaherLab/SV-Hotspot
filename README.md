@@ -3,7 +3,7 @@
 SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequecing data.  
 
 ##
-SV-HotSpot is developed at [Christopher Maher Lab](maherlab.com) at [Washington University in St. Louis](wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
+SV-HotSpot is developed at [Christopher Maher Lab](www.maherlab.com) at [Washington University in St. Louis](www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
 ## Getting Started
 
