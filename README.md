@@ -130,7 +130,7 @@ plot-peak.pl -p pX.58 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_da
 <img align="center" src="images/AR.png" alt="visualization example">
 
 ##
-### References
+## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
 
