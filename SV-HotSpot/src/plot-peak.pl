@@ -21,7 +21,6 @@ my $peak="";
 my $res_dir="";
 my $sv_file='0';
 my $output_dir = getcwd();
-my $annot_file='0';
 my $expr_file='0'; 
 my $cn_file='0';
 my $t_amp=2.8;
@@ -37,7 +36,6 @@ GetOptions
     'd|res-dir=s' =>\$res_dir,
     'sv=s' =>\$sv_file,
     'o|output=s' =>\$output_dir,
-    'a|annot=s' =>\$annot_file,  
     'e|expr=s' =>\$expr_file,
     'c|cn=s' =>\$cn_file,
     't-amp=f' =>\$t_amp,
@@ -48,23 +46,18 @@ GetOptions
     'roi-lbl=s' => \$roi_lbl
 );
 
-usage() if (!$peak | !$sv_file | !$res_dir | $expr_file | !$cn_file );
+usage() if (!$peak | !$sv_file | !$res_dir | !$expr_file | !$cn_file );
 
-#### check if annotation file and genes of interest file were provided otherwise use defaults
-if (!$annot_file) {
-   $annot_file = $TOOL_PATH.'/annotations/'.$genome.'/genes.bed'
-}
+print "\n---------------------------------------------\n";
+print "            Plotting Peak: $peak\n";
+print "---------------------------------------------\n";
 
-print "\n--------------------------------------------------\n";
-print "STEP 4: Visualizing hotspot regions \n";
-print "--------------------------------------------------\n";
-
-if ($expr_file & $cn_file) {
+if ($expr_file && $cn_file) {
    # check if the user provided chip-seq data, if yes run the script to prcess it (average over a windwo)
-   if ($chip_cov) {
-      print "Processing chip-seq data, please wait as this may take several minutes\n";
-      system("process_chip_data.r $chip_cov $output_dir");
-   } 
+   #if ($chip_cov) {
+   #   print "Processing chip-seq data, please wait as this may take several minutes\n";
+   #   system("process_chip_data.r $chip_cov $output_dir");
+   #} 
    system ("plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl");
 } else {
   print "Both expression and copy number data are required to generate visualization\n";

@@ -17,12 +17,13 @@ all.bp <- read.table(paste0(out.dir,'/temp/peaks_overlap_bp.tsv'), header =F, st
 colnames(all.bp) <- c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'pct.samples', 'sample', 'sv.type')
 all.bp <- unique(all.bp)
 sv.type.counts <- count(all.bp, c('p.name', 'sv.type'))
-pct.sv.fun <- function (pk){
+pct.sv.fun <- function (pk, w){
    p.sv <- sv.type.counts[sv.type.counts$p.name==pk, ]
    num.sam <- length(unique(all.bp[all.bp$p.name==pk, 'sample']))
+   density <- num.sam/w
    #num.sv.types<- sum(p.sv$freq)
    p.sv$pct.sv <- paste0(p.sv$sv.type, '(', signif((p.sv$freq/num.sam)*100, digits = 4), '%)')
-   dd <- data.frame(p.name=pk, num.samples = num.sam, pct.sv.types = paste(p.sv$pct.sv, collapse = "|"))
+   dd <- data.frame(p.name=pk, num.samples = num.sam, density, pct.sv.types = paste(p.sv$pct.sv, collapse = "|"))
    return (dd)
 }
 ####################################################################################################################
@@ -46,20 +47,21 @@ if (file.exists(paste0(out.dir,'/peaks_overlap_nearby_region_of_interest.tsv')))
 
 annot.peaks <- NULL
 for (i in 1:nrow(all.peaks)) {
-  p <- all.peaks$p.name[i]
-  p.res <- all.peaks[ all.peaks$p.name==p, ]
+  pk <- all.peaks$p.name[i]
+  p.res <- all.peaks[ all.peaks$p.name==pk, ]
   p.res$p.id <- NULL
+  p.width <- abs(p.res$p.stop- p.res$p.start)
   
   #### compute percentage of sv types 
-  pct.sv <- pct.sv.fun(p)  
+  pct.sv <- pct.sv.fun(pk, p.width)  
   p.res <- merge(p.res, pct.sv)
   
-  ov.genes <- unique(p.with.genes[p.with.genes$p.name==p & p.with.genes$g.pos=="overlap", 'gene'])
-  nearby.genes <- unique(p.with.genes[p.with.genes$p.name==p & p.with.genes$g.pos=="nearby", 'gene'])
+  ov.genes <- unique(p.with.genes[p.with.genes$p.name==pk & p.with.genes$g.pos=="overlap", 'gene'])
+  nearby.genes <- unique(p.with.genes[p.with.genes$p.name==pk & p.with.genes$g.pos=="nearby", 'gene'])
   
   if (is.roi.avail) {
-   ov.roi <- unique(p.with.roi[p.with.roi$p.name==p & p.with.roi$roi.pos=="overlap", 'roi.name'])
-   nearby.roi <- unique(p.with.roi[p.with.roi$p.name==p & p.with.roi$roi.pos=="nearby", 'roi.name']) 
+   ov.roi <- unique(p.with.roi[p.with.roi$p.name==pk & p.with.roi$roi.pos=="overlap", 'roi.name'])
+   nearby.roi <- unique(p.with.roi[p.with.roi$p.name==pk & p.with.roi$roi.pos=="nearby", 'roi.name']) 
 
   d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"),
                   overlap.roi=paste(ov.roi, collapse = "|"), nearby.roi=paste(nearby.roi, collapse = "|"))

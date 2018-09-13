@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
 
 # Find regions/peaks whose SVs altered expression of nearby genes
 # Written by Abdallah Eteleeb & Ha Dang
@@ -23,11 +23,6 @@ t.del = as.numeric(args[7])
 chip.cov.lbl= args[8]
 roi.lbl = args[9]
 plot.top.peaks = as.numeric(args[10])
-
-### Function to compute the 
-#give.n <- function(x){
-#  return(c(y = mean(x), label = length(x)))
-#}
 
 #### function to align figures 
 AlignPlots <- function(...) {
@@ -89,8 +84,10 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    g.corr = genes.in.p[genes.in.p$gene ==gene, ]
 
    ### extract SVs data
-   x = bp[bp$chr == pk.corr$p.chr & bp$pos > left & bp$pos < right,]
-   colnames(x) = gsub('svtype', 'SV type', colnames(x))
+   #x = bp[bp$chr == pk.corr$p.chr & bp$pos > left & bp$pos < right,]
+   x = cts[cts$chr == pk.corr$p.chr & cts$pos > left & cts$pos < right,]  ### using counts 
+   x = x[x$svtype !="ALL",]
+   #colnames(x) = gsub('svtype', 'SV type', colnames(x))
 
    ### make the title 
    title = paste0('Gene: ',gene,'\n (Peak locus: ',pk.corr$p.chr, ':',  pk.corr$p.start, '-',  pk.corr$p.stop, '; Peak name=', pk,'; Peak width=', width,'kb)')
@@ -136,7 +133,6 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
   }
 
   ################################## Plot DUP $ DEL Freq ####################################
-  #x = x[x$filter %in% c('PASS', 'MGE10kb'),]
   dup_del = pileUp(sv, pk.corr$p.chr, left, right)  
 
   #prepare breaks and labs in Mb
@@ -165,7 +161,9 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
     )
   
   ################################## plot SVs ###############################################
-  p2 = ggplot(x, aes(x=pos)) + geom_histogram(aes(fill=`SV type`), binwidth=binwidth)
+  x$svtype <- factor(x$svtype, levels=c('DUP','BND','INS','INV','DEL'))
+  #p2 = ggplot(x, aes(x=pos)) + geom_histogram(aes(fill=svtype), binwidth=binwidth)
+  p2 = ggplot(x, aes(x=pos, y=num.samples, fill=svtype)) + geom_bar(stat="identity")
   p2 = p2 + theme_bw() + xlab('') + ylab('Number of\nSV samples')
   #p2 = p2 + geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
   p2 = p2 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
@@ -184,8 +182,8 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
   ################################### plot chip-seq data ###################################
   if (is.chip.avail) {
      reg.chip = chip_seq[chip_seq$chrom == pk.corr$p.chr & chip_seq$pos > left | chip_seq$pos < right,]
-     
-     p3 = ggplot (reg.chip,aes(x=pos, y=mean.cov)) + geom_bar(stat="identity")
+
+     p3 = ggplot (reg.chip,aes(x=pos, y=mean.cov)) + geom_bar(stat="identity", width=D/200)
      p3 = p3 + theme_bw() + xlab('Genomic position') + ylab(chip.cov.lbl)
      #p3 = p3 + geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
      p3 = p3 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
@@ -233,6 +231,26 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
 }
 ############################################# END OF PLOT REGION FUNCTION ###################################################################
 
+### read structural variants file 
+if (file.exists((sv.file))) {
+   sv <- read.table(sv.file, header =T, sep="\t", stringsAsFactors = F, check.names=F)
+   sv$sample = sub('/.*$', '', sv$name)
+   sv$svtype = sub('^.*/', '', sv$name)
+   sv = sv[sv$svtype %in% c('DUP', 'DEL'),]
+   sv$pos1 = (sv$start1 + sv$end1)/2
+   sv$pos2 = (sv$start2 + sv$end2)/2
+} else {
+   stop('structural variants file was not found!')
+}
+
+### read windows counts file 
+if (file.exists(paste0(out.dir,'/count.rds')) ){
+  cat('Reading sliding window sample count...\n')
+  cts = readRDS(paste0(out.dir,'/count.rds'))
+} else {
+  stop ("File \"count.rds\" was not found, make sure this file exists.\n")
+}
+
 ### read annotated peaks summary file 
 res = read.table(paste0(out.dir, '/annotated_peaks_summary_final.tsv'), header=T, sep='\t', stringsAsFactors=F)
 ### filter peaks with effected genes only 
@@ -255,19 +273,15 @@ dir.create(paste0(out.dir,'/peaks-plots'))
 ### check if the user provided copy number and or chip.seq 
 is.cn.avail = FALSE
 is.chip.avail = FALSE
-if(cn.file !=0 ) { is.cn.avail = TRUE }
-if(chip.seq != 0 ) { is.chip.avail = TRUE }
+if(cn.file !=0 ) { 
+  is.cn.avail = TRUE 
+}
 
-### read structural variants file 
-if (file.exists((sv.file))) {
-   sv <- read.table(sv.file, header =T, sep="\t", stringsAsFactors = F, check.names=F)
-   sv$sample = sub('/.*$', '', sv$name)
-   sv$svtype = sub('^.*/', '', sv$name)
-   sv = sv[sv$svtype %in% c('DUP', 'DEL'),]
-   sv$pos1 = (sv$start1 + sv$end1)/2
-   sv$pos2 = (sv$start2 + sv$end2)/2
-} else {
-   stop('structural variants file was not found!')
+if(chip.seq != 0 ) { 
+  is.chip.avail = TRUE 
+  chiph = 1.5
+} else { 
+  chiph = NULL
 }
 
 ### read chip-seq coverage file 
@@ -296,17 +310,17 @@ if (is.cn.avail) {
    }
 
    ### read peaks with copy number data (processed file) 
-   if (file.exists(paste0(out.dir,'/processed_cn_data/peaks_with_cn.bed'))) {
+   if (file.exists(paste0(out.dir,'/temp/peaks_with_cn.bed'))) {
       cat('Reading peaks copy number data...\n')
-      pks.cn <- read.table(paste0(out.dir,'/processed_cn_data/peaks_with_cn.bed'), header =T, check.names=F, sep="\t", stringsAsFactors = F)
+      pks.cn <- read.table(paste0(out.dir,'/temp/peaks_with_cn.bed'), header =T, check.names=F, sep="\t", stringsAsFactors = F)
    } else {
       stop ("Peaks copy number file doesn't exist!.\n")
    }
 
   ### read genes with copy number data (processed file)
-  if (file.exists(paste0(out.dir,'/processed_cn_data/genes_with_cn.bed'))) {
+  if (file.exists(paste0(out.dir,'/temp/genes_with_cn.bed'))) {
      cat('Reading genes copy number data...\n')
-     genes.cn <- read.table(paste0(out.dir,'/processed_cn_data/genes_with_cn.bed'), header =T, check.names=F, sep="\t", stringsAsFactors = F)
+     genes.cn <- read.table(paste0(out.dir,'/temp/genes_with_cn.bed'), header =T, check.names=F, sep="\t", stringsAsFactors = F)
   } else {
      stop ("Genes copy number file doesn't exist!.\n")
   }
@@ -323,11 +337,11 @@ pks = read.table(paste0(out.dir, '/temp/peaks_overlap_bp.tsv'), header=F, string
 colnames(pks) <- c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'pct.samples', 'sample', 'sv.type')
 
 ### get window sample counts
-if (file.exists(paste0(out.dir, '/count.rds'))){
-  cnt = readRDS(paste0(out.dir, '/count.rds'))
-} else {
-  stop ("count.rds file doesn't exist!.\n")
-}
+#if (file.exists(paste0(out.dir, '/count.rds'))){
+#  cnt = readRDS(paste0(out.dir, '/count.rds'))
+#} else {
+#  stop ("count.rds file doesn't exist!.\n")
+#}
 
 ### read gene overlap/nearby peaks 
 genes.and.peaks <- read.table(paste0(out.dir,'/peaks_with_overlap_nearby_genes.tsv'), header =F, sep="\t", stringsAsFactors=F, check.names=F)
@@ -375,8 +389,10 @@ if (file.exists(paste0(out.dir,'/temp/reg_of_int.bed'))) {
   roi = read.table(paste0(out.dir, '/temp/reg_of_int.bed'), header =F, sep="\t", stringsAsFactors=F)
   roi = roi[,1:4] 
   colnames(roi) = c('chr','start','stop','roi.name')
+  roih = 1
 } else {
   is.roi.avail = FALSE
+  roih = NULL
 }
 
 #### plot peaks 
@@ -547,9 +563,8 @@ for (i in 1:nrow(res)){
       cnh = 2
       ddh = 2
       svh = 2
-      chiph = 1.5
       geneh = 1
-      roih = 1
+     
       heights = c(cnh, ddh, svh, chiph, geneh, roih)
 
       grid.arrange(grobs=all.plots, nrow=length(p.reg),ncol=2, layout_matrix=mat, heights = heights, widths=c(5.5,length(levels(factor(g.exp$group)))*0.5))

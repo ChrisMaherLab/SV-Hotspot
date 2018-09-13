@@ -180,7 +180,7 @@ print "\n--------------------------------------------------\n";
 print "STEP 4: Visualizing hotspot regions \n";
 print "--------------------------------------------------\n";
 
-if ($expr_file & $cn_file) {
+if ($expr_file && $cn_file) {
    # check if the user provided chip-seq data, if yes run the script to prcess it (average over a windwo)
    if ($chip_cov) {
       print "Processing chip-seq data, please wait as this may take several minutes\n";

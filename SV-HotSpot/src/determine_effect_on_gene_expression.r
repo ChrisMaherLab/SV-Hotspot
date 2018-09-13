@@ -53,25 +53,25 @@ dir.create(paste0(out.dir,'/processed_cn_data'))
 cat('Reading copy number data...\n\n')
 if (file.exists(cn.file)) {
    cn_file <- read.table(cn.file, header =T, check.names=F, sep="\t", stringsAsFactors = F, comment.char="")
-   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir,"/peaks/all_peaks.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/processed_cn_data/peaks_with_cn.bed"))
-   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir, "/temp/genes.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/processed_cn_data/genes_with_cn.bed"))
+   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir,"/peaks/all_peaks.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/temp/peaks_with_cn.bed"))
+   system(paste0("grep -v chrom ", cn.file,"| intersectBed -wo -a ", out.dir, "/temp/genes.bed -b - | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/temp/genes_with_cn.bed"))
    #system(paste0("intersectBed -wo -a ",annot.file," -b ",cn.file," | sort -k4,4 -k10,10 | groupBy -g 4,10 -c 11 -o max > ", out.dir,"/temp/genes_with_cn.bed"))
 
    #### add cn.call column to peaks with copy number  
-   pks.cn <-read.table(paste0(out.dir,'/processed_cn_data/peaks_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
+   pks.cn <-read.table(paste0(out.dir,'/temp/peaks_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
    colnames(pks.cn) <- c('p.name', 'sample','cn.value')
    pks.cn$cn.call <- "neut"
    pks.cn[pks.cn$cn.value > t.amp, 'cn.call'] <- "amp"
    pks.cn[pks.cn$cn.value < t.del, 'cn.call'] <- "del"
-   write.table(pks.cn, file=paste0(out.dir,'/processed_cn_data/peaks_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
+   write.table(pks.cn, file=paste0(out.dir,'/temp/peaks_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
 
    #### add cn.call column to genes with copy number 
-   genes.cn <- read.table(paste0(out.dir,'/processed_cn_data/genes_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
+   genes.cn <- read.table(paste0(out.dir,'/temp/genes_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
    colnames(genes.cn) <- c('gene', 'sample','cn.value')
    genes.cn$cn.call <- "neut"
    genes.cn[genes.cn$cn.value > t.amp, 'cn.call'] <- "amp"
    genes.cn[genes.cn$cn.value < t.del, 'cn.call'] <- "del"
-   write.table(genes.cn, file=paste0(out.dir,'/processed_cn_data/genes_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
+   write.table(genes.cn, file=paste0(out.dir,'/temp/genes_with_cn.bed'), sep="\t", quote=F, row.names=F) #### to be used later for visualization 
 
 } else {
   stop ("Copy number file wasn't found!.\n")

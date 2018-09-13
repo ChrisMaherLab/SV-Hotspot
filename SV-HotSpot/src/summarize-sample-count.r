@@ -17,7 +17,7 @@ library(gridExtra)
 library(ggplot2)
 library(reshape2)
 
-#read window vs break point overlap from bedtools
+#read window vs break point overlap 
 cat('Reading window data...\n')
 x = read.table(paste0(out.dir,'/temp/genome.segments.with.bps.bed'), header=F, sep='\t', stringsAsFactors=F)
 x = x[, c(1,2,3,7)]
@@ -39,6 +39,10 @@ w = x[, c('chr', 'start', 'stop')]
 w = w[!duplicated(w),]
 rownames(w) = paste(w$chr, w$start, w$stop, sep='_')
 cat('Found total', nrow(w), 'unique windows\n')
+
+###
+#system(paste0("cut -f1-4 | sort | uniq | groupBy -g 1,2,3 -c 4 -o count > ", out.dir, "/counts.rds")) 
+###
 
 # count number of samples having at least one break point in each window
 # return data.frame of sample count and details for all windows
@@ -81,99 +85,8 @@ for (svtype in svtypes){
     aaa = rbind(aaa, countSamples(x, svtype))
 }
 zz = aaa
-#dim(zz)
+
+### write final counts 
 saveRDS(zz, file=file.path(out.dir, 'count.rds'))
-
-
-# read features of interest to plot along with results
-g = read.table(paste0(out.dir,'/temp/genes-of-interest.bed'), header=F, stringsAsFactors=F)
-colnames(g) = c('chr', 'start', 'stop', 'gene')
-g$pos = (g$start + g$stop)/2
-
-# read breakpoints (to plot)
-#cat('Reading original breakpoints...\n')
-bp = read.table(paste0(out.dir,'/temp/all_bp.bed'), header=F, stringsAsFactors=F, sep='\t')
-colnames(bp) = c('chr', 'start', 'stop', 'sample', 'score')
-bp$type = gsub('^.*/', '', bp$sample)
-bp$sample = gsub('/.*', '', bp$sample)
-bp$pos = (bp$start + bp$stop)/2
-bp = bp[bp$type %in% svtypes,]
-
-printp <- function(p){
-    plot.new()
-    vps = baseViewports()
-    pushViewport(vps$figure)
-    vp1 = plotViewport(c(0,0,0,0))
-    print(p, vp=vp1)
-    popViewport()
-}
-
-# Plot bk count, sample count by chr
-if (plotit){
-    cat('Plotting...\n')
-    #dir.create(out.dir)   ### created in the pipeline (modified by me)
-    plot.out.dir = file.path(out.dir , 'plots')
-    dir.create(plot.out.dir)
-    colors = c('red', 'blue', 'green', 'purple', 'cyan', 'orange', 'black', 'black')
-    names(colors) = c('ALL', svtypes)
-    for (chr in unique(zz$chr)){
-        cat(chr, '\n')
-        g1 = g[g$chr == chr,]
-        fake = data.frame(chr=chr, pos=-1000, gene='', stringsAsFactors=F)
-        if (nrow(g1) == 0){g1 = fake}
-        g1$y = -5
-
-        zz1 = zz[zz$chr == chr,]
-
-        maxx = max(zz1$stop)
-        minx = min(zz1$start) - 0.025*maxx
-        maxx = maxx*1.025
-
-        png(paste0(plot.out.dir, '/', chr, '.png'), units='in', res=300, width=11, height=9)
-        par(mfrow=c(length(svtypes) + 2,1))
-
-        # histogram plot for # of break points
-        p1 = (ggplot(bp[bp$chr == chr,], aes(x=pos))
-            + geom_histogram(binwidth=100000)
-            + theme_bw()
-            + scale_x_continuous(limits=c(minx, maxx))
-            + scale_y_continuous('# breakpoints', limits=c(0, 100))
-            + xlab('chr position')
-        )
-        printp(p1)
-
-        # sliding window plot for # of samples for each type of break points
-        for (svtype in c('ALL', svtypes)){
-            zz2 = zz1[zz1$svtype == svtype & zz1$pct.samples > 0, ]
-            p2 = (ggplot(zz2, aes(x=pos, y=pct.samples))
-                #+ geom_bar(stat='identity', fill=colors[svtype], color=colors[svtype])
-                + geom_bar(stat='identity', fill=colors[svtype], size=0)
-                + theme_bw()
-                + geom_text(data=g1, aes(x=pos, y=y, label=gene), angle=90, hjust=1,color='blue', size=1.5)
-                + scale_x_continuous(limits=c(minx, maxx))
-                + xlab(NULL)
-                + scale_y_continuous('% samples', limits=c(-20, 100))
-                + annotate('text', x=0, y=50, label=svtype, color=colors[svtype])
-            )
-            printp(p2)
-        }
-
-        dev.off()
-    }
-}
-
-# prepare data for circos
-#cat('Preparing circos track...\n')
-#circos.out.dir = file.path(out.dir, 'files_for_circos_plots')
-#dir.create(circos.out.dir)
-#for (svtype in c('ALL', svtypes)){
-#    cat(svtype, '\n')
-#    zz1 = zz[zz$svtype == svtype & zz$pct.samples > 0,]
-#    zz1$chr = gsub('chr', 'hs', zz1$chr)
-#    write.table(zz1[, c('chr', 'start', 'stop', 'pct.samples')],
-#        file= paste0(circos.out.dir, '/pct-samples-per-window.', svtype, '.tsv'),
-#        row.names=F, sep='\t', quote=F)
-#}
-
 
 
