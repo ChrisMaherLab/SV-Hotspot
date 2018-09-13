@@ -1,5 +1,4 @@
-#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
-###/usr/bin/env Rscript3.1.2
+#!/usr/bin/Rscript
 
 args = commandArgs(T)
 #args = c('output/count.rds', 'ALL', 'chr14,chr21,chrX', '100', '5', 'output/peaks')
