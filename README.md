@@ -1,8 +1,10 @@
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
-SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression. 
+SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequecing data.  
 
 ##
+SV-HotSpot is developed at [Christopher Maher Lab](maherlab.com) at [Washington University in St. Louis](wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -135,3 +137,6 @@ plot-peak.pl -p pX.58 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_da
 ## License
 
 Coming soon .... 
+
+### Contact
+Abdallah Eteleeb: eteleeb@gmail.com
