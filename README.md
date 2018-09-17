@@ -1,11 +1,13 @@
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
-SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression. 
+SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequecing data.  
 
 ##
+SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
+
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will help you to install and use SV-HotSpot tool. Please read carefully all instructions before using the tool. Also make sure that all prerequisites and R packages are installed with the versions specified.  
 
 ### Prerequisites
 
@@ -115,14 +117,26 @@ sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test
 
 Note that you need to change ```/SOME/PATH``` with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
 
+### Plot Peak
+Considering the large number of peaks (hotspots) the tool detectes, only the top 10 (the default) peaks are plotted. You can change this value to any number by provding ```--plot-top-peaks=#``` but be aware this process takes a long time. Therefore, we provided a script to plot a peaks. To plot a peak, you need to provide the peak name, SV file, the results directory, the expression, and the copy number data. The following command plots peaks "pX.58" as an exmaple. 
+
+```
+plot-peak.pl -p pX.58 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_data/enhancers.bed 
+             -e test_data/exp.tsv -c test_data/cna.tsv --chip-cov test_data/H2K27ac.bg -o /SOME/PATH 
+             --t-amp 1.4 --t-del 0.5 -p 0.05 --chip-cov-lbl H2K27ac --roi-lbl enhancers
+```
+
 ### Example of tool visualization 
 <img align="center" src="images/AR.png" alt="visualization example">
 
 ##
-### References
+## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
 
-## License
+## How to cite SV-HotSpot?
 
 Coming soon .... 
+
+## Contact
+Abdallah Eteleeb: eteleeb@gmail.com
