@@ -29,6 +29,8 @@ my $region_of_int='0';
 my $chip_cov='0';
 my $chip_cov_lbl="";
 my $roi_lbl ="";
+my $left_ext = 0;
+my $rigth_ext = 0;
 
 GetOptions
 (
@@ -43,7 +45,9 @@ GetOptions
     'r|region-of-int=s' =>\$region_of_int,
     'chip-cov=s' =>\$chip_cov,
     'chip-cov-lbl=s' => \$chip_cov_lbl,
-    'roi-lbl=s' => \$roi_lbl
+    'roi-lbl=s' => \$roi_lbl,
+    'left-ext=i' => \$left_ext,
+    'rigth-ext=i' => \$rigth_ext
 );
 
 usage() if (!$peak | !$sv_file | !$res_dir | !$expr_file | !$cn_file );
@@ -58,7 +62,7 @@ if ($expr_file && $cn_file) {
    #   print "Processing chip-seq data, please wait as this may take several minutes\n";
    #   system("process_chip_data.r $chip_cov $output_dir");
    #} 
-   system ("plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl");
+   system ("plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $left_ext $rigth_ext");
 } else {
   print "Both expression and copy number data are required to generate visualization\n";
   exit(0);

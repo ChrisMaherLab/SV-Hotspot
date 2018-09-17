@@ -87,6 +87,6 @@ for (svtype in svtypes){
 zz = aaa
 
 ### write final counts 
-saveRDS(zz, file=file.path(out.dir, 'count.rds'))
+saveRDS(zz, file=file.path(out.dir, 'counts.rds'), compress=FALSE)
 
 

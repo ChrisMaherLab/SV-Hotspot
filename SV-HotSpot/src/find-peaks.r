@@ -1,5 +1,6 @@
 #!/usr/bin/Rscript
 
+
 args = commandArgs(T)
 #args = c('output/count.rds', 'ALL', 'chr14,chr21,chrX', '100', '5', 'output/peaks')
 #args = c('output/count.rds', 'ALL', 'ALL', '100', '5', 'output/peaks')
@@ -19,9 +20,9 @@ dist = as.numeric(args[7])
 sv.path=args[8]
 genes.of.int <- args[9]
 
-if (file.exists(paste0(out.dir,'/count.rds')) ){
+if (file.exists(paste0(out.dir,'/counts.rds')) ){
   cat('Reading sliding window sample count...\n')
-  x0 = readRDS(paste0(out.dir,'/count.rds'))
+  x0 = readRDS(paste0(out.dir,'/counts.rds'))
 } else {
   stop ("File \"count.rds\" was not found, make sure this file exists.\n")
 }

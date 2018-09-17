@@ -23,6 +23,8 @@ t.del = as.numeric(args[7])
 chip.cov.lbl= args[8]
 roi.lbl = args[9]
 plot.top.peaks = as.numeric(args[10])
+#left.ext = as.numeric(args[11])
+#rigth.ext = as.numeric(args[12])
 
 #### function to align figures 
 AlignPlots <- function(...) {
@@ -70,6 +72,10 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    left =  min(pk.corr$p.start, pk.corr$p.stop, genes.in.p$g.start, genes.in.p$g.stop)
    width = abs(pk.corr$p.stop - pk.corr$p.start)/1000
 
+   ### add left and right extensions if provided 
+   left <- left - left.ext     
+   right <- right + rigth.ext
+
    #D = right - left
    #left = left - D*0.1
    #right = right + D*0.1
@@ -87,7 +93,11 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    #x = bp[bp$chr == pk.corr$p.chr & bp$pos > left & bp$pos < right,]
    x = cts[cts$chr == pk.corr$p.chr & cts$pos > left & cts$pos < right,]  ### using counts 
    x = x[x$svtype !="ALL",]
-   #colnames(x) = gsub('svtype', 'SV type', colnames(x))
+   
+   ### for DUP and DEL only 
+   x2 = x 
+   x2 = x2[x2$svtype  %in% c("DUP","DEL"),]
+   x2[x2$svtype == "DEL", "num.samples"] <-  x2[x2$svtype == "DEL", "num.samples"] * -1
 
    ### make the title 
    title = paste0('Gene: ',gene,'\n (Peak locus: ',pk.corr$p.chr, ':',  pk.corr$p.start, '-',  pk.corr$p.stop, '; Peak name=', pk,'; Peak width=', width,'kb)')
@@ -104,14 +114,14 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
      chr.name=unique(reg.cn$chr)
      reg.win = data.frame(chr=chr.name, start=seq(imin,imax,s))
      reg.win$stop = reg.win$start + s - 1
-     write.table(reg.cn, file=paste0(out.dir,'/temp/reg.cn.tsv'), quote=F, row.names=F, sep="\t", col.names=F)
-     write.table(reg.win, file=paste0(out.dir,'/temp/reg.win.tsv'), quote=F, row.names=F, sep="\t", col.names=F)
+     write.table(reg.cn, file=paste0(res.dir,'/temp/reg.cn.tsv'), quote=F, row.names=F, sep="\t", col.names=F)
+     write.table(reg.win, file=paste0(res.dir,'/temp/reg.win.tsv'), quote=F, row.names=F, sep="\t", col.names=F)
 
      ### overlap windows with copy number 
      #cat ("Overlapping windows with copy number ..")
-     system(paste0("intersectBed -wo -a ",out.dir,"/temp/reg.win.tsv -b ", out.dir,"/temp/reg.cn.tsv | cut -f2,3,7,9 | sort | uniq | sort -k1,1 -k2,2 | groupBy -full -g 1,2 -c 4 -o count | cut -f2-6 > ", out.dir, "/temp/win_cn.tsv")) 
+     system(paste0("intersectBed -wo -a ",res.dir,"/temp/reg.win.tsv -b ", res.dir,"/temp/reg.cn.tsv | cut -f2,3,7,9 | sort | uniq | sort -k1,1 -k2,2 | groupBy -full -g 1,2 -c 4 -o count | cut -f2-6 > ", res.dir, "/temp/win_cn.tsv")) 
 
-     win.data = read.table(paste0(out.dir,"/temp/win_cn.tsv"), header = F, sep ="\t")
+     win.data = read.table(paste0(res.dir,"/temp/win_cn.tsv"), header = F, sep ="\t")
      colnames(win.data) = c('start', 'stop','sample', 'cn.call', 'num.samples')
      win.data$pos = (win.data$start + win.data$stop)/2
      ### add dummy data for visualization purpuses 
@@ -124,10 +134,11 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
      p0 = p0 + theme_bw() + xlab('') + ylab('Copy number\nfrequency') + ggtitle(title)
      p0 = p0 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
                    plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
-                   axis.text.x=element_blank(), axis.text.y=element_text(size=14, color="black"),
-                   axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=14, color="black"),
+                   axis.text.x=element_blank(), axis.text.y=element_text(size=12, color="black"),
+                   axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"),
                    legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
-     p0 = p0 + xlim(min(x$pos), max(x$pos) )
+     #p0 = p0 + xlim(min(x$pos), max(x$pos) )
+     p0 = p0 + xlim(left, right )
      p0 = p0 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
      #p1 = p1 + scale_y_continuous(breaks = seq(min(reg.cn$cn), max(reg.cn$cn),10))
   }
@@ -145,14 +156,14 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
     p1 = (ggplot(dup_del)
     + geom_segment(aes(x=pos1, xend=pos2, y=samp, yend=samp, color=svtype))
     + theme_bw(base_size=8)
-    #+ coord_cartesian(xlim=c(left, right))
-    + coord_cartesian(xlim=c(min(x$pos), max(x$pos)))
+    + coord_cartesian(xlim=c(left, right))
+    #+ coord_cartesian(xlim=c(min(x$pos), max(x$pos)))
     + ylab('Duplications &\nDeletions freq.')
     + scale_x_continuous(breaks=brks)
     + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
             plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
             axis.text.x=element_blank(), axis.text.y=element_blank(), legend.key=element_rect(fill=NA),
-            axis.title.x=element_blank(), axis.title.y=element_text(size=14, color="black"),
+            axis.title.x=element_blank(), axis.title.y=element_text(size=12, color="black"),
             legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
     + scale_color_manual(name="", values=c('DUP'='#b53f4d', 'DEL'='#2c7fb8'), guide = guide_legend(override.aes = list(size = 7)))
     + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
@@ -160,22 +171,42 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
     #+ xlim(min(x$pos), max(x$pos) )
     )
   
-  ################################## plot SVs ###############################################
-  x$svtype <- factor(x$svtype, levels=c('DUP','BND','INS','INV','DEL'))
-  #p2 = ggplot(x, aes(x=pos)) + geom_histogram(aes(fill=svtype), binwidth=binwidth)
-  p2 = ggplot(x, aes(x=pos, y=num.samples, fill=svtype)) + geom_bar(stat="identity")
+  ################################## plot SVs (DUP and DEL only) ###############################################
+  x2$svtype <- factor(x2$svtype, levels=c('DUP','BND','INS','INV','DEL'))
+  p2 = ggplot(x2, aes(x=pos, y=num.samples, fill=svtype)) + geom_bar(stat="identity")
   p2 = p2 + theme_bw() + xlab('') + ylab('Number of\nSV samples')
   #p2 = p2 + geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
   p2 = p2 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
   p2 = p2 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
                  plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
-                 axis.text.x=element_blank(), axis.text.y=element_text(size=14, color="black"),
-                 axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=14, color="black"),
+                 axis.text.x=element_blank(), axis.text.y=element_text(size=12, color="black"),
+                 axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"),
                  legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
    #p2 = p2 + scale_y_continuous(label=paste0(x$pos/1e6,'M'))
-   p2 = p2 + xlim(min(x$pos), max(x$pos) )
+   #p2 = p2 + xlim(min(x$pos), max(x$pos) )
+   p2 = p2 + xlim(left, right )
    #p2 = p2 + guides(fill = guide_legend(override.aes = list(size=7)))
    p2 = p2 + scale_fill_manual(name="SV type", values=c('BND'='#2ca25f','INS'='#fec44f', 'INV'='#c994c7', 'DUP'='#b53f4d', 'DEL'='#2c7fb8'), 
+                                        labels=c('BND'='BND','INS'='INS', 'INV'='INV', 'DUP'='DUP', 'DEL'='DEL'),
+                                        guide = guide_legend(override.aes = list(size = 7)))
+
+ ################################## plot SVs (all) ###############################################
+  x$svtype <- factor(x$svtype, levels=c('DUP','BND','INS','INV','DEL'))
+  #p2 = ggplot(x, aes(x=pos)) + geom_histogram(aes(fill=svtype), binwidth=binwidth)
+  p22 = ggplot(x, aes(x=pos, y=num.samples, fill=svtype)) + geom_bar(stat="identity")
+  p22 = p22 + theme_bw() + xlab('') + ylab('Number of\nSV samples')
+  #p22 = p22 + geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
+  p22 = p22 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+  p22 = p22 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+                 plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
+                 axis.text.x=element_blank(), axis.text.y=element_text(size=12, color="black"),
+                 axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"),
+                 legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
+   #p22 = p22 + scale_y_continuous(label=paste0(x$pos/1e6,'M'))
+   #p22 = p22 + xlim(min(x$pos), max(x$pos) )
+   p22 = p22 + xlim(left, right )
+   #p22 = p22 + guides(fill = guide_legend(override.aes = list(size=7)))
+   p22 = p22 + scale_fill_manual(name="SV type", values=c('BND'='#2ca25f','INS'='#fec44f', 'INV'='#c994c7', 'DUP'='#b53f4d', 'DEL'='#2c7fb8'), 
                                         labels=c('BND'='BND','INS'='INS', 'INV'='INV', 'DUP'='DUP', 'DEL'='DEL'),
                                         guide = guide_legend(override.aes = list(size = 7)))
 
@@ -188,9 +219,10 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
      #p3 = p3 + geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
      p3 = p3 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
      p3 = p3 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-                  axis.text.x=element_text(size=12, color="black"), axis.text.y=element_text(size=14, color="black"),
-                  axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=14, color="black"))
-     p3 = p3 + xlim(min(x$pos), max(x$pos) )
+                  axis.text.x=element_text(size=12, color="black"), axis.text.y=element_text(size=12, color="black"),
+                  axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"))
+     #p3 = p3 + xlim(min(x$pos), max(x$pos) )
+     p3 = p3 + xlim(left, right )
   } else {
     p3 = NULL
   }
@@ -199,11 +231,12 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
   p4 = ggplot(genes.in.p) + geom_segment(aes(x=g.start, xend=g.stop, y=2, yend=2), color=ifelse(genes.in.p$gene==gene,'red','blue'), size=3.5) + theme_bw() 
   p4 = p4 + geom_text(data=genes.in.p, aes(x=(g.start+g.stop)/2, y=1.7, yend=1.7,label=paste0(gene, ' (',g.strand,')')), color=ifelse(genes.in.p$gene==gene,'red','blue'), size=3.5, hjust=0.5)
   p4 = p4 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-                  axis.ticks=element_blank(), axis.title.y=element_text(size=14, color="black"),
+                  axis.ticks=element_blank(), axis.title.y=element_text(size=12, color="black"),
                   panel.background=element_blank(), panel.border=element_blank(),
                   axis.text=element_blank(), axis.title.x=element_blank())
   p4 = p4 + ylab('Gene \n annotation')
   #p4 = p4 + xlim(min(x$pos), max(x$pos) )
+  p4 = p4 + xlim(left, right )
   p4 = p4 + scale_y_continuous(breaks=c(1,2), limits=c(1, 2))
 
   ################################## plot region of interest annotation ###############################################
@@ -211,11 +244,12 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
      p5 = ggplot(p.roi) + geom_segment(aes(x=start, xend=stop, y=0, yend=0), color='black', size=6)
      #p5 = p5 + geom_text(data=p.roi, aes(x=(start+stop)/2, y=-0.5, yend=-0.5, label=roi.name), color='black', size=3, hjust=0, angle=90)
      p5 = p5 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-                     axis.ticks=element_blank(), axis.title.y=element_text(size=14, color="black"),
+                     axis.ticks=element_blank(), axis.title.y=element_text(size=12, color="black"),
                      panel.background=element_blank(), panel.border=element_blank(),
                      axis.text=element_blank(), axis.title.x=element_blank())
      p5 = p5 + ylab(roi.lbl)
-     p5 = p5 + xlim(min(x$pos), max(x$pos) )
+     #p5 = p5 + xlim(min(x$pos), max(x$pos) )
+     p5 = p5 + xlim(left, right )
      #p5 = p5 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
      #p5 = p5 + scale_y_continuous(breaks=c(-0.5,0), limits=c(-0.5, 0))
   } else { 
@@ -223,8 +257,8 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
   } 
 
   ### make plots list 
-  plots <- list(p0,p1,p2,p3,p4,p5)
-  names(plots) <- c( "p0", "p1","p2", "p3", "p4","p5")
+  plots <- list(p0,p1,p2,p22,p3,p4,p5)
+  names(plots) <- c( "p0", "p1","p2","p22","p3", "p4","p5")
   plots <- plots[!sapply(plots, is.null)]
   return (plots)
 
@@ -244,9 +278,9 @@ if (file.exists((sv.file))) {
 }
 
 ### read windows counts file 
-if (file.exists(paste0(out.dir,'/count.rds')) ){
+if (file.exists(paste0(out.dir,'/counts.rds')) ){
   cat('Reading sliding window sample count...\n')
-  cts = readRDS(paste0(out.dir,'/count.rds'))
+  cts = readRDS(paste0(out.dir,'/counts.rds'))
 } else {
   stop ("File \"count.rds\" was not found, make sure this file exists.\n")
 }
@@ -279,7 +313,7 @@ if(cn.file !=0 ) {
 
 if(chip.seq != 0 ) { 
   is.chip.avail = TRUE 
-  chiph = 1.5
+  chiph = 2
 } else { 
   chiph = NULL
 }
@@ -562,10 +596,11 @@ for (i in 1:nrow(res)){
       ### set the height 
       cnh = 2
       ddh = 2
-      svh = 2
+      svh1 = 2
+      svh2 = 2
       geneh = 1
      
-      heights = c(cnh, ddh, svh, chiph, geneh, roih)
+      heights = c(cnh, ddh, svh1,svh2, chiph, geneh, roih)
 
       grid.arrange(grobs=all.plots, nrow=length(p.reg),ncol=2, layout_matrix=mat, heights = heights, widths=c(5.5,length(levels(factor(g.exp$group)))*0.5))
       dev.off()
