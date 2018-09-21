@@ -111,8 +111,8 @@ To test the tool, just run the following command:
 
 ```
 sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test_data/exp.tsv 
-              -c test_data/cna.tsv --chip-cov test_data/H2K27ac.bg -o /SOME/PATH --t-amp 1.4 
-              --t-del 0.5 -p 0.05 --chip-cov-lbl H2K27ac --roi-lbl enhancers
+              -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -o /SOME/PATH --t-amp 1.4 
+              --t-del 0.5 -p 0.05 --chip-cov-lbl H3K27ac --roi-lbl enhancers
 ```
 
 Note that you need to change ```/SOME/PATH``` with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
@@ -122,8 +122,8 @@ Considering the large number of peaks (hotspots) the tool detectes, only the top
 
 ```
 plot-peak.pl -p pX.58 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_data/enhancers.bed 
-             -e test_data/exp.tsv -c test_data/cna.tsv --chip-cov test_data/H2K27ac.bg -o /SOME/PATH 
-             --t-amp 1.4 --t-del 0.5 -p 0.05 --chip-cov-lbl H2K27ac --roi-lbl enhancers
+             -e test_data/exp.tsv -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -o /SOME/PATH 
+             --t-amp 1.4 --t-del 0.5 -p 0.05 --chip-cov-lbl H3K27ac --roi-lbl enhancers
 ```
 
 ### Example of tool visualization 
