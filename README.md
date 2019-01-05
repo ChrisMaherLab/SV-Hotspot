@@ -94,6 +94,9 @@ All other parameters are optional and a default value was assigned to each (run 
 * The feature name in the annotation file should be the same as the one in the expression file. 
 * The "<b>name</b>" column in the SVs file should be in the format of <u><i>sample/type</i></u> (e.g. <b>SS1/INV</b>)
 
+### ChIP-seq Coverage 
+Usually ChIP-seq coverage data is .....
+
 ### Output 
 There two main files output in BED format: 
 
@@ -131,10 +134,8 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r t
 
 ### Example of tool visualization 
 <img align="center" src="images/AR.png" alt="visualization example">
-
-### ChIP-seq Coverage 
-Usually ChIP-seq coverage data is ..... 
-
+ 
+##
 ## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
