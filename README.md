@@ -111,8 +111,8 @@ To test the tool, just run the following command:
 
 ```
 sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test_data/exp.tsv 
-              -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -o /SOME/PATH --t-amp 1.4 
-              --t-del 0.5 -p 0.05 --chip-cov-lbl H3K27ac --roi-lbl enhancers
+              -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -o /SOME/PATH --t-amp 2.99 
+              --t-del 1.35 -p 0.05 --chip-cov-lbl H3K27ac --roi-lbl enhancers 
 ```
 
 Note that you need to change ```/SOME/PATH``` with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
