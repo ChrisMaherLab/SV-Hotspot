@@ -73,7 +73,7 @@ The tool requires as an inpute the following:
 
 4. Copy number segments in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. See the example at <b>test_data</b> on how to prepare this file.  
 
-Optional files: 
+<u>Optional files:</u> 
 
 1. An annotation file in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. If the user didn't provide this file, a built-in annotation file based on the genome name will be used. 
 
@@ -92,7 +92,10 @@ All other parameters are optional and a default value was assigned to each (run 
 * All files headers should be the same as the ones in the examples files. 
 * The chromosome names in all files should be consistent and in the format of <b>chr#</b>. 
 * The feature name in the annotation file should be the same as the one in the expression file. 
-* The name colummn in the SVs file should be in the format of <u><i>sample/type</i></u> (e.g. <b>SS1/INV</b>)
+* The "<b>name</b>" column in the SVs file should be in the format of <u><i>sample/type</i></u> (e.g. <b>SS1/INV</b>)
+
+### ChIP-seq Coverage 
+Usually ChIP-seq coverage data is .....
 
 ### Output 
 There two main files output in BED format: 
@@ -113,22 +116,28 @@ To test the tool, just run the following command:
 sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -r test_data/enhancers.bed -e test_data/exp.tsv 
               -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -o /SOME/PATH --t-amp 2.99 
               --t-del 1.35 -p 0.05 --chip-cov-lbl H3K27ac --roi-lbl enhancers 
+<<<<<<< HEAD
+=======
+              -d 10000 --left-ext 0 --rigth-ext 0 
+>>>>>>> 03af4d3a346a5e1e4e84bd806354fb887cf9c552
 ```
 
 Note that you need to change ```/SOME/PATH``` with the output drectory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
 
-### Plot Peak
-Considering the large number of peaks (hotspots) the tool detectes, only the top 10 (the default) peaks are plotted. You can change this value to any number by provding ```--plot-top-peaks=#``` but be aware this process takes a long time. Therefore, we provided a script to plot a peaks. To plot a peak, you need to provide the peak name, SV file, the results directory, the expression, and the copy number data. The following command plots peaks "pX.58" as an exmaple. 
+### Plot Peaks (Hotspot sites)
+In some cases when the number of detected peaks is high, it is impractical to plot all peaks as this process takes long time. Thus, we set the tool to print only the top # of peaks (default is 10). In case you need to increase/decrease this number, you need to provide this parameter ```--plot-top-peaks=#``` with the required number. If you do not want to print any peak at this stage, change ```--plot-top-peaks = 0 ```. 
+
+To plot peak(s), we provided a script for this process. You just need to provide the peak name(s), SV file, the results directory, the expression, and copy number data with the remaining parameters shown above. Peak names must be separated by comma. The following command plots peaks "pX.59" and "pX.60" as an exmaple. 
 
 ```
-plot-peak.pl -p pX.58 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_data/enhancers.bed 
+plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r test_data/enhancers.bed 
              -e test_data/exp.tsv -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -o /SOME/PATH 
-             --t-amp 1.4 --t-del 0.5 -p 0.05 --chip-cov-lbl H3K27ac --roi-lbl enhancers
+             --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --roi-lbl enhancers --left-ext 0 --rigth-ext 0
 ```
 
 ### Example of tool visualization 
 <img align="center" src="images/AR.png" alt="visualization example">
-
+ 
 ##
 ## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
