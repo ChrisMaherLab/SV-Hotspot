@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
 
 # Read chr sizes and generate sliding windows in bed format
 # Created by: Ha X. Dang <haxdang attt gmail dottt com>
@@ -15,7 +15,7 @@ d = as.integer(args[3])
 out.dir = args[4]
 
 ### read all breakpoints
-bps = read.table(paste0(out.dir,"/temp/all_bp.bed"), header =F, stringsAsFactors=F, sep='\t')
+bps = read.table(paste0(out.dir,"/processed_data/all_bp.bed"), header =F, stringsAsFactors=F, sep='\t')
 colnames(bps) = c('chr','start','stop','name', 'score', 'strand')
 
 chr = read.table(chr.size.file, header=F, stringsAsFactors=F, sep='\t')
@@ -39,5 +39,5 @@ for (c in chr.names.found){
 bb$start = as.integer(bb$start)
 bb$stop = as.integer(bb$stop)
 
-write.table(bb, file=paste0(out.dir,'/temp/genome.segments.bed'), row.names=F, col.names=F, quote=F, sep='\t')
+write.table(bb, file=paste0(out.dir,'/processed_data/genome.segments.bed'), row.names=F, col.names=F, quote=F, sep='\t')
 

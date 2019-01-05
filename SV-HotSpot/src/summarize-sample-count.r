@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
 
 # Summarize sample count per sliding window from bed overlap
 # Created by: Ha X. Dang <haxdang@gmail.com>
@@ -6,33 +6,36 @@
 
 args = commandArgs(T)
 
-out.dir = args[1]
-plotit = as.logical(args[2])
+chr.file = args[1]
+out.dir = args[2]
 
-if (is.na(plotit)) {plotit = F}
+chr.name = gsub(".bed","", chr.file)
+cat (paste("\nSummarizing sample counts for chromosme",chr.name, "\n"))
 
 library(grid)
 #library(gridBase)
 library(gridExtra)
 library(ggplot2)
 library(reshape2)
+library(data.table)
+#library("ff")
 
 #read window vs break point overlap 
 cat('Reading window data...\n')
-x = read.table(paste0(out.dir,'/temp/genome.segments.with.bps.bed'), header=F, sep='\t', stringsAsFactors=F)
+x = read.table(paste0(out.dir,'/processed_data/segments_with_bps_per_chr/',chr.file), header=F, sep='\t', stringsAsFactors=F)
 x = x[, c(1,2,3,7)]
 colnames(x) = c('chr', 'start', 'stop', 'sample')
 x$svtype = gsub('^.*/', '', x$sample)
 x$sample = gsub('/.*', '', x$sample)
-#svtypes = c('BND', 'DEL', 'DUP', 'NS', 'INV')
 svtypes = setdiff(unique(x$svtype), '.')
-#x = x[x$svtype %in% c(svtypes, '.'),]
 
-samples = setdiff(unique(x$sample), '.')
-total.samples = length(samples)
-
-#chrs = c('chr21')
-#x = x[x$chr %in% chrs,]
+### extract the total number of samples 
+bp = read.table(paste0(out.dir,'/processed_data/all_bp.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
+colnames(bp) = c('chr', 'start', 'stop', 'name', 'score', 'strand')
+bp$sample = gsub('/.*$', '', bp$name)
+bp$svtype = gsub('^.*/', '', bp$name)
+### extract total number of samples 
+total.samples <- length(unique(bp$sample))
 
 # collect all windows (should have everything including windows w/o break points)
 w = x[, c('chr', 'start', 'stop')]
@@ -40,7 +43,7 @@ w = w[!duplicated(w),]
 rownames(w) = paste(w$chr, w$start, w$stop, sep='_')
 cat('Found total', nrow(w), 'unique windows\n')
 
-###
+### ( Counting using BEDTools - will be tried later)
 #system(paste0("cut -f1-4 | sort | uniq | groupBy -g 1,2,3 -c 4 -o count > ", out.dir, "/counts.rds")) 
 ###
 
@@ -80,13 +83,14 @@ countSamples <- function(x, svtype='ALL'){
 
 # summarize by types separately, then combine. This is slow!
 cat('Summarizing...\n')
-aaa = countSamples(x)
+cts = countSamples(x)
 for (svtype in svtypes){
-    aaa = rbind(aaa, countSamples(x, svtype))
-}
-zz = aaa
+     ### run the counting function for current sv type
+     cts = rbind(cts, countSamples(x, svtype))
+ }
 
 ### write final counts 
-saveRDS(zz, file=file.path(out.dir, 'counts.rds'), compress=FALSE)
+saveRDS(cts, file=paste0(out.dir, '/processed_data/counts/', chr.name, '.counts.rds'), compress=FALSE)
+#saveRDS(all.cts, file=file.path(out.dir, 'counts.rds'), compress=FALSE)
 
 

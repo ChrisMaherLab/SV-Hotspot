@@ -31,7 +31,8 @@ my $chip_cov_lbl="";
 my $roi_lbl ="";
 my $left_ext = 0;
 my $rigth_ext = 0;
-
+my $use_dom = '0';
+ 
 GetOptions
 (
     'p|peak=s' => \$peak,
@@ -47,7 +48,8 @@ GetOptions
     'chip-cov-lbl=s' => \$chip_cov_lbl,
     'roi-lbl=s' => \$roi_lbl,
     'left-ext=i' => \$left_ext,
-    'rigth-ext=i' => \$rigth_ext
+    'rigth-ext=i' => \$rigth_ext,
+    'use-dom=s' => \$use_dom
 );
 
 usage() if (!$peak | !$sv_file | !$res_dir | !$expr_file | !$cn_file );
@@ -56,13 +58,29 @@ print "\n---------------------------------------------\n";
 print "            Plotting Peak: $peak\n";
 print "---------------------------------------------\n";
 
+### check if chip-cov data was provided 
+if ($chip_cov) { 
+   my $max = `awk '{print \$3-\$2}' $chip_cov | awk 'BEGIN{a=0}{if (\$1>a) a=\$1 fi} END{print a}'`;
+   if ($max < 10000) { 
+      print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
+            "\n  It is recommended you average chip coverage data using at least 10K window. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.". 
+            "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
+      exit(0);  
+   } 
+}
+
 if ($expr_file && $cn_file) {
    # check if the user provided chip-seq data, if yes run the script to prcess it (average over a windwo)
    #if ($chip_cov) {
    #   print "Processing chip-seq data, please wait as this may take several minutes\n";
    #   system("process_chip_data.r $chip_cov $output_dir");
    #} 
-   system ("plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $left_ext $rigth_ext");
+    if (!$use_dom) {
+      system ("plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $left_ext $rigth_ext");
+    } else {
+      system ("plot_peak_region_using_dom.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $left_ext $rigth_ext");
+    }
+   
 } else {
   print "Both expression and copy number data are required to generate visualization\n";
   exit(0);
@@ -73,8 +91,8 @@ sub usage
 {
    #use Term::ANSIColor;
    print "\n";
-   print "USAGE:\n      plot-peak [OPTIONS] -p <peakName> --sv <structuralVariants> --res-dir <resultsDirectory> -e/--expr <expression> -c/--cn <copynumber>\n";  
-   print "\n      NOTE:\n\t(1) Results directory should be the same as output directory used when you run sb-hotspot tool\n";
+   print "USAGE:\n      plot-peak.pl [OPTIONS] -p <peakName1,peakName2,...> --sv <structuralVariants> --res-dir <resultsDirectory> -e/--expr <expression> -c/--cn <copynumber>\n";  
+   print "\n      NOTE:\n\t(1) Results directory should be the same as the output directory used with sv-hotspot.pl\n";
    #print "\t(2) Structutal variants file should be in bedpe format\n";
    #print "\t(3) Both expression and copy number data are required to run this tool\n";
    #print "\t(4) Region of interest (e.g. promoters, enhancers, UTRs, etc.) file should be in bed format\n";
@@ -87,6 +105,9 @@ sub usage
    print("\t--chip-cov\t\t\tchip-seq coverage\t<filename>\t[ If ChIP-Seq coverage file is provided, peaks will be overlapped with this file ]\n");
    print("\t--chip-cov-lbl\t\t\tchip-seq coverage label\t<string>\t[ the chip-seq coverage label used in the plot (e.g. histone name) ]\n");
    print("\t--roi-lbl\t\t\tregion of int. label\t<string>\t[ the region of interest label used in  the plot (e.g. enhancers) ]\n");
+   print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ number of extended bases from the left side of the peak. default: 0 ]\n");
+   print("\t--right-ext\t\t\tsize of right extension\t<int>\t\t[ number of extended bases from the right side of the peak. default: 0 ]\n");
+   print("\t--use-dom\t\t\tuse dominant SV type\t<T/F>\t\t[ if this option is enabled (T), only the dominant SV type will be ploteed . default: F ]\n");
 
    print ("\n");
    

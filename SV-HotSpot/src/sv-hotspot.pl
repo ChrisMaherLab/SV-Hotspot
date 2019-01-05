@@ -16,7 +16,7 @@ use File::Basename;
 
 my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
 
-#define input options with default values 
+#define input options wi:qth default values 
 my $sv_file='0';
 my $genome='hg38';
 my $sliding_w_size = 100000;
@@ -36,12 +36,13 @@ my $region_of_int='0';
 my $chrom="ALL";
 my $sv_type="ALL";
 my $merge_dist=1000;
-my $temp_keep='0';
 my $plot_top_peaks=10;
-my $num_nearby_genes=4;
+my $num_nearby_genes=1;
 my $chip_cov='0';
 my $chip_cov_lbl="";
 my $roi_lbl ="";
+my $left_ext = 0;
+my $rigth_ext = 0;
 
 GetOptions
 (
@@ -66,10 +67,11 @@ GetOptions
     'd|group-dist-size=i' => \$merge_dist,
     'k|num-nearby-genes=i' => \$num_nearby_genes,
     'chip-cov=s' =>\$chip_cov,
-    'plot-top-peaks=s' => \$plot_peaks,
+    'plot-top-peaks=s' => \$plot_top_peaks,
     'chip-cov-lbl=s' => \$chip_cov_lbl,
     'roi-lbl=s' => \$roi_lbl,
-    'keep-temp=s' => \$temp_keep
+    'left-ext=i' => \$left_ext,
+    'rigth-ext=i' => \$rigth_ext
 );
 
 usage() if (!$sv_file | !$genome | !$expr_file | !$cn_file);
@@ -77,41 +79,35 @@ usage() if (!$sv_file | !$genome | !$expr_file | !$cn_file);
 #### define the name of the chromosme lengths file and output directroy 
 my $chromsize_file = $TOOL_PATH.'/annotations/'.$genome.'/chromsize.tsv';
 
-### Creating results directories";
+#### check if annotation file was provided otherwise use built-in file
+if (!$annot_file) {
+     $annot_file = $TOOL_PATH.'/annotations/'.$genome.'/genes.bed'
+}
+
+### define varaible for checking chip coverage data 
+my $max; 
+
+### Creating output directories";
 $output_dir = $output_dir.'/sv-hotspot-output';
 system ("rm -rf $output_dir; mkdir $output_dir");
-system ("rm -rf $output_dir/temp; mkdir $output_dir/temp");
-
-#### check if annotation file and genes of interest file were provided otherwise use defaults
-if (!$annot_file) {
-   $annot_file = $TOOL_PATH.'/annotations/'.$genome.'/genes.bed'
-}
-
-### prepare genes of interest file 
-if (!$genes_of_int) {
-   $genes_of_int = $TOOL_PATH.'/annotations/genes-of-interest.txt';
-   system("cat $genes_of_int | select-rows.pl 0 $annot_file 3 > $output_dir/temp/genes-of-interest.bed");
-   $genes_of_int = $output_dir."/temp/genes-of-interest.bed"
-} else {
-   system("cat $genes_of_int | select-rows.pl 0 $annot_file 3 > $output_dir/temp/genes-of-interest.bed");
-   $genes_of_int = $output_dir."/temp/genes-of-interest.bed"
-}
+system ("rm -rf $output_dir/processed_data; mkdir $output_dir/processed_data");
 
 #### show all inputes 
 print "########################################################\n";
 print "######             SV-HotSpot v1.0.0              ######\n";
 print "########################################################\n";
+print " Structural variants file: $sv_file\n";
 print " Genome: $genome\n";
-print " Sliding window size: $sliding_w_size\n";
-print " Sliding window step: $sliding_w_step\n"; 
-print " Output directory: $output_dir\n";
-print " Annotation file: $annot_file\n";
+print " Sliding window size : $sliding_w_size\n";
+print " Sliding window step : $sliding_w_step\n"; 
+print " Output directory    : $output_dir\n";
+print " Annotation file     : $annot_file\n";
 print " peakPick window size: $peakPick_win\n";
-print " peakPick minimum SD: $peakPick_minsd\n";
-print " Percentage of samples threshold: $pct_samples_t\n";
+print " peakPick minimum SD : $peakPick_minsd\n";
+print " Perc. of samples threshold: $pct_samples_t\n";
 print " Expression file: $expr_file\n";  
 print " Copy number file: $cn_file\n";
-print " Amplification threshold: $t_amp\n";
+print " Ampl:qification threshold: $t_amp\n";
 print " Deletion threshold: $t_del\n";
 print " P-value threshold: $pvalue\n";
 print " Geens of interest: $genes_of_int\n"; 
@@ -122,86 +118,295 @@ print " Distance for merging peaks: $merge_dist\n";
 print " Number of nearby genes: $num_nearby_genes\n"; 
 print " chip-Seq file: $chip_cov\n"; 
 print " Plot top peaks: $plot_top_peaks\n";
-print " Keep temporary file: $temp_keep\n"; 
+print " Chip coverage label: $chip_cov_lbl\n";
+print " Region of interest label: $roi_lbl\n";
+print " Region left extension: $left_ext\n";
+print " Region right extension: $rigth_ext\n";
 print "########################################################\n\n";
 
-################################################################
-###### check if all files have a format the tool accepts ###### 
+############################################ RUN TOOL FUNCTIONS #################################################
+verify_input();
+prepare_annot();
+prepare_SVs();
+identify_peaks();
+annotate_peaks();
+determine_effect();
+visualize_res();
+#################################################################################################################
 
 
-################################################################
+#################################################################################################################
+########################################### Verify input data ###############################################
+#################################################################################################################
+sub verify_input
+{
+   
+   print "\n--------------------------------------------------\n";
+   print "------- Checking the format of input files -------\n"; 
+   print "--------------------------------------------------\n";
+   
+   ##### check the header of the SV file 
+   open my $sv_f, '<', $sv_file;
+   my $sv_header = <$sv_f>;
+   if ($sv_header !~ /chrom1/ || $sv_header!~ /start1/ || $sv_header!~ /end1/ || $sv_header!~ /chrom2/ || $sv_header!~ /start2/ || 
+       $sv_header!~ /end2/ || $sv_header!~ /name/ || $sv_header!~ /score/ || $sv_header!~ /strand1/ ||    $sv_header !~ /strand2/) {
+      print "The header of structural variants file has format different from what the tool accepts.\n";
+      exit(0);
+   }
+   close $sv_f;
 
-#print "\n-------------------------------------------\n";
-#print "Preparing breakpoint data ...\n";
-#print "-------------------------------------------\n";
-system("cat $sv_file | awk -F\"\\t\" '{OFS=\"\\t\"}{print \$1,\$2,\$3,\$7,\$8,\$9; print \$4,\$5,\$6,\$7,\$8,\$10}' | grep -v \"chrom\" > $output_dir/temp/all_bp.bed");
-system ("awk '{if(\$2!=0 || \$3!=0) {print \$0}}' $output_dir/temp/all_bp.bed > $output_dir/temp/all2_bp.bed; mv $output_dir/temp/all2_bp.bed $output_dir/temp/all_bp.bed");
-system ("for type in `cut -f4 $output_dir/temp/all_bp.bed | cut -f2 -d'/' | sort | uniq`; do cat $output_dir/temp/all_bp.bed | grep \"\/\$type\" > $output_dir/temp/bp.\$type.bed; done");
+   ##### check the header of annotation file
+   if ($annot_file) { 
+	open my $annot, '<', $annot_file;
+	my $annot_header = <$annot>;
+	if ($annot_header !~ /chrom/ || $annot_header!~ /start/ || $annot_header !~ /end/ || $annot_header !~ /gene/ || $annot_header !~ /score/ || $annot_header !~ /strand/) {
+      		print "The header of annotation file has a format different from what the tool accepts.\n";
+      		exit(0);
+   	}
+   close $annot; 
+   }
+   
+   ##### check the header of region of interes file
+   if ($region_of_int) { 
+	open my $roi, '<', $region_of_int;
+	my $roi_header = <$roi>;
+	if ($roi_header !~ /chrom/ || $roi_header !~ /start/ || $roi_header !~ /end/ || $roi_header !~ /name/) {
+      		print "The header of region of interest file has a format different from what the tool accepts.\n";
+      		exit(0);
+   	}
+        close $roi; 
+   }
+   
+   ##### check the header of chip coverage file
+   if ($chip_cov) { 
+	open my $chipCov, '<', $chip_cov;
+	my $chipCov_header = <$chipCov>;
+	if ($chipCov_header !~ /chrom/ || $chipCov_header !~ /start/ || $chipCov_header !~ /end/ || $chipCov_header !~ /cov/) {
+      		print "The header of chip coverage file has a format different from what the tool accepts.\n";
+      		exit(0);
+   	}
+   	close $chipCov; 
 
-print "\n--------------------------------------------------\n";
-print "STEP 1: Identifying Peaks (hotspot regions) \n";
-print "--------------------------------------------------\n";
+   	### check if the chip coverage file is an averaged file 
+   	$max = `awk '{print \$3-\$2}' $chip_cov | awk 'BEGIN{a=0}{if (\$1>a) a=\$1 fi} END{print a}'`;
+        $max = $max + 1;
+   	if ($max < 1000) { 
+        	print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
+            "\n  It is recommended you average chip coverage data using a window size range form 1-10k. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.\n\n"; 
+   	} 
+   }
+  
 
-print "STEP 1: Segmenting the genome into sliding windows\n";
-system ("genome-to-sliding-window.r $chromsize_file $sliding_w_size $sliding_w_step $output_dir");
+   ##### check the header of copy number file 
+   if ($cn_file) { 
+	open my $cn, '<', $cn_file;
+	my $cn_header = <$cn>;
+	if ($cn_header !~ /chrom/ || $cn_header !~ /start/ || $cn_header !~ /end/ || $cn_header !~ /sample/ || $cn_header !~ /cn/) {
+      		print "The header of copy number file has a format different from what the tool accepts.\n";
+      		exit(0);
+   	}
+   close $cn; 
+   }
+   
+   #### check if feature name in annotation match the one in the expression 
+   if ($annot_file && $expr_file) {
+      open( my $annot, '<', $annot_file) or die "Can't open file: $!";
+      open( my $exp, '<', $expr_file) or die "Can't open file: $!";
+      my $annot_header = <$annot>; 
+      chomp($annot_header);
+      my @annot_cols = split( "\t", $annot_header ); 
+      my $exp_header = <$exp>;
+      my @feature = split( "\t", $exp_header );  
+      my $Found = "0"; 
+      foreach (@annot_cols) {
+         if ($_ eq $feature[0]) { $Found = "1" } 
+      }
+      if (!$Found) {
+       	 print "Feature name in expression file doesn't match feature name in the annotation file!.\n";
+      	 exit(0);
+      }
+   close $annot; close $exp;
+   }
+ 
+   #### check if the expression file has no duplicated rows 
+   if ($expr_file) {
+      open( my $exp, '<', $expr_file) or die "Can't open file: $!";
+      my @genes; 
+      my %count;
+      while (my $line = <$exp>) {
+        next if $. == 1; 
+        my @row = split( "\t", $line );
+        push (@genes, $row[0]);
+      }
+      close $exp;
+      for(@genes) {
+         $count{$_}++;
+         if ($count{$_} > 1) { 
+            print "Expression file has duplicated rows!.\n";
+            exit(0); 
+         }
+      }
+   }
 
-print "Overlapping breakpoints with sliding windows\n";
-system ("intersectBed -wao -a $output_dir/temp/genome.segments.bed -b $output_dir/temp/all_bp.bed > $output_dir/temp/genome.segments.with.bps.bed");
-
-print "\nSummarizing sample counts\n";
-system ("summarize-sample-count.r $output_dir $plot_peaks"); 
-
-print "\nCall structural variant peaks (hot spots)\n";
-system ("find-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $TOOL_PATH $genes_of_int");
-
-print "\n--------------------------------------------------\n";
-print "STEP 2: Annotating Peaks \n";
-print "--------------------------------------------------\n";
-
-system("grep -v chrom $annot_file | sort -k1,1 -k2,2n > $output_dir/temp/genes_sorted.bed; mv $output_dir/temp/genes_sorted.bed $output_dir/temp/genes.bed");
-$annot_file = $output_dir."/temp/genes.bed";
-if ($region_of_int) {
-   system("grep -v chrom $region_of_int | sort -k1,1 -k2,2n > $output_dir/temp/reg_of_int.bed")
+   print "\n--------------------------------------------------\n";
+   print "\tALL INPUT DATA LOOKS GOOD.\n";
+   print "--------------------------------------------------\n";
 }
-system("annotate_peaks.sh $genome $region_of_int $output_dir $num_nearby_genes $TOOL_PATH"); 
 
-print "\n--------------------------------------------------\n";
-print "STEP 3: Determining the effect of SVs on gene expression\n";
-print "--------------------------------------------------\n";
 
-if ($expr_file & $cn_file) {
-  system ("determine_effect_on_gene_expression.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue");
-} else {
-  print "To determine the effect of SVs on gene expression, both expression and copy number data are required. \n";
-  exit(0); 
+#################################################################################################################
+############################################ Preapre Annotation #################################################
+#################################################################################################################
+sub prepare_annot 
+{
+   ### sort gene annotation file 
+   system("grep -v chrom $annot_file | sort -k1,1 -k2,2n > $output_dir/processed_data/genes_sorted.bed; mv $output_dir/processed_data/genes_sorted.bed $output_dir/processed_data/genes.bed");
+   $annot_file = $output_dir."/processed_data/genes.bed";
+ 
+   ### prepare genes of interest file 
+   if ($genes_of_int) {
+   #   $genes_of_int = $TOOL_PATH.'/annotations/genes-of-interest.txt';
+   #   system("cat $genes_of_int | select-rows.pl 0 $annot_file 3 > $output_dir/processed_data/genes-of-interest.bed");
+   #   $genes_of_int = $output_dir."/processed_data/genes-of-interest.bed"
+   #} else {
+      system("cat $genes_of_int | select-rows.pl 0 $annot_file 3 > $output_dir/processed_data/genes-of-interest.bed");
+      $genes_of_int = $output_dir."/processed_data/genes-of-interest.bed"
+   }
+
 }
 
-print "\n--------------------------------------------------\n";
-print "STEP 4: Visualizing hotspot regions \n";
-print "--------------------------------------------------\n";
+#################################################################################################################
+############################################# Preapre SVs data ##################################################
+#################################################################################################################
+sub prepare_SVs
+{
+   system("cat $sv_file | awk -F\"\\t\" '{OFS=\"\\t\"}{print \$1,\$2,\$3,\$7,\$8,\$9; print \$4,\$5,\$6,\$7,\$8,\$10}' | grep -v \"chrom\" > $output_dir/processed_data/all_bp.bed");
+   system ("awk '{if(\$2!=0 || \$3!=0) {print \$0}}' $output_dir/processed_data/all_bp.bed > $output_dir/processed_data/all2_bp.bed; mv $output_dir/processed_data/all2_bp.bed $output_dir/processed_data/all_bp.bed");
+   #system ("for type in `cut -f4 $output_dir/processed_data/all_bp.bed | cut -f2 -d'/' | sort | uniq`; do cat $output_dir/processed_data/all_bp.bed | grep \"\/\$type\" > $output_dir/processed_data/bp.\$type.bed; done");
 
-if ($expr_file && $cn_file) {
-   # check if the user provided chip-seq data, if yes run the script to prcess it (average over a windwo)
-   if ($chip_cov) {
-      print "Processing chip-seq data, please wait as this may take several minutes\n";
-      system("process_chip_data.r $chip_cov $output_dir");
-   } 
-   system ("plot_peaks.r $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $plot_top_peaks");
-} else {
-  print "Both expression and copy number data are required to generate visualization\n";
-  exit(0);
-}
+ ### generate bedpe file for DEL and DUP events
+   system ("generate-bedpe-for-DEL-DUP.r $sv_file $output_dir");
+   system ("cat $output_dir/processed_data/all_bp.bed $output_dir/processed_data/del_dup_sv.bed > $output_dir/processed_data/all_bp_tmp.bed; mv $output_dir/processed_data/all_bp_tmp.bed $output_dir/processed_data/all_bp.bed");
 
-if ($temp_keep eq "T"){
-    #system ("rm -rf $output_dir/temp"); 
 }
 
 
+#################################################################################################################
+############################################# Identify Peaks ####################################################
+#################################################################################################################
+sub identify_peaks
+{
+   print "\n--------------------------------------------------\n";
+   print "STEP 1: Identifying Peaks (hotspot regions) \n";
+   print "--------------------------------------------------\n";
+   print "\nSegmenting the genome into sliding windows\n";
+   system ("genome-to-sliding-window.r $chromsize_file $sliding_w_size $sliding_w_step $output_dir");
+
+   print "Overlapping breakpoints with sliding windows\n";
+   system ("intersectBed -wao -a $output_dir/processed_data/genome.segments.bed -b $output_dir/processed_data/all_bp.bed > $output_dir/processed_data/genome.segments.with.bps.bed");
+   
+   ### split the result by chromosme 
+   print "\nSplitting the file by chromosome\n";
+   system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr; mkdir $output_dir/processed_data/segments_with_bps_per_chr");
+   system("awk '{print \$0 >> \"$output_dir/processed_data/segments_with_bps_per_chr/\"\$1\".bed\"}' $output_dir/processed_data/genome.segments.with.bps.bed");
+
+   ### extract chromosme file names and summarize counts 
+   system ("rm -rf $output_dir/processed_data/counts; mkdir $output_dir/processed_data/counts");
+
+   opendir chrsDir, "$output_dir/processed_data/segments_with_bps_per_chr" || die "$!"; 
+   my @chr_files = grep {/^chr*.*?\.bed?/} readdir chrsDir; 
+   close chrsDir;
+   @chr_files = sort @chr_files;
+   foreach (@chr_files) { 
+   	my $chr = $_;
+	system ("summarize-sample-count.r $chr $output_dir"); 
+   }
+   
+   ### combine all counts for all chromosomes
+   system("combine-counts-files.r $output_dir");
+
+   ### remove folders 
+   system ("rm -rf $output_dir/processed_data/counts");
+   system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr");
+   
+   print "\nCall structural variant peaks (hotspots)\n";
+   system ("find-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $TOOL_PATH $genes_of_int");
+}
+
+
+#################################################################################################################
+############################################# Annotate Peaks ####################################################
+#################################################################################################################
+sub annotate_peaks
+{
+   print "\n--------------------------------------------------\n";
+   print "STEP 2: Annotating Peaks \n";
+   print "--------------------------------------------------\n";
+  
+   system("annotate_peaks.sh $genome $region_of_int $output_dir $num_nearby_genes $TOOL_PATH"); 
+}
+
+
+#################################################################################################################
+############################################# Determine effect ##################################################
+#################################################################################################################
+sub determine_effect
+{
+   print "\n--------------------------------------------------\n";
+   print "STEP 3: Determining the effect of SVs on gene expression\n";
+   print "--------------------------------------------------\n";
+
+   if ($expr_file & $cn_file) {
+     system ("determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue");
+   } else {
+     print "To determine the effect of SVs on gene expression, both expression and copy number data are required. \n";
+   exit(0); 
+   }
+
+}
+
+
+#################################################################################################################
+############################################# Visualize results #################################################
+#################################################################################################################
+sub visualize_res
+{
+   print "\n--------------------------------------------------\n";
+   print "STEP 4: Visualizing hotspot regions \n";
+   print "--------------------------------------------------\n";
+
+   ### check if chip-cov data was provided 
+   if ($chip_cov) { 
+     if ($max < 1000) { 
+      print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
+            "\n  It is recommended you average chip coverage data using at least 10K window. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.". 
+            "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
+      exit(0);  
+     } 
+   }
+
+   if ($expr_file && $cn_file) {
+      ### extract top peaks 
+      my $pks = `cut -f1 $output_dir/annotated_peaks_summary_final.tsv | grep -v "p.name" | head -$plot_top_peaks |  paste -sd, -`;
+      chomp($pks);
+      #system ("plot_peaks.r $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $plot_top_peaks $left_ext $rigth_ext");
+      system ("plot_peak_region.r $pks $output_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $left_ext $rigth_ext");
+   } else {
+      print "Both expression and copy number data are required to generate visualization\n";
+      exit(0);
+   }
+
+}
+
+
+#################################################################################################################
+################################################# TOOL USAGE ####################################################
+#################################################################################################################
 sub usage
 {
    #use Term::ANSIColor;
    print "\n";
-   print "USAGE:\n      sv-hsd [OPTIONS] -g/--genome <genomeName> --sv <structuralVariants> -e/--expr <expression> -c/--cn <copynumber>\n";  
+   print "USAGE:\n      sv-hotspot.pl [OPTIONS] -g/--genome <genomeName> --sv <structuralVariants> -e/--expr <expression> -c/--cn <copynumber>\n";  
    print "\n      NOTE:\n\t(1) Genome name must be in the form of abbreviation (e.g. hg18, hg19, mm10, mm9, rn4, dm3)\n";
    print "\t(2) Structutal variants file should be in bedpe format\n";
    print "\t(3) Both expression and copy number data are required to run this tool\n";
@@ -232,8 +437,11 @@ sub usage
    print("\t--chip-cov-lbl\t\t\tchip-seq coverage label\t<string>\t[ the chip-seq coverage label used in the plot (e.g. histone name) ]\n");
    print("\t--roi-lbl\t\t\tregion of int. label\t<string>\t[ the region of interest label used in  the plot (e.g. enhancers) ]\n");
 
-   print("\t--plot-top-peaks\t\t\tplot top # peaks\t\t<int>\t[ Plot the top # number of peaks. default: 10 ]\n");
-   print("\t--keep-temp\t\t\tkeep intermediate files\t<string>\t[ if this option is enabled (T), all intermediate temporary files will be kept. default: F ]\n");
+   print("\t--plot-top-peaks\t\tplot top # peaks\t<int>\t\t[ Plot the top # number of peaks. default: 10 ]\n");
+   print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ number of extended bases from the left side of the peak. default: 0 ]\n");
+   print("\t--right-ext\t\t\tsize of right extension\t<int>\t\t[ number of extended bases from the right side of the peak. default: 0 ]\n");
+
+   #print("\t--keep-processed_data\t\t\tkeep intermediate files\t<string>\t[ if this option is enabled (T), all intermediate processed_dataorary files will be kept. default: F ]\n");
 
    print ("\n");
    
