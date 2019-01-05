@@ -92,7 +92,7 @@ All other parameters are optional and a default value was assigned to each (run 
 * All files headers should be the same as the ones in the examples files. 
 * The chromosome names in all files should be consistent and in the format of <b>chr#</b>. 
 * The feature name in the annotation file should be the same as the one in the expression file. 
-* The name colummn in the SVs file should be in the format of <u><i>sample/type</i></u> (e.g. <b>SS1/INV</b>)
+* The "<b>name</b>" column in the SVs file should be in the format of <u><i>sample/type</i></u> (e.g. <b>SS1/INV</b>)
 
 ### Output 
 There two main files output in BED format: 
@@ -129,13 +129,12 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -r t
              --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --roi-lbl enhancers --left-ext 0 --rigth-ext 0
 ```
 
-### ChIP-seq Coverage 
-Usually ChIP-seq coverage data is ..... 
-
 ### Example of tool visualization 
 <img align="center" src="images/AR.png" alt="visualization example">
 
-##
+### ChIP-seq Coverage 
+Usually ChIP-seq coverage data is ..... 
+
 ## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
 
