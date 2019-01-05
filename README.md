@@ -73,7 +73,7 @@ The tool requires as an inpute the following:
 
 4. Copy number segments in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. See the example at <b>test_data</b> on how to prepare this file.  
 
-Optional files: 
+<u>Optional files:</u> 
 
 1. An annotation file in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. If the user didn't provide this file, a built-in annotation file based on the genome name will be used. 
 
