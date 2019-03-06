@@ -1,4 +1,4 @@
-#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
+#!/usr/bin/Rscript
 
 # Summarize results for all peaks 
 # Created by: Abdallah Eteleeb <eteleeb@gmial.com>

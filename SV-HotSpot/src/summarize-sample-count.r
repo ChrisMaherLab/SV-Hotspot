@@ -1,4 +1,4 @@
-#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
+#!/usr/bin/Rscript
 
 # Summarize sample count per sliding window from bed overlap
 # Created by: Ha X. Dang <haxdang@gmail.com>

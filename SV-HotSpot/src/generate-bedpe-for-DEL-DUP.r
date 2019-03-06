@@ -1,4 +1,4 @@
-#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
+#!#!/usr/bin/Rscript
 
 # Created by: Ha X. Dang <haxdang@gmail.com>
 # Modified by: Abdallah Eteleeb <eteleeb@gmail.com>
