@@ -8,12 +8,6 @@ args = commandArgs(T)
 sv.file = args[1]
 out.dir = args[2]
 
-#library(grid)
-#library(gridBase)
-#library(gridExtra)
-#library(ggplot2)
-#library(reshape2)
-
 ### read structural variants file 
 if (file.exists((sv.file))) {
   sv <- read.table(sv.file, header =T, sep="\t", stringsAsFactors = F, check.names=F)
@@ -29,9 +23,9 @@ if (file.exists((sv.file))) {
 }
 
 ### remove wide peaks (< = 3M)
-sv$sv.width = abs(sv$pos1 - sv$pos2)
-sv = sv[sv$sv.width <= 8000000, ]
-sv$sv.width = NULL
+#sv$sv.width = abs(sv$pos1 - sv$pos2)
+#sv = sv[sv$sv.width <= 10000000, ]
+#sv$sv.width = NULL
 
 ### write the results to be overlapped with segments 
 #sv <- sv[,c('chrom1', 'pos1', 'pos2', 'sample', 'svtype')]

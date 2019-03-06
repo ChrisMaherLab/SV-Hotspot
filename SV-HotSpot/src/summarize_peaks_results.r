@@ -8,9 +8,17 @@ library(plyr)
 args = commandArgs(T)
 out.dir = args[1]
 reg.of.int = args[2]
+roi.lbl = args[3]
 
+### set the region of interest parameters
 is.roi.avail = FALSE
-if(reg.of.int !=0 ) { is.roi.avail = TRUE }
+if(reg.of.int !=0 ) { 
+   is.roi.avail = TRUE 
+   num.of.roi.files =  length(unlist(strsplit(reg.of.int,  ",")))
+   #if (roi.lbl == 0) {
+   #    roi.lbl  = gsub("\\..*", "", basename(reg.of.int))
+   #}
+}
 
 ####################################################################################################################
 ##### function to compute percentage of sv types 
@@ -38,8 +46,8 @@ all.peaks <- read.table(paste0(out.dir,'/peaks/all_peaks.bed'), header =F, sep="
 colnames(all.peaks) <- c('p.chr', 'p.start', 'p.stop','p.name','p.id', 'num.samples', 'pct.samples', 'sample')
 
 ##### read peaks overlap/nearby genes  
-if (file.exists(paste0(out.dir,'/peaks_with_overlap_nearby_genes.tsv'))) {
-   p.with.genes <- read.table(paste0(out.dir,'/peaks_with_overlap_nearby_genes.tsv'), header =F, sep="\t", stringsAsFactors=F)
+if (file.exists(paste0(out.dir,'/processed_data/peaks_with_overlap_nearby_genes.tsv'))) {
+   p.with.genes <- read.table(paste0(out.dir,'/processed_data/peaks_with_overlap_nearby_genes.tsv'), header =F, sep="\t", stringsAsFactors=F)
    colnames(p.with.genes) = c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'sample',
                               'g.chr', 'g.start', 'g.stop', 'gene', 'g.score', 'g.strand', 'dist','g.pos')
 } else {
@@ -47,12 +55,15 @@ if (file.exists(paste0(out.dir,'/peaks_with_overlap_nearby_genes.tsv'))) {
 }
 
 ##### read peaks overlap/nearby region of interest
-if (file.exists(paste0(out.dir,'/peaks_overlap_with_region_of_interest.tsv'))) {
-  #p.with.roi <- read.table(paste0(out.dir,'/peaks_with_overlap_nearby_region_of_interest.tsv'), header =F, sep="\t", stringsAsFactors=F)
-  p.with.roi <- read.table(paste0(out.dir,'/peaks_overlap_with_region_of_interest.tsv'), header =F, sep="\t", stringsAsFactors=F)
-  colnames(p.with.roi) = c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'sample',
-                           'roi.chr', 'roi.start', 'roi.stop', 'roi.name', 'dist')
+if (file.exists(paste0(out.dir,'/processed_data/peaks_overlap_with_region_of_interest.tsv'))) {
+  #p.with.roi <- read.table(paste0(out.dir,'/processed_data/peaks_with_overlap_nearby_region_of_interest.tsv'), header =F, sep="\t", stringsAsFactors=F)
+  p.with.roi <- read.table(paste0(out.dir,'/processed_data/peaks_overlap_with_region_of_interest.tsv'), header =T, sep="\t", stringsAsFactors=F)
+  #colnames(p.with.roi) = c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'sample',
+  #                         'roi.chr', 'roi.start', 'roi.stop', 'roi.name', 'dist')
+  ### extract region of interest name(s)
+  roi.name.cols = colnames(p.with.roi)[grepl("name", colnames(p.with.roi)) & colnames(p.with.roi) !="p.name"]  
 }
+ 
 
 annot.peaks <- NULL
 for (i in 1:nrow(all.peaks)) {
@@ -73,13 +84,22 @@ for (i in 1:nrow(all.peaks)) {
   
   ### extract overlapped region of interes 
   if (is.roi.avail) {
-    #ov.roi <- unique(p.with.roi[p.with.roi$p.name==pk & p.with.roi$roi.pos=="overlap", 'roi.name'])
-    #nearby.roi <- unique(p.with.roi[p.with.roi$p.name==pk & p.with.roi$roi.pos=="nearby", 'roi.name']) 
-    ov.roi <- unique(p.with.roi[p.with.roi$p.name==pk, 'roi.name'])
+     ov.roi = NULL
+     for (k in 1:length(roi.name.cols)) { 
+          c.roi = unique(p.with.roi[p.with.roi$p.name==pk, roi.name.cols[k]])
+          c.roi = c.roi[!is.na(c.roi)] 
+          c.roi = paste(c.roi, collapse="|")
+          
+          if (k == 1 ) { 
+             ov.roi = as.data.frame(c.roi)
+          } else {
+             ov.roi = as.data.frame(cbind(ov.roi , c.roi))
+          }
+     }
+     colnames(ov.roi) <- gsub(".name", "", roi.name.cols)
 
-  #  d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"),
-  #                overlap.roi=paste(ov.roi, collapse = "|"), nearby.roi=paste(nearby.roi, collapse = "|"))
-    d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"), overlap.roi=paste(ov.roi, collapse = "|"))
+    ### combine all 
+    d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"), ov.roi)
 
   } else {
     d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"))
@@ -89,5 +109,16 @@ for (i in 1:nrow(all.peaks)) {
   
 } ### end of chromosomes 
 
+### set column names 
+if (is.roi.avail) {
+  colnames(annot.peaks) <- c('Peak.name','Chr','Start','End','Number.SV.samples','Percentage.SV.samples','SV.sample','Percentage.SV.types',
+                             'Peak.density','Dominant.svtype','Overlapped.genes','Nearby.genes',paste0('Overlapped.',gsub(".name", "", roi.name.cols)))
+} else {
+  colnames(annot.peaks) <- c('Peak.name','Chr','Start','End','Number.SV.samples','Percentage.SV.samples','SV.sample','Percentage.SV.types',
+                             'Peak.density','Dominant.svtype','Overlapped.genes','Nearby.genes')
+}
+
+### write final results 
+annot.peaks[ annot.peaks==""] <- NA
 write.table(annot.peaks, file=paste0(out.dir,'/processed_data/annotated_peaks_summary.tsv'), sep="\t", row.names=F, quote = F)
 

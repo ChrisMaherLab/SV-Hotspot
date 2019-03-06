@@ -1,4 +1,4 @@
-chrom	start	stop	sample	cn	cn.call
+chrom	start	end	sample	cn	cn.call
 chrX	1	21000	DTB-003-BL	0.595	neut
 chrX	21001	29000	DTB-003-BL	1.005	neut
 chrX	29001	172000	DTB-003-BL	1.27	neut

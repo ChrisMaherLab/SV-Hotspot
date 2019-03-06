@@ -81,3 +81,20 @@ saveRDS(cts, file=paste0(out.dir, '/processed_data/counts/', chr.name, '.counts.
 #saveRDS(all.cts, file=file.path(out.dir, 'counts.rds'), compress=FALSE)
 
 
+
+
+## collpase samples 
+
+
+
+## using ALL
+cut -f1,2,3,4 sv-hotspot-test/chr20.bed | uniq | sort -k1,1 -k2,2 -k3,3 | grep -v start | groupBy -g 1,2,3 -c 4 -o collapse > test_ALL.tsv
+cut -f1,2,3,4 sv-hotspot-test/chr20.bed | uniq | sort -k1,1 -k2,2 -k3,3 | grep -v start | groupBy -g 1,2,3 -c 4 -o count > test_ALL.tsv
+
+### per sv type 
+cut -f1,2,3,4,5 sv-hotspot-test/chr20.bed | uniq | sort -k1,1 -k2,2 -k3,3 -k5,5 | grep -v start | groupBy -g 1,2,3,5 -c 4 -o collapse > test.tsv
+
+cut -f1,2,3,4,5 sv-hotspot-test/chr20.bed | uniq | sort -k1,1 -k2,2 -k3,3 -k5,5 | grep -v start | groupBy  -g 1,2,3,5 -c 4 -o count > test.tsv
+
+
+

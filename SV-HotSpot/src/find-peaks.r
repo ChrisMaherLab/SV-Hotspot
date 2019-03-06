@@ -1,5 +1,4 @@
 #!/gapp/x64linux/opt/R3.1.2/bin/Rscript
-###/usr/bin/env Rscript3.1.2
 
 args = commandArgs(T)
 
@@ -17,6 +16,7 @@ out.dir = args[6]
 distance = as.numeric(args[7])
 sv.path=args[8]
 genes.of.int <- args[9]
+chr.size.file = args[10]
 
 ### read all break points
 bp = read.table(paste0(out.dir,'/processed_data/all_bp.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
@@ -26,16 +26,18 @@ bp$svtype = gsub('^.*/', '', bp$name)
 ### extract total number of samples 
 total.samples <- length(unique(bp$sample))
 
-if (file.exists(paste0(out.dir,'/counts.rds')) ){
+### read sample counts file
+if (file.exists(paste0(out.dir,'/processed_data/counts.rds')) ){
   cat('Reading sliding window sample count...\n')
-  counts = readRDS(paste0(out.dir,'/counts.rds'))
+  counts = readRDS(paste0(out.dir,'/processed_data/counts.rds'))
 } else {
-  stop ("File \"count.rds\" was not found, make sure this file exists.\n")
+  stop ("File \"counts.rds\" was not found, make sure this file exists.\n")
 }
 
-#chrs = c('chr21', 'chrX', 'chr14')
+### extract chromosome names 
+chr = read.table(chr.size.file, header=T, stringsAsFactors=F, sep='\t')
 if (chrs[1] == "ALL"){
-    chrs = paste0('chr', c(1:22, 'X', 'Y'))
+    chrs = chr$chrom
 }
 chrs = intersect(chrs, unique(counts$chr))
 cat('Chromosomes to analyze:\n')
@@ -49,6 +51,41 @@ if (genes.of.int !=0) {
   genes.of.interes = genes.of.interes[, c('chr', 'pos', 'gene')]
   genes.of.interes = unique(genes.of.interes)
 }
+
+###################### FUNCTION CAL PEAKS USING peakPick algorithm ############################
+pp <- function(x) {
+    mat = as.matrix(data.frame(a=1, b=x$pct.samples))
+    h <- detect.spikes(mat, roi=c(peakPick.win+1, nrow(x)-peakPick.win-1), winlen=peakPick.win, spike.min.sd=peakPick.minsd)
+    return (h)
+}
+###############################################################################################
+
+######################## FUNCTION CAL PEAKS USING smoothed z-score ############################
+ThresholdingAlgo <- function(y,lag,threshold,influence) {
+  signals <- rep(0,length(y))
+  filteredY <- y[0:lag]
+  avgFilter <- NULL
+  stdFilter <- NULL
+  avgFilter[lag] <- mean(y[0:lag])
+  stdFilter[lag] <- sd(y[0:lag])
+  for (i in (lag+1):length(y)){
+    if (abs(y[i]-avgFilter[i-1]) > threshold*stdFilter[i-1]) {
+      if (y[i] > avgFilter[i-1]) {
+        signals[i] <- 1;
+      } else {
+        signals[i] <- -1;
+      }
+      filteredY[i] <- influence*y[i]+(1-influence)*filteredY[i-1]
+    } else {
+      signals[i] <- 0
+      filteredY[i] <- y[i]
+    }
+    avgFilter[i] <- mean(filteredY[(i-lag):i])
+    stdFilter[i] <- sd(filteredY[(i-lag):i])
+  }
+  return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
+}
+###############################################################################################
 
 ####################### FUNCTION TO COMPUTE NUMBER AND PERCENTAGE OF SAMPLES ##################
 computePCT.samples <- function(data, group.data) {
@@ -65,7 +102,6 @@ computePCT.samples <- function(data, group.data) {
 }
 ###############################################################################################
 
-# group peaks nearby (distance < d)
 ############################# FUNCTION TO GROUP NEAREST PEAKS #################################
 groupPeaks <- function(x, d){
     x = x[order(x$pos),]
@@ -108,34 +144,64 @@ groupPeaks <- function(x, d){
 
     return(list(x=x, group=gr))
 }
-
 ################################################################################################
 
-# call peaks for each chr for chosen svtype and plot results
+######################### FUNCTION TO GENERATE UCSC CUSTOM TRACKS ##############################
+custom.tracks <- function(x){
+    peaks.for.ucsc = x[, c('chr','start','stop', 'pct.samples')]
+    colnames(peaks.for.ucsc) = c('#chr','start','stop', 'pct.samples')
+    min.value = min(peaks.for.ucsc$start)
+    max.value = max(peaks.for.ucsc$stop)
+    track.descp = paste0("Percentage of SV samples for peaks identified on ", chr)
+
+    file.header = paste0("browser position ",chr,":",min.value,"-",max.value,"\ntrack type=bedGraph name=\"",chr,"\" description=\"",track.descp,"\" visibility=2 color=67,162,202")
+    tmp = paste0(out.dir, '/ucsc_custom_track_files/', chr, '.bedGraph')
+    cat( file.header, "\n", file = tmp)  
+    write.table(peaks.for.ucsc, file = tmp, append = TRUE, row.names = FALSE, quote = F, sep="\t", col.names = F)
+}
+################################################################################################
+
+
+###### call peaks for each chr for chosen svtype and plot results
 out.dir <- paste0(out.dir,'/peaks')
 dir.create(out.dir)
+dir.create(paste0(out.dir,'/ucsc_custom_track_files'))
 
 for (chr in chrs){
     cat(chr, '\n')
     x = counts[counts$chr == chr & counts$svtype == svtype,]
     x = x[order(x$pos),]
 
-    ### call peaks
-    mat = as.matrix(data.frame(a=1, b=x$pct.samples))
-    h <- detect.spikes(mat, roi=c(peakPick.win+1, nrow(x)-peakPick.win-1), winlen=peakPick.win, spike.min.sd=peakPick.minsd)
-      
-    ### post processing peakPick output 
+    ### call peaks using peakPick algorithm
+    h <- pp(x)
     x$peak = F
     x$peak[which(h[,2])] = T
-    #filter peaks with low % of samples
     x$peak[x$pct.samples < pct.samples.cutoff] = F
     
+    ### call peaks using percentage of samples cutoff
+    #x$peak = F
+    #x$peak[x$pct.samples >= pct.samples.cutoff] = T
+
+    ### call peaks using smoothed z-score method
+    #lag       <- 1000
+    #threshold <- 5
+    #influence <- 0
+    #result <- ThresholdingAlgo(x$pct.samples,lag,threshold,influence)
+    #x$peak = F
+    #x$peak[which(result$signals==1)] = T
+    #x$peak[x$pct.samples < pct.samples.cutoff] = F
+
     ### group nearby peaks 
     z = groupPeaks(x, distance)
 
     ### write the results of the current chromosome
     write.table(z$group, file=paste0(out.dir, '/', chr, '.peak.group.bed'), sep='\t', quote=F, row.names=F)
     write.table(z$x, file=paste0(out.dir, '/', chr, '.peak.bed'), sep='\t', quote=F, row.names=F)
+
+    ### generate UCSC custom tracks (create bedGraph files)
+    if (!is.null(z$group) ) {
+       custom.tracks(z$group)
+    }
 
     ### plotting the peaks of the current chromosome
     ### extract genes located on the current chromsome from the list of genes of interest 
@@ -157,7 +223,7 @@ for (chr in chrs){
                    axis.title.y=element_text(size=10, color="black"),
                    legend.position="top", legend.title=element_text(size=10, face="bold"))
           + ggtitle(paste('Percentage of samples across', chr, 'segments (windows)'))
-          + scale_fill_manual(name="SV Type:", values=c('BND'='#2ca25f','INS'='#fec44f', 'INV'='#c994c7', 'DUP'='#b53f4d', 'DEL'='#2c7fb8'))
+          + scale_fill_manual(name="SV Type:", values=c('BND'='#2ca25f','INS'='#fec44f', 'INV'='#c994c7', 'DUP'='#b53f4d', 'DEL'='#2c7fb8', 'NC'='gray80'))
           + scale_x_continuous(labels = scales::comma, limits=c(0,max(x$pos)))
           + scale_y_continuous(limits=c(0, max(x2$pct.samples)+10), breaks=seq(0,100,10))
     )
@@ -183,12 +249,13 @@ for (chr in chrs){
                 + annotate(geom="text", x=0, y=pct.samples.cutoff+1, label=paste0(pct.samples.cutoff,"%"),color="red", size=3)
                 + scale_x_continuous(labels = scales::comma, limits=c(0,max(x$pos)))
                 + scale_y_continuous(limits=c(-10, max(x$pct.samples)+10), breaks=seq(0,100,10))
-                + ggtitle(paste0('Identified peaks (hotspots) on ', chr, ' (cutoff = ',pct.samples.cutoff,'%)'))
+                #+ggtitle(paste0('Identified peaks (hotspots) on ', chr, ' (cutoff = ',pct.samples.cutoff,'%)'))
+                + ggtitle(paste0('Identified peaks (hotspots) on ', chr))
                 + theme (plot.title=element_text(size=14, hjust=0.5, face="bold"),axis.title.y=element_text(size=10, color="black"))
         )
     }
 
-    png(paste0(out.dir, '/', chr, '.png'), units='in', width=10, height=5, res=200)
+    png(paste0(out.dir, '/', chr, '_v2.png'), units='in', width=10, height=5, res=200)
     grid.arrange(p1,p2,nrow=2)
     dev.off()
 

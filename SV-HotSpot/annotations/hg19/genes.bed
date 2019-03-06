@@ -1,4 +1,4 @@
-#chr	start	end	gene	score	strand
+chrom	start	end	gene	score	strand
 chr19	58858171	58864865	A1BG	1000	-
 chr19	58863335	58866549	A1BG-AS1	1000	+
 chr10	52559168	52645435	A1CF	1000	-

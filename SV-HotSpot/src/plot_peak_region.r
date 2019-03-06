@@ -24,10 +24,10 @@ chip.seq = args[8]
 t.amp = as.numeric(args[9])
 t.del = as.numeric(args[10])
 chip.cov.lbl= args[11]
-roi.lbl = args[12]
-left.ext = as.numeric(args[13])
-right.ext = as.numeric(args[14])
-
+#roi.lbl = args[12]
+left.ext = as.numeric(args[12])
+right.ext = as.numeric(args[13])
+ 
 #### function to align figures 
 AlignPlots <- function(...) {
   LegendWidth <- function(x) x$grobs[[8]]$grobs[[1]]$widths[[4]]
@@ -42,8 +42,7 @@ AlignPlots <- function(...) {
   max.legends.width <- do.call(max, legends.widths)
   plots.grobs.eq.widths.aligned <- lapply(plots.grobs.eq.widths, function(x) {
     if (is.gtable(x$grobs[[8]])) {
-      x$grobs[[8]] <- gtable_add_cols(x$grobs[[8]],unit(abs(diff(c(LegendWidth(x),
-                                                                   max.legends.width))), "mm"))
+      x$grobs[[8]] <- gtable_add_cols(x$grobs[[8]],unit(abs(diff(c(LegendWidth(x),max.legends.width))), "mm"))
     }
     x
   })
@@ -70,17 +69,20 @@ pileUp <- function(x, chrom, left, right){
 plot.exp <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, gene, pk) {
   
   ##################### plot the expression for SV samples (SVs vs non-SVs) ###############################
+  pval = (wilcox.test(g.exp[g.exp$sample.status=="SVs", 'gene.exp'], g.exp[g.exp$sample.status=="non-SVs", 'gene.exp']))$p.value
+  pval= sprintf(pval, fmt="%#.5f")
   g.exp$sample.status <- factor(g.exp$sample.status, levels=c('non-SVs', 'SVs'))
   e1 <- ggplot(g.exp, aes(x=sample.status, y=log2(gene.exp+1))) + geom_boxplot(aes(fill=sample.status)) + theme_bw() 
-  e1 <- e1 + labs(x='', y='Log2(expression)') + ggtitle(paste0('\n',gene, ' expression in SV and non-SV samples'))
+  e1 <- e1 + labs(x='', y='Log2(expression)') + ggtitle(paste0('\n',gene, ' expression in SV\nand non-SV samples'))
   e1 <- e1 + theme(axis.text.x=element_text(size=12, vjust=0.5, color="black"),
-                   axis.text.y=element_text(size=12, color="black"), 
-                   axis.title.y=element_text(size=14), panel.background=element_blank(),
-                   plot.title = element_text(size = 14, hjust=0.5, color="black", face="plain"),
+                   axis.text.y=element_text(size=14, color="black"), 
+                   axis.title.y=element_text(size=16), panel.background=element_blank(),
+                   plot.title = element_text(size = 16, hjust=0.5, color="black", face="plain"),
                    legend.position="none")
   e1 = e1 + scale_fill_manual(name="", values =c("non-SVs"="gray", "SVs"="orange2"))
   e1 = e1 + scale_x_discrete(labels=c(paste0("non-SVs\n(n=",nrow(g.exp[g.exp$sample.status=="non-SVs",]),")"), paste0("SVs\n(n=",nrow( g.exp[g.exp$sample.status=="SVs",]),")")))
-  e1 = e1 + geom_signif(comparisons=list(c('non-SVs','SVs')))
+  #e1 = e1 + geom_signif(comparisons=list(c('non-SVs','SVs')))
+  e1 = e1 + annotate("text", x = 0.8, y = max(log2(g.exp$gene.exp+1)), label = paste0('p=', pval), cex=4, fontface="bold")
   
   ###################### plot the expression for SV samples (SV types vs non-SVs) ########################
   if (length(g.exp[g.exp$sample %in% nonSV.pats & g.exp$gene.cn.status=="neut", 'gene.exp']) > 0 ) {
@@ -113,14 +115,14 @@ plot.exp <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, gene,
                paste0("DUP\n(n=",nrow(DUP.exp.n),")"), paste0("INS\n(n=",nrow(INS.exp.n),")"),
                paste0("DEL\n(n=",nrow(DEL.exp.n),")"), paste0("INV\n(n=",nrow(INV.exp.n),")"))
     lbls.n = grep(paste(as.character(unique(svtype.exp$grp)), collapse="|"), lbls.n, value=TRUE)
-    neut.title = paste0(gene, ' expression by SV type in peak ', pk,'\n(neutral samples only)')
+    neut.title = paste0(gene, ' expression by SV type in peak ', pk,'\n(CN neutral samples only)')
     
     e2 <- ggplot(svtype.exp, aes(x=grp, y=log2(exp+1))) + geom_boxplot(aes(fill=grp)) + theme_bw() 
     e2 <- e2 + labs(x='', y='Log2(expression)') + ggtitle(neut.title)
     e2 <- e2 + theme(axis.text.x=element_text(size=12, vjust=0.5, color="black"),
-                     axis.text.y=element_text(size=12, color="black"), 
-                     axis.title.y=element_text(size=14), panel.background=element_blank(),
-                     plot.title = element_text(size = 14, hjust=0.5, color="black", face="plain"),
+                     axis.text.y=element_text(size=14, color="black"), 
+                     axis.title.y=element_text(size=16), panel.background=element_blank(),
+                     plot.title = element_text(size = 16, hjust=0.5, color="black", face="plain"),
                      legend.position="none")
     e2 = e2 + scale_fill_manual(name="", values =c("non-SVs"="gray", "BND"="#2ca25f", "DUP"="#b53f4d", "INS"="#fec44f","DEL"="#2c7fb8","INV"="#c994c7"))
     e2 = e2 + scale_x_discrete(labels=lbls.n)
@@ -143,15 +145,25 @@ plot.exp <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, gene,
     
     g.exp$group <- factor(g.exp$group, levels=c('GNPN', 'GNPA', 'GAPN','GAPA','GDPN','GNPD','GDPD','NC'))
     
-    lbls = c("GNPN"=paste0("GeneNeut\npeakNeut\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="neut", "group"]),")"), 
-             "GAPN"=paste0("GeneAmp\nPeakNeut\n(n=",length(g.exp[g.exp$gene.cn.status=="amp" & g.exp$pk.cn.status=="neut", "group"]),")"),
-             "GNPA"=paste0("GeneNeut\nPeakAmp\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="amp", "group"]),")"),
-             "GAPA"=paste0("GeneAmp\nPeakAmp\n(n=",length(g.exp[g.exp$gene.cn.status=="amp" & g.exp$pk.cn.status=="amp", "group"]),")"), 
-             "GDPN"=paste0("GeneDel\nPeakNeut\n(n=",length(g.exp[g.exp$gene.cn.status=="del" & g.exp$pk.cn.status=="neut", "group"]),")"),
-             "GNPD"=paste0("GeneNeut\nPeakDel\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="del", "group"]),")"),
-             "GDPD"=paste0("GeneDel\nPeakDel\n(n=",length(g.exp[g.exp$gene.cn.status=="del" & g.exp$pk.cn.status=="del", "group"]),")"), 
-             "NC"=paste0("Other\n(n=",nrow(g.exp[g.exp$group=="NC",])))
+ #   lbls = c("GNPN"=paste0("GeneNeut\npeakNeut\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="neut", "group"]),")"), 
+ #            "GAPN"=paste0("GeneAmp\nPeakNeut\n(n=",length(g.exp[g.exp$gene.cn.status=="amp" & g.exp$pk.cn.status=="neut", "group"]),")"),
+ #            "GNPA"=paste0("GeneNeut\nPeakAmp\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="amp", "group"]),")"),
+ #            "GAPA"=paste0("GeneAmp\nPeakAmp\n(n=",length(g.exp[g.exp$gene.cn.status=="amp" & g.exp$pk.cn.status=="amp", "group"]),")"), 
+ #            "GDPN"=paste0("GeneDel\nPeakNeut\n(n=",length(g.exp[g.exp$gene.cn.status=="del" & g.exp$pk.cn.status=="neut", "group"]),")"),
+ #            "GNPD"=paste0("GeneNeut\nPeakDel\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="del", "group"]),")"),
+ #            "GDPD"=paste0("GeneDel\nPeakDel\n(n=",length(g.exp[g.exp$gene.cn.status=="del" & g.exp$pk.cn.status=="del", "group"]),")"), 
+ #            "NC"=paste0("Other\n(n=",nrow(g.exp[g.exp$group=="NC",])))
     
+ 
+    lbls = c("GNPN"=paste0("GN/PN\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="neut", "group"]),")"), 
+             "GAPN"=paste0("GA/PN\n(n=",length(g.exp[g.exp$gene.cn.status=="amp" & g.exp$pk.cn.status=="neut", "group"]),")"),
+             "GNPA"=paste0("GN/PA\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="amp", "group"]),")"),
+             "GAPA"=paste0("GA/PA\n(n=",length(g.exp[g.exp$gene.cn.status=="amp" & g.exp$pk.cn.status=="amp", "group"]),")"), 
+             "GDPN"=paste0("GD/PN\n(n=",length(g.exp[g.exp$gene.cn.status=="del" & g.exp$pk.cn.status=="neut", "group"]),")"),
+             "GNPD"=paste0("GN/PD\n(n=",length(g.exp[g.exp$gene.cn.status=="neut" & g.exp$pk.cn.status=="del", "group"]),")"),
+             "GDPD"=paste0("GD/PD\n(n=",length(g.exp[g.exp$gene.cn.status=="del" & g.exp$pk.cn.status=="del", "group"]),")"), 
+             "NC"=paste0("NC\n(n=",nrow(g.exp[g.exp$group=="NC",])))
+
     ### construct the list for all possible values 
     amp.grp = as.character(unique(g.exp$group[g.exp$group %in% c("GNPN","GAPN", "GNPA","GAPA")])) 
     del.grp = as.character(unique(g.exp$group[g.exp$group %in% c("GNPN", "GDPN", "GNPD", "GDPD")])) 
@@ -174,18 +186,19 @@ plot.exp <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, gene,
     title.size2 = length(levels(factor(g.exp$group))) * 3.5  
     if (title.size2 <= 7) { title.size2 = 12 }
     
-    tt = paste0(gene,' expression with the presence/absence\nof CN at ', gene, ' or at the peak')
+    tt = paste0(gene,' expression with the presence and\nabsence of CN at ', gene, '/peak regions\n(G=gene, P=Peak, N,A,D=CN events)')
     
     e3 <- ggplot(g.exp, aes(x=group, y=log2(gene.exp+1))) + geom_boxplot(aes(fill=group)) + theme_bw()
     #e3 <- e3 + stat_summary(fun.data = give.n, geom = "text", size=5) 
     e3 <- e3 + labs(x='', y='Log2(expression)') + ggtitle(tt)
     e3 <- e3 + theme(axis.text.x=element_text(size=12, vjust=0.5, color="black"),
-                   axis.text.y=element_text(size=12, color="black"),
-                   axis.title=element_text(size=14), panel.background=element_blank(),
-                   plot.title = element_text(size = 14, hjust=0.5, color="black", face="plain"),
+                     axis.text.y=element_text(size=14, color="black"),
+                     axis.title=element_text(size=16), 
+                     panel.background=element_blank(),
+                     plot.title = element_text(size = 16, hjust=0.5, color="black", face="plain"),
                    legend.position="none")
     e3 = e3 + scale_fill_manual(name="", values = c("GNPN"="gray", "GAPN"="#f03b20", "GNPA"="#b53f4d", "GAPA"="salmon", 
-                                                  "GDPN"="#a6bddb", "GNPD"="#2c7fb8", "GDPD"="skyblue2")) 
+                                                    "GDPN"="#a6bddb", "GNPD"="#2c7fb8", "GDPD"="skyblue2")) 
     e3 = e3 + scale_x_discrete(labels=lbls)
     e3 = e3 + geom_signif(comparisons=myCMPlist , step_increase=0.1)
   #}    
@@ -309,24 +322,23 @@ plot.exp.amp.del <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pat
 plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
 
    #construct region coordinates 
-   right = max(pk.corr$p.start, pk.corr$p.stop, genes.in.p$g.start, genes.in.p$g.stop)
-   left =  min(pk.corr$p.start, pk.corr$p.stop, genes.in.p$g.start, genes.in.p$g.stop)
-   width = abs(pk.corr$p.stop - pk.corr$p.start)/1000
+   right = max(pk.corr$Start, pk.corr$End, genes.in.p$g.start, genes.in.p$g.stop)
+   left =  min(pk.corr$Start, pk.corr$End, genes.in.p$g.start, genes.in.p$g.stop)
+   width = abs(pk.corr$End - pk.corr$Start)/1000
 
    ### add left and right extensions if provided 
    left <- left - left.ext - 10000     
    right <- right + right.ext  +10000
    D = right - left
-   r.width = pk.corr$p.stop - pk.corr$p.start
+   #r.width = pk.corr$End - pk.corr$Start
    #scale binwidth accordingly based on region width
    binwidth = D/75
-
    #genes within region
    g.corr = genes.in.p[genes.in.p$gene ==gene, ]
  
    ### extract SVs data
    #x = bp[bp$chr == pk.corr$p.chr & bp$pos > left & bp$pos < right,]
-   x = cts[cts$chr == pk.corr$p.chr & cts$pos > left & cts$pos < right,]  ### using counts 
+   x = cts[cts$chr == pk.corr$Chr & cts$pos > left & cts$pos < right,]  ### using counts 
    x = x[x$svtype !="ALL",]
    
    ### for DUP and DEL only 
@@ -335,19 +347,20 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    x2[x2$svtype == "DEL", "num.samples"] <-  x2[x2$svtype == "DEL", "num.samples"] * -1
 
    ### make the title 
-   title = paste0('Associated Gene: ',gene,'\n (Peak locus: ',pk.corr$p.chr, ':',  pk.corr$p.start, '-',  pk.corr$p.stop, '; Peak name=', pk,'; Peak width=', width,'kb)')
+   title = paste0('Associated Gene: ',gene,'\n (Peak locus: ',pk.corr$Chr, ':',  pk.corr$Start, '-',  pk.corr$End, '; Peak name=', pk,'; Peak width=', width,'kb)')
 
    ### compute the DUP and DEL pileup of SV
-   dup_del = pileUp(sv, pk.corr$p.chr, left, right)
+   dup_del = pileUp(sv, pk.corr$Chr, left, right)
    
    dup_del$pos1[dup_del$pos1 < left] = left
    dup_del$pos2[dup_del$pos2 > right] = right
  
   ################################## plot region copy number ###############################################
   #if (is.cn.avail) {
-     reg.cn = cn_data[cn_data$chr == pk.corr$p.chr & (cn_data$pos > left | cn_data$pos < right),]
+     reg.cn = cn_data[cn_data$chr == pk.corr$Chr & (cn_data$pos > left | cn_data$pos < right),]
      reg.cn = reg.cn[tolower(reg.cn$cn.call) %in% c("amp", "del"), ]
      #reg.width = pk.corr$p.stop - pk.corr$p.start + 1
+
      reg.width = (right - left)+1
      s = round(reg.width/500)
      imin = min(reg.cn$start)
@@ -377,10 +390,10 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
                    plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
                    axis.text.x=element_blank(), axis.text.y=element_text(size=12, color="black"),
                    axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"),
-                   legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
+                   legend.key.size = unit(0.8,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=12))
      #p0 = p0 + xlim(left, right )
      p0 = p0 + scale_x_continuous(limits=c(left, right), expand=c(0.02,0.02))
-     p0 = p0 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+     p0 = p0 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
      #p0 = p0 + geom_vline(xintercept=67711690, color='black', linetype='dashed', size=0.3)
      #p1 = p1 + scale_y_continuous(breaks = seq(min(reg.cn$cn), max(reg.cn$cn),10))
   #}
@@ -404,9 +417,9 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
             plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
             axis.text.x=element_blank(), axis.text.y=element_blank(), legend.key=element_rect(fill=NA),
             axis.title.x=element_blank(), axis.title.y=element_text(size=12, color="black"),
-            legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
+            legend.key.size = unit(0.8,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=12))
     + scale_color_manual(name="", values=c('DUP'='#b53f4d', 'DEL'='#2c7fb8'), guide = guide_legend(override.aes = list(size = 7)))
-    + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+    + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
     #+ geom_vline(xintercept=67711690, color='black', linetype='dashed', size=0.3)
     #+ geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
     #+ xlim(left, right)
@@ -417,13 +430,13 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
   p2 = ggplot(x2, aes(x=pos, y=num.samples, fill=svtype)) + geom_bar(stat="identity")
   p2 = p2 + theme_bw() + xlab('') + ylab('Number of\nsamples')
   #p2 = p2 + geom_text(label=ifelse(abs(x2$num.samples) >=9 & x2$svtype=="DEL", x2$sample,''), align=90)
-  p2 = p2 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+  p2 = p2 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
   #p2 = p2 + geom_vline(xintercept=67711690, color='black', linetype='dashed', size=0.3)
   p2 = p2 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
                  plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
                  axis.text.x=element_blank(), axis.text.y=element_text(size=12, color="black"),
                  axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"),
-                 legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
+                 legend.key.size = unit(0.8,"cm"), legend.title=element_blank(), legend.text=element_text(size=12))
    #p2 = p2 + scale_y_continuous(breaks = sv.brks, labels = sv.lbls, limits=c(min(x2$num.samples), max(x2$num.samples)))
    p2 = p2 + scale_y_continuous(labels=abs)
    #p2 = p2 + xlim(left, right )
@@ -437,13 +450,13 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
  
   p22 = ggplot(x, aes(x=pos, y=num.samples, fill=svtype)) + geom_bar(stat="identity")
   p22 = p22 + theme_bw() + xlab('') + ylab('Number of\nsamples')
-  p22 = p22 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+  p22 = p22 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
   p22 = p22 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
                  plot.title=element_text(size=16, hjust=0.5, face="bold"), 
                  #axis.text.x=element_blank(), axis.text.y=element_text(size=12, color="black"),
                  axis.text.x=element_text(size=12, color="black"), axis.text.y=element_text(size=12, color="black"),
                  axis.title.x=element_text(size=14, color="black"), axis.title.y=element_text(size=12, color="black"),
-                 legend.key.size = unit(0.6,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=10))
+                 legend.key.size = unit(0.8,"cm"), legend.title=element_text(size=12, face="bold"), legend.text=element_text(size=12))
    p22 = p22 + scale_fill_manual(name="SV type", values=c('BND'='#2ca25f','INS'='#fec44f', 'INV'='#c994c7', 'DUP'='#b53f4d', 'DEL'='#2c7fb8'), 
                                         labels=c('BND'='BND','INS'='INS', 'INV'='INV', 'DUP'='DUP', 'DEL'='DEL'),
                                         guide = guide_legend(override.aes = list(size = 7)))
@@ -451,12 +464,12 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
 
   ######################################## plot chip-seq data ###########################################
   if (is.chip.avail) {
-     reg.chip = chip_seq[chip_seq$chrom == pk.corr$p.chr & chip_seq$pos > left | chip_seq$pos < right,]
+     reg.chip = chip_seq[chip_seq$chrom == pk.corr$Chr & chip_seq$pos > left | chip_seq$pos < right,]
 
-     p3 = ggplot (reg.chip,aes(x=pos, y=cov)) + geom_bar(stat="identity", width = D/200)
+     p3 = ggplot (reg.chip,aes(x=pos, y=cov)) + geom_bar(stat="identity", width = D/300)
      p3 = p3 + theme_bw() + xlab('') + ylab(chip.cov.lbl)
      #p3 = p3 + geom_rect(xmin=g.corr$g.start, xmax=g.corr$g.stop, ymin=0, ymax=30, color="white", alpha=0.005)
-     p3 = p3 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+     p3 = p3 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
      #p3 = p3 + geom_vline(xintercept=67711690, color='black', linetype='dashed', size=0.3)
      p3 = p3 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(), axis.ticks = element_blank(),
                   #axis.text.x=element_text(size=12, color="black"), axis.text.y=element_text(size=12, color="black"),
@@ -471,23 +484,33 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
 
 
   ################################## plot region of interest annotation ###############################################
-  if (!is.null(p.roi) && nrow(p.roi) !=0 ) { 
-     p4 = ggplot(p.roi) + geom_segment(aes(x=start, xend=end, y=0, yend=0), color='black', size=6) + theme_bw(base_size = 12)
-     p4 = p4 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-                     axis.ticks=element_blank(), 
-                     axis.title.y=element_text(size=12, color="black"),
-                     panel.background=element_blank(), panel.border=element_blank(),
-                     axis.line = element_line(colour = "black"),
-                     axis.text=element_blank(), axis.title.x=element_blank())
-     p4 = p4 + ylab(roi.lbl)
-     #p4 = p4 + xlim(min(x$pos), max(x$pos) )
-     #p4 = p4 + xlim(left, right )
-     p4 = p4 + scale_x_continuous(limits=c(left, right), expand=c(0.02,0.02))
-     p4 = p4 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
-     #p4 = p4 + scale_y_continuous(breaks=c(-0.5,0), limits=c(-0.5, 0))
-  } else { 
-     p4 = NULL 
-  } 
+  if (!is.null(p.roi) && nrow(p.roi) !=0 ) {
+      p4 = ggplot(p.roi) + geom_segment(aes(x=start, xend=end, y=roi.type, yend=roi.type), color='black', size=6) + theme_bw(base_size = 12)
+      p4 = p4 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+                      axis.ticks=element_blank(),
+                      axis.text.y=element_text(hjust=0.5, size=12, angle=ifelse(length(unique(p.roi$roi.type)) >1 ,45,90)),
+                      axis.title.y=element_text(size=12, color="black"),
+                      axis.title.x=element_blank(),axis.text.x=element_blank(),
+                      panel.background=element_blank(), panel.border=element_blank(),
+                      axis.line = element_line(colour = "black")
+                      ) 
+  #   p4 = ggplot(p.roi) + geom_segment(aes(x=start, xend=end, y=0, yend=0), color='black', size=6) + theme_bw(base_size = 12)
+  #   p4 = p4 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+  #                   axis.ticks=element_blank(), 
+  #                   axis.title.y=element_text(size=12, color="black"),
+  #                   panel.background=element_blank(), panel.border=element_blank(),
+  #                   axis.line = element_line(colour = "black"),
+  #                   axis.text=element_blank(), axis.title.x=element_blank())
+      p4 = p4 + ylab("Region(s) of\ninterest")
+  #   #p4 = p4 + xlim(min(x$pos), max(x$pos) )
+  #   #p4 = p4 + xlim(left, right )
+      p4 = p4 + scale_x_continuous(limits=c(left, right), expand=c(0.02,0.02))
+      p4 = p4 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
+  #   #p4 = p4 + scale_y_continuous(breaks=c(-0.5,0), limits=c(-0.5, 0))
+  
+  } else {
+     p4 = NULL
+  }
 
  ################################## plot gene annotation ###############################################
   p5 = ggplot(genes.in.p) + geom_segment(aes(x=g.start, xend=g.stop, y=2, yend=2), color=ifelse(genes.in.p$g.strand=="+", 'red', 'blue'), size=5) + theme_bw() 
@@ -497,7 +520,7 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
                   panel.background=element_blank(), panel.border=element_blank(),
                   axis.text=element_blank(), axis.title.x=element_blank())
   p5 = p5 + ylab('')
-  #p5 = p5 + geom_vline(xintercept=c(pk.corr$p.start, pk.corr$p.stop), color='black', linetype='dashed')
+  #p5 = p5 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
   #p5 = p5 + xlim(left, right )
   p5 = p5 + scale_x_continuous(limits=c(left, right), expand=c(0.02,0.02))
   p5 = p5 + scale_y_continuous(breaks=c(1,2), limits=c(1, 2))
@@ -506,7 +529,7 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
  
   ####### make plots list and return the result 
   plots <- list(p0,p1,p2,p22,p3,p4, p5)
-  names(plots) <- c( "p0", "p1","p2","p22","p3", "p4","p5")
+  #names(plots) <- c( "p0", "p1","p2","p22","p3",p4,"p5")
   plots <- plots[!sapply(plots, is.null)]
   return (plots)
 
@@ -514,15 +537,16 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
 ############################################# END OF PLOT REGION FUNCTION ###################################################################
 
 ### read structural variants file 
+cat('Reading all breakpoints...')
 if (file.exists((sv.file))) {
-   sv <- read.table(sv.file, header =T, sep="\t", stringsAsFactors = F, check.names=F)
-   sv$sample = sub('/.*$', '', sv$name)
-   sv$svtype = sub('^.*/', '', sv$name)
-   sv = sv[sv$svtype %in% c('DUP', 'DEL'),]
-   sv$pos1 = (sv$start1 + sv$end1)/2
-   sv$pos2 = (sv$start2 + sv$end2)/2
+  sv <- read.table(sv.file, header =T, sep="\t", stringsAsFactors = F, check.names=F)
+  sv$sample = sub('/.*$', '', sv$name)
+  sv$svtype = sub('^.*/', '', sv$name)
+  sv = sv[sv$svtype %in% c('DUP', 'DEL'),]
+  sv$pos1 = (sv$start1 + sv$end1)/2
+  sv$pos2 = (sv$start2 + sv$end2)/2
 } else {
-   stop('structural variants file was not found!')
+  stop('structural variants file was not found!')
 }
 
 ### read all break points
@@ -533,125 +557,137 @@ bp$sample = gsub('/.*$', '', bp$name)
 bp$svtype = gsub('^.*/', '', bp$name)
 ### extract total number of samples 
 samples.with.sv <- unique(bp$sample)
+cat('done.\n')
 
 ### read windows counts file 
-if (file.exists(paste0(res.dir,'/counts.rds')) ){
-  cat('Reading sliding window sample count...\n')
-  cts = readRDS(paste0(res.dir,'/counts.rds'))
+cat('Reading sliding window sample count...')
+if (file.exists(paste0(res.dir,'/processed_data/counts.rds')) ){
+  cts = readRDS(paste0(res.dir,'/processed_data/counts.rds'))
 } else {
   stop (paste("File \"",res.dir, "/counts.rds\" was not found!.\n", sep=""))
 }
+cat('done.\n')
 
 ### read annotated peaks summary file 
 res = read.table(paste0(res.dir, '/annotated_peaks_summary_final.tsv'), header=T, sep='\t', stringsAsFactors=F)
 ### filter peaks with effected genes only 
-res = res[!is.na(res$associated.genes), ]
-
-### set the labels 
-if (is.na(chip.cov.lbl)) {
-   chip.cov.lbl ="chip-seq\ncoverage"
-}
-
-if (is.na(roi.lbl)) {
-   roi.lbl ="region of\ninterest"
-}
-
-### check if the user provided copy number and or chip.seq 
-# is.cn.avail = FALSE
-# is.chip.avail = FALSE
-# if(cn.file !=0 ) { 
-#   is.cn.avail = TRUE 
-# }
+res = res[!is.na(res$Associated.genes), ]
 
 ### read copy number file 
+cat('Reading copy number data for genes and peaks...')
 if (file.exists((cn.file))) {
-   cn_data <- read.table(cn.file, header =T, check.names=F, sep="\t", stringsAsFactors = F, comment.char="")
-   cn_data$pos = (cn_data$start+cn_data$end)/2
-   ### check if cn.call is exists 
-   if (!"cn.call" %in% colnames(cn_data)) {
-       cn_data$cn.call <- "neut"
-       cn_data[cn_data$cn > t.amp, 'cn.call'] <- "amp"
-       cn_data[cn_data$cn < t.del, 'cn.call'] <- "del"
-   }
+  cn_data <- read.table(cn.file, header =T, check.names=F, sep="\t", stringsAsFactors = F, comment.char="")
+  cn_data$pos = (cn_data$start+cn_data$end)/2
+  ### check if cn.call is exists 
+  if (!"cn.call" %in% colnames(cn_data)) {
+    cn_data$cn.call <- "neut"
+    cn_data[cn_data$cn > t.amp, 'cn.call'] <- "amp"
+    cn_data[cn_data$cn < t.del, 'cn.call'] <- "del"
+  }
 } else {
-   stop(paste0('Copy number file \"', cn.file, '\" was not found!'))
+  stop(paste0('Copy number file \"', cn.file, '\" was not found!'))
 }
 
-   
 ### read peaks with copy number data
 if (file.exists(paste0(res.dir,'/processed_data/peaks_with_cn.bed'))) {
-    cat('Reading peaks copy number data...\n')
-    pks.cn <- read.table(paste0(res.dir,'/processed_data/peaks_with_cn.bed'), header =F, check.names=F, sep="\t", stringsAsFactors = F)
-    colnames(pks.cn) <- c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'samples',
-                          'cn.chr', 'cn.start', 'cn.stop', 'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
+  pks.cn <- read.table(paste0(res.dir,'/processed_data/peaks_with_cn.bed'), header =F, check.names=F, sep="\t", stringsAsFactors = F)
+  colnames(pks.cn) <- c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'samples',
+                        'cn.chr', 'cn.start', 'cn.stop', 'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
 } else {
-    stop (paste0("Peaks copy number file \"", res.dir, "/processed_data/peaks_with_cn.bed\" was not found!.\n"))
+  stop (paste0("Peaks copy number file \"", res.dir, "/processed_data/peaks_with_cn.bed\" was not found!.\n"))
 }
 
 ### read genes with copy number data
 if (file.exists(paste0(res.dir,'/processed_data/genes_with_cn.bed'))) {
-   cat('Reading genes copy number data...\n')
-   genes.cn <- read.table(paste0(res.dir,'/processed_data/genes_with_cn.bed'), header =F, check.names=F, sep="\t", stringsAsFactors = F)
-   colnames(genes.cn) <- c('g.chr', 'g.start', 'g.stop', 'gene', 'score', 'strand', 'cn.chr', 'cn.start', 'cn.stop', 
-                           'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
+  genes.cn <- read.table(paste0(res.dir,'/processed_data/genes_with_cn.bed'), header =F, check.names=F, sep="\t", stringsAsFactors = F)
+  colnames(genes.cn) <- c('g.chr', 'g.start', 'g.stop', 'gene', 'score', 'strand', 'cn.chr', 'cn.start', 'cn.stop', 
+                          'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
 } else {
-   stop (paste0("Genes copy number file \"", res.dir, "/processed_data/genes_with_cn.bed\" was not found!.\n"))
+  stop (paste0("Genes copy number file \"", res.dir, "/processed_data/genes_with_cn.bed\" was not found!.\n"))
 }
-
-
-if(chip.seq != 0 ) { 
-  is.chip.avail = TRUE 
-  chiph = 2
-} else { 
-  is.chip.avail = FALSE
-  chiph = NULL
-}
+cat('done.\n')
 
 ### read chip-seq coverage file 
-if (is.chip.avail) {
-  cat('Reading chip-seq coverage data...\n') 
+if (chip.seq != 0) {
+  is.chip.avail = TRUE 
+  chiph = 2
+  cat('Reading chip-seq coverage data...') 
   if (file.exists(chip.seq) ) {
     chip_seq <- read.table(chip.seq, header =T, sep="\t", stringsAsFactors = F, check.names=F)
     chip_seq$pos = (chip_seq$start+chip_seq$end)/2
   } else {
     stop (paste0("Avergaed chip coverage file \"", chip.seq, "\" was not found!.\n"))
   }
+  cat('done.\n')
+} else {
+  is.chip.avail = FALSE
+  chiph = NULL
 }
 
-### extract feature column 
+### read annotation file  
 annot <- read.table(paste0(res.dir,"/processed_data/genes.bed"), header =T, sep="\t", check.names=F, comment.char = "$")
 colnames(annot) <- c('chr', 'start', 'stop', 'gene', 'score', 'strand') 
 #feature.col <- colnames(annot)[4]
 
-### get raw peak calls
+### read raw peak calls
+cat('Reading peaks with breakpoints...')
 pks = read.table(paste0(res.dir, '/processed_data/peaks_overlap_bp.tsv'), header=F, stringsAsFactors=F, sep='\t')
 colnames(pks) <- c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'sample', 'sv.type')
+cat('done.\n')
 
 ### read gene overlap/nearby peaks 
-genes.and.peaks <- read.table(paste0(res.dir,'/peaks_with_overlap_nearby_genes.tsv'), header =F, sep="\t", stringsAsFactors=F, check.names=F)
+genes.and.peaks <- read.table(paste0(res.dir,'/processed_data/peaks_with_overlap_nearby_genes.tsv'), header =F, sep="\t", stringsAsFactors=F, check.names=F)
 colnames(genes.and.peaks) = c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples','sample', 
                               'g.chr', 'g.start', 'g.stop', 'gene', 'g.score', 'g.strand', 'dist','g.pos')
 
 ### read expression data
-cat('Reading expression data...\n')
-exp <- read.table(exp.file, header =T, check.names=F, sep="\t", stringsAsFactors = F)
-exp.data.cols <- colnames(exp)[-1]
+cat('Reading expression data...')
+if (file.exists((exp.file))) {
+  exp <- read.table(exp.file, header =T, check.names=F, sep="\t", stringsAsFactors = F)
+  exp.data.cols <- colnames(exp)[-1]
+} else {
+  stop (paste0("Expression file \"", exp.file, "\" was not found!.\n"))
+}
+cat('done.\n')
 
 ### extract samples without SVs
 samples.with.no.SVs <- unique(colnames(exp)[!exp.data.cols %in% samples.with.sv])
 
-### read region of interest file 
-if (roi.file !=0) { 
-   is.roi.avail = TRUE
-   if (file.exists(roi.file)) {
-      roi = read.table(roi.file, header =T, sep="\t", stringsAsFactors=F)
-      roi = roi[,1:4] 
-   } else {
-      stop (paste0("Region of interest file \"", roi.file, "\" was not found!.\n"))     
-   }
+#### read region of interest file(s) 
+if (roi.file !=0) {
+  cat('Reading region(s) of interest data...')
+  is.roi.avail = TRUE
+  roi.files = unlist(strsplit(roi.file, ","))
+  roi.col.names <- paste0('Overlapped.', gsub("\\..*", "", basename(roi.files)))
+  for (j in 1:length(roi.files)){
+    roi.ff <- roi.files[j]
+    roi.name <- gsub("\\..*", "", basename(roi.ff))
+    
+    if (file.exists(roi.ff)) {
+      roi = read.table(roi.ff, header =T, sep="\t", stringsAsFactors=F)
+      roi = roi[,1:4]
+    } else {
+      stop (paste0("Region of interest file \"", roi.ff, "\" was not found!.\n"))
+    }
+    assign(paste(roi.name,"roi", sep = "."), roi)
+  }
+  cat('done.\n')
 } else {
   is.roi.avail = FALSE
 }
+
+# if (roi.file !=0) { 
+#   is.roi.avail = TRUE
+#   num.roi.files = unlist(strsplit(roi.file, ","))
+#   if (file.exists(roi.file)) {
+#     roi = read.table(roi.file, header =T, sep="\t", stringsAsFactors=F)
+#     roi = roi[,1:4] 
+#   } else {
+#     stop (paste0("Region of interest file \"", roi.file, "\" was not found!.\n"))     
+#   }
+# } else {
+#   is.roi.avail = FALSE
+# }
 
 ######################################### plot peaks #############################################
 #### create directory for plots 
@@ -664,22 +700,22 @@ for (k in 1:length(pks.to.plot)) {
   pk = pks.to.plot[k]
   cat('\n','Plotting peak', pk, '\n')
   ### extract peak coordinates
-  p.corr <- res[res$p.name==pk, c('p.chr','p.start','p.stop', 'pct.samples', 'num.samples')]
+  p.corr <- res[res$Peak.name==pk, c('Chr','Start','End', 'Percentage.SV.samples', 'Number.SV.samples')]
   
   ### extract effected genes 
-  effected.genes <- unlist(strsplit(res[res$p.name==pk, 'associated.genes'],  "\\|"))
+  assoc.genes <- unlist(strsplit(res[res$Peak.name==pk, 'Associated.genes'],  "\\|"))
   ### keep genes that have expression data
-  effected.genes <-  effected.genes[effected.genes %in% exp[,1]]
+  assoc.genes <-  assoc.genes[assoc.genes %in% exp[,1]]
   
-  if (length(effected.genes) ==0 ) { stop('No genes found to be associated with this peak.') }
+  if (length(assoc.genes) ==0 ) { stop('No genes found to be associated with this peak.') }
   
   ### extract locus information for effected genes 
   genes.in.peak <- unique(genes.and.peaks[genes.and.peaks$p.name==pk,c('g.chr','g.start','g.stop','gene','g.strand')])
-  #genes.in.peak <- unique(genes.and.peaks[genes.and.peaks$gene %in% c("TMPRSS2","ERG"),c('g.chr','g.start','g.stop','gene','g.strand')])
   
   ### extract peak data
   pp = pks[pks$p.name==pk & pks$sample %in% samples.with.sv, ]
   pp.cn = pks.cn[pks.cn$p.name==pk & pks.cn$sample %in% samples.with.sv, ]
+
   #### include samples with no SVs as neutral samples 
   if (length(samples.with.no.SVs) > 0) {
     pp.cn = rbind(pp.cn, data.frame(p.name=pk, sample=samples.with.no.SVs, cn.value=0, cn.call="neut"))
@@ -694,21 +730,33 @@ for (k in 1:length(pks.to.plot)) {
   INV.pats <- unique(pp[pp$sv.type=="INV", 'sample'])    
   nonSV.pats <- c(unique(samples.with.sv[!samples.with.sv %in% sv.pats]), samples.with.no.SVs) 
   
-  ### extract region of interest results for current peak if available
+  ### extract region of interest results for current peak 
   if (is.roi.avail) {
-    p.roi.res <- res[res$p.name==pk, 'overlap.roi']
-    p.roi.res <- roi[roi$name %in% unlist(strsplit(p.roi.res, "\\|")),]
-    if (nrow(p.roi.res) == 0 ) { roih = NULL } else { roih = 1 }
+    #p.roi.res <- res[res$Peak.name==pk, 'overlap.roi']
+    p.roi.res <- as.data.frame(res[res$Peak.name==pk, roi.col.names])
+    colnames(p.roi.res) = roi.col.names
+    roi.annot <- NULL
+    for (k in roi.col.names) {
+      roi.f <- eval(parse(text = paste0(gsub("Overlapped.", "", k), ".roi")))
+      roi.r <- roi.f[roi.f$name %in% unlist(strsplit(as.character(p.roi.res[,k]), "\\|")),]
+      if (nrow(roi.r) !=0) {
+      	  roi.r$roi.type <- gsub("Overlapped.", "", k)
+      	  roi.annot <- rbind(roi.annot, roi.r)
+      }
+    }
+
+    #p.roi.res <- roi[roi$name %in% unlist(strsplit(p.roi.res, "\\|")),]
+    if (nrow(roi.annot) == 0 || is.null(roi.annot)) { roih = NULL } else { roih = length(unique(roi.annot$roi.type)) }
   } else {
-    p.roi.res <- NULL
+    roi.annot <- NULL
     roih = NULL
   }
-  
+ 
   ### loop through genes in the peak 
   p.genes.res <- NULL
-  for (j in 1:length(effected.genes)) {
-    g = effected.genes[j]
-    
+  for (j in 1:length(assoc.genes)) {
+    g = assoc.genes[j]
+
     ### extract gene copy number samples  
     g.neut.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="neut",'sample'])
     g.amp.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="amp",'sample'])
@@ -749,8 +797,8 @@ for (k in 1:length(pks.to.plot)) {
     plot.exp.amp.del(g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, paste0(out.dir,'/peaks-plots/',g,'_',pk), g, pk)
     
     ############### run the function to plot the peak regin #################
-    p.reg = plot.region(pk, p.corr, g, genes.in.peak, p.roi.res)
-    n = length(p.reg)
+    p.reg = plot.region(pk, p.corr, g, genes.in.peak, roi.annot)
+    n = length(p.reg) 
     
     p.reg[[length(p.reg)+1]] = plot.ex[["e1"]]
     p.reg[[length(p.reg)+1]] = plot.ex[["e2"]]
@@ -773,7 +821,8 @@ for (k in 1:length(pks.to.plot)) {
     geneh = 1 
     boxp = 5
     myheights = c(cnh, ddh, svh1,svh2, chiph, roih, geneh, boxp)
-    mywidths = c(1.5, plot.ex[["w1"]], plot.ex[["w2"]]) 
+    mywidths = c(1.5, plot.ex[["w1"]], plot.ex[["w2"]])
+    #mywidths = c(2, 3.5, 3)  
     
     #### plot all 
     pdf(paste0(out.dir,'/peaks-plots/',g,'_',pk,".pdf"), width=20, height=sum(myheights), title='', useDingbats=F, onefile=FALSE)
@@ -785,5 +834,4 @@ for (k in 1:length(pks.to.plot)) {
 }    ### end of peaks 
 
    
-
 

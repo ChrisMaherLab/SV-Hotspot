@@ -1,4 +1,4 @@
-chrom	start	stop	cov
+chrom	start	end	cov
 chrX	66000007	66000019	0.610526
 chrX	66000019	66000054	0.6
 chrX	66000054	66000129	0.573684
