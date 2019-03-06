@@ -159,8 +159,8 @@ There two main files output in BED format:
 
 <u>Optional files:</u> 
 
-1. Peaks files for each chromosome. These files are located in the ``peaks`` folder. 
-2. UCSC custom track files. These files are located in ``peaks/ucsc_custom_track_files``. These files cab be viewed on the UCSC Genome Browser.  
+1. Peaks files for each chromosome and their corresponding figures. These files are located in the ``peaks`` folder. 
+2. UCSC custom track files. These files are located in ``peaks/ucsc_custom_track_files``. These files can be viewed on the UCSC Genome Browser.  
 
 ### Running the tests
 
