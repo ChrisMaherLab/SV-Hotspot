@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/gapp/x64linux/opt/R3.1.2/bin/Rscript
 
 # Find regions/peaks whose SVs altered expression of nearby genes
 # Written by Abdallah Eteleeb & Ha Dang
@@ -833,5 +833,9 @@ for (k in 1:length(pks.to.plot)) {
   
 }    ### end of peaks 
 
-   
+### remove temporary files 
+unlink(paste0(res.dir, "/processed_data/win_cn.tsv"))   
+unlink(paste0(res.dir, "/processed_data/reg.win.tsv"))   
+unlink(paste0(res.dir, "/processed_data/reg.cn.tsv"))   
+
 
