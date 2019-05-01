@@ -209,7 +209,7 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 ```
 
 ### Example of tool visualization 
-<img align="center" src="images/AR.png" alt="visualization example">
+<img align="center" src="images/AR_peak.png" alt="visualization example">
  
 ##
 ## References
