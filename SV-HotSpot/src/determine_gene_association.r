@@ -4,6 +4,8 @@
 # Written by Abdallah Eteleeb <eteleeb@gmail.com> 
 
 library(plyr)
+library(RCircos)
+require(data.table)
 
 args = commandArgs(T)
 
@@ -13,8 +15,10 @@ cn.file = args[3]
 t.amp = as.numeric(args[4])
 t.del = as.numeric(args[5])
 pval = as.numeric(args[6])
-fdr = as.numeric(args[7])
-stat_test = args[8]
+stat_test = args[7]
+GsOI <- args[8]
+genome = args[9]
+tool.path = args[10]
 
 ### determine t-test used 
 if (!stat_test %in% c('wilcox.test', 't.test')) {
@@ -89,9 +93,10 @@ cat('Examining all peaks...')
 final.res <- NULL
 all.genes.res <- NULL
 for (i in 1:nrow(res)){
-#for (i in 1:10){
-  #cat (i,'\n')
+  cat (i,'\n')
   pk <- res$Peak.name[i]
+  pk.locus = paste0(res$Chr[i],":",res$Start[i],"-",res$End[i])
+
   genes.in.peak <- c(unlist(strsplit(res$Overlapped.genes[i],  "\\|")), unlist(strsplit(res$Nearby.genes[i],  "\\|")))
   ### remove genes wuthout expression data 
   genes.in.peak <- genes.in.peak[genes.in.peak %in% exp[,1]]
@@ -115,7 +120,7 @@ for (i in 1:nrow(res)){
   nonSV.pats = nonSV.pats[nonSV.pats %in% exp.data.cols]
   td.pats  = td.pats[td.pats %in% exp.data.cols]
 
-  p.genes.res <- NULL
+  #p.genes.res <- NULL
   for (j in 1:length(genes.in.peak)) {
     g = genes.in.peak[j]
     ### extract gene copy number samples  
@@ -250,8 +255,8 @@ for (i in 1:nrow(res)){
     nonSVs_mean_exp <- mean(g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
     log.fc = signif(log2((SVs_mean_exp+0.00001)/(nonSVs_mean_exp+0.00001)), digits = 4)
     status <- 'nc'
-    if (log.fc > 0 & g.pval < pval ) { status <- 'up'}  
-    if (log.fc < 0 & g.pval < pval ) { status <- 'dn'}  
+    if (log.fc > 0) { status <- 'up'}  
+    if (log.fc < 0) { status <- 'dn'}  
     
     #### combine results
     pvals.res = as.data.frame(t(pvals))
@@ -260,39 +265,134 @@ for (i in 1:nrow(res)){
     colnames(pvals.res) = cols 
     pvals.res = pvals.res[-1,]
 
-    d <- data.frame(peak_name=pk, gene=g, logFC=log.fc, min.pval=g.pval, pvals.res, SVs.vs.nonSVs.status=status, SVs_mean_exp, nonSVs_mean_exp)
-    p.genes.res <- rbind(p.genes.res, d)      ### for peaks final result summary
+    d <- data.frame(Peak.name=pk, Peak.locus = pk.locus, gene=g, logFC=log.fc, min.pval=g.pval, pvals.res, SVs.vs.nonSVs.status=status, SVs_mean_exp, nonSVs_mean_exp)
     all.genes.res <- rbind(all.genes.res, d)  ### for statistical information about genes 
     
   }  ### end of genes in the current peak 
   
-  ### extract genes where SVs altered expression 
-  pk.with.assoc.genes <- unique(as.character(p.genes.res[p.genes.res$min.pval < pval, 'gene']))
-  if (length(pk.with.assoc.genes) == 0) { next }
-  d2 <- data.frame(Peak.name=pk, Associated.genes = paste(pk.with.assoc.genes,collapse = "|"))
-  
-  #### combine results 
-  final.res <- rbind(final.res, d2)
-  
-  # Update the progress bar
-  #setTxtProgressBar(pb, i)
 
 }   ### end of peaks 
 
+
+
+#### compute FDR and write all results 
+#fdr.res = p.adjust(all.genes.res$min.pval, method = "BH")
+#all.genes.res$FDR = fdr.res
+write.table(all.genes.res, file=paste0(out.dir, '/processed_data/de_results_for_all_genes.tsv'), sep="\t", quote=F, row.names=F)
+
+#### extract significant genes using min p-value threshold
+sig.genes = all.genes.res[all.genes.res$min.pval < pval, ]
+sig.genes <- sig.genes[order(sig.genes$min.pval), ]
+
 ### merge and write resulls
-res.final <- merge(res, final.res, sort =F)
-res.final <- res.final[order(res.final$Percentage.SV.samples, decreasing = T), ]
+if (nrow(sig.genes) > 0 ) {
+   final.res <- aggregate(gene ~ Peak.name, data=sig.genes, FUN=paste, collapse='|')
+   colnames(final.res) <- c('Peak.name', 'Associated.genes')
+   final.res <- merge(res, final.res, sort =F)
+   final.res <- final.res[order(final.res$Percentage.SV.samples, decreasing = T), ]
+   write.table(final.res, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
 
-#### extract significant genes using FDR threshold
-fdr.res = p.adjust(all.genes.res$min.pval, method = "BH")
-all.genes.res$FDR = fdr.res
-sig.genes = all.genes.res[all.genes.res$FDR < fdr, ]
-sig.genes <- sig.genes[order(sig.genes$FDR), ]
+   #### write resutls for genes assoicated with SV peaks 
+   pval.cols = colnames(sig.genes)[grepl(".vs.", colnames(sig.genes)) & colnames(sig.genes) !="SVs.vs.nonSVs.status"]
+   colnames(sig.genes) = c("Gene", "Peak.name", "Peak.locus", "LogFC","Min.pval",paste0(pval.cols,".pval"),"SVs.vs.nonSVs.status", "SVs.mean.exp","nonSVs.mean.exp")
+   write.table(sig.genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+} else {
+   cat(paste("No associated genes were detected using p-value cutoff of", pval, "\n"))   
+}
 
-#### write final results 
-write.table(res.final, file=paste0(out.dir, '/annotated_peaks_summary_final.tsv'), sep="\t", quote=F, row.names=F)
-pval.cols = colnames(sig.genes)[grepl(".vs.", colnames(sig.genes)) & colnames(sig.genes) !="SVs.vs.nonSVs.status"]
-colnames(sig.genes) = c("Peak.name","Gene","LogFC","Min.pval",paste0(pval.cols,".pval"),"SVs.vs.nonSVs.status", "SVs.mean.exp","nonSVs.mean.exp","FDR")
-write.table(sig.genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+cat('done.\n')
+cat(length(final.res$Peak.name), 'hotspots (peaks) were identified for this analysis.\n')
+cat(length(unique(sig.genes$Gene)), 'genes were detected to be associated with identified hotspots.\n')
 
-cat('done.')
+
+##### plot circos plot ####
+built.in.genomes = c('hg18', 'hg19', 'hg38', 'mm9', 'mm10', 'dm3', 'dm6', 'rn4', 'rn5','rn6')
+if (genome %in% built.in.genomes) {
+  cat('Generating circos plot for identified peaks...')
+  
+  #Load the genome cytoband data
+  if (genome == "hg38") {
+    data(UCSC.HG38.Human.CytoBandIdeogram)
+    cyto.info <- UCSC.HG38.Human.CytoBandIdeogram
+  } else if (genome == "hg19") {
+    data(UCSC.HG19.Human.CytoBandIdeogram)
+    cyto.info <- UCSC.HG19.Human.CytoBandIdeogram
+  } else if (genome == "mm10") {
+    data(UCSC.Mouse.GRCm38.CytoBandIdeogram)
+    cyto.info <- UCSC.Mouse.GRCm38.CytoBandIdeogram
+  } else if (genome == "rn4") {
+    data(UCSC.Baylor.3.4.Rat.cytoBandIdeogram)
+    cyto.info <- UCSC.Baylor.3.4.Rat.cytoBandIdeogram
+  } else {
+    file.path= paste0(tool.path, "/annotations/cytoband_info/", genome, ".cytoBand.txt.gz")
+    if (file.exists(file.path)) {
+      cyto.info <- read.table(file.path, colClasses = c("character", "numeric", "numeric", "character", "character"), sep = "\t", stringsAsFactors = FALSE)  
+      colnames(cyto.info) = c('Chromosome','chromStart','chromEnd','Name','Stain')
+    } else {
+      stop(paste0("SV-Hotspot cannot generate Circos plot for identified peaks because cytoband information file was found for genome ", genome,"!.\n"))
+    }
+    
+  }
+ 
+  peaks.with.genes = NULL
+  for (i in 1:nrow(final.res)){
+    d = data.frame(Peak.name = final.res$Peak.name[i], p.chr = final.res$Chr[i], p.start = final.res$Start[i], p.end = final.res$End[i],
+                   gene = unlist(strsplit(final.res$Associated.genes[i],"\\|")), pct.samples= final.res$Percentage.SV.samples[i])
+    peaks.with.genes = rbind(peaks.with.genes, d)
+  }
+  
+  #### merge meta columns with gene results 
+  peaks.with.genes2 <- merge(peaks.with.genes, annot, by='gene', sort =F)
+  peaks.with.genes2 = peaks.with.genes2[order(peaks.with.genes2$pct.samples, decreasing = T),]
+  
+  ### extract data 
+  mydata = unique(peaks.with.genes2[,c('p.chr','p.start','p.end', 'Peak.name', 'pct.samples')])
+    
+  RCircos.Set.Core.Components(cyto.info, chr.exclude=NULL, tracks.inside=2, tracks.outside=1)  ## for V2
+  
+  ##### modify plot parameters 
+  rcircos.params <- RCircos.Get.Plot.Parameters()
+  rcircos.params$text.size = 0.5
+  rcircos.params$track.height <- 0.25
+  RCircos.Reset.Plot.Parameters(rcircos.params)
+  RCircos.List.Plot.Parameters()
+  
+  #### initialize the graphic device 
+  pdf(paste0(out.dir,"/Circos_plot_of_all_peaks.pdf"),  height=8, width=8)
+  RCircos.Set.Plot.Area()
+  title("Distribution of identified peaks across the genome")
+  
+  ###### plot Chromosome Ideogram 
+  RCircos.Chromosome.Ideogram.Plot();
+  
+  ################### plot the histogram ################################
+  ## extract top peaks for each chromosome 
+  mydata.dt = as.data.table(mydata)
+  top.pks = unique(as.character(mydata.dt[mydata.dt[, .I[pct.samples==max(pct.samples)], by=p.chr]$V1]$Peak.name))
+  mydata$PlotColor <- "red"
+  mydata[mydata$Peak.name %in% top.pks, "PlotColor"] = "blue"
+  RCircos.Histogram.Plot(mydata, data.col=5, track.num=1, "in", min.value=0, max.value=100, )
+  ### plot legend 
+  legend (-0.45,-1.4, legend=c('All peaks', 'Top peaks'), fill=c("red","blue"),  horiz = TRUE, bty="n",
+          border="white", cex=0.7, x.intersp=0.5)
+  
+  ###################### plot gene names ################################
+  #### draw genes of interest names 
+  if (GsOI !=0) {
+    genes.of.int = scan(GsOI, 'character') 
+    genes.of.int <- unique(annot[annot$gene %in% genes.of.int, c('chr', 'start', 'stop', 'gene')])
+    RCircos.Gene.Connector.Plot(genes.of.int,  track.num=2, side="in")
+    RCircos.Gene.Name.Plot(genes.of.int, name.col=4,track.num=3, side="in")
+  }
+  
+  ################### add max and min values  ##########################
+  mtext(paste0('Min. value = ',round(min(mydata$pct.samples)),"%"), side =3, adj=0.51, padj = 47.2, cex=0.7, font=2)
+  mtext(paste0('Max. value = ',round(max(mydata$pct.samples)),"%"), side =3, adj=0.51, padj = 48.5, cex=0.7, font=2)
+  
+  dev.off()
+  
+}
+
+
+
+

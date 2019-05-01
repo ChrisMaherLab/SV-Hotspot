@@ -1,4 +1,4 @@
-#!#!/usr/bin/Rscript
+#!/usr/bin/Rscript
 
 args = commandArgs(T)
 
@@ -14,9 +14,8 @@ peakPick.minsd = as.numeric(args[4])
 pct.samples.cutoff = as.numeric(args[5])
 out.dir = args[6]
 distance = as.numeric(args[7])
-sv.path=args[8]
-genes.of.int <- args[9]
-chr.size.file = args[10]
+genes.of.int <- args[8]
+chr.size.file = args[9]
 
 ### read all break points
 bp = read.table(paste0(out.dir,'/processed_data/all_bp.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)

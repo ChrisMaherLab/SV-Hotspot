@@ -140,7 +140,7 @@ print " Expression file       : $expr_file\n";
 print " Copy number file      : $cn_file\n";
 print " Amplification cutoff  : $t_amp\n";
 print " Deletion cutoff       : $t_del\n";
-print " FDR threshold         : $fdr\n";
+#print " FDR threshold         : $fdr\n";
 print " Geens of interest     : $genes_of_int\n"; 
 print " Region of interest    : $region_of_int\n"; 
 print " Chromosomes to analyze: $chrom\n";
@@ -390,7 +390,7 @@ sub identify_peaks
    system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr");
    
    print "\nCall structural variant peaks (hotspots)\n";
-   system ("find-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $TOOL_PATH $genes_of_int $chromsize_file");
+   system ("detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $genes_of_int $chromsize_file");
 
    ### remove intermediate files 
    unlink("$output_dir/processed_data/genome.segments.bed"); 
@@ -407,7 +407,7 @@ sub annotate_peaks
    print "STEP 2: Annotating Peaks \n";
    print "--------------------------------------------------\n";
   
-   system("annotate_peaks.sh $genome $region_of_int $output_dir $num_nearby_genes $TOOL_PATH"); 
+   system("annotate_peaks.sh $genome $region_of_int $output_dir $num_nearby_genes"); 
    print ("Summarizing annotated peaks ...\n");
    system ("summarize_peaks_results.r $output_dir $region_of_int $roi_lbl"); 
 }
@@ -423,7 +423,7 @@ sub determine_association
    print "-------------------------------------------------------------------------------------\n";
 
    if ($expr_file & $cn_file) {
-     system ("determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $fdr $t_stat");
+     system ("determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome $TOOL_PATH");
    } else {
      print "To determine the association between SVs and gene expression, both expression and copy number data are required. \n";
    exit(0); 
@@ -492,7 +492,7 @@ sub usage
    print("\t-t/--pct-samples\t\tpercentage of samples\t<int>\t\t[ percentage of samples cutoff to call peaks. default: 10 ]\n");
    print("\t-o/--output\t\t\toutput directory\t<string>\t[ results output directory. default: ./ ]\n");
    print("\t-p/--pval\t\t\tpvalue cuttoff\t\t<float>\t\t[ pvalue threshold used for significance. default: 0.05 ]\n");
-   print("\t-q/--FDR\t\t\tqvalue cuttoff\t\t<float>\t\t[ qvalue (minimum FDR) cutoff to call significant genes. default: 0.05 ]\n");
+   #print("\t-q/--FDR\t\t\tqvalue cuttoff\t\t<float>\t\t[ qvalue (minimum FDR) cutoff to call significant genes. default: 0.05 ]\n");
    print("\t-G/--genes-of-int\t\tlist of genes\t\t<filename>\t[ list of genes of interest to be used for visualization ]\n");
    print("\t-r/--region-of-int\t\tregion(s) of interest\t<filename>\t[ region of interest file(s) in \"BED\" foramt separated by comma ]\n");
    print("\t-C/--chrom\t\t\tchromosome name \t<string>\t[ chromosome name used to detect hotspots. default: ALL ]\n");

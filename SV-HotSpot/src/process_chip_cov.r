@@ -5,11 +5,16 @@
 
 require(data.table)
 
+usage = '\n\tprocess_chip_cov.r <chip-seq coverage file> <window-size> <chr(s)> <output-directory>\n\n'
+
 args = commandArgs(T)
 
 chip.file = args[1]
 window.size = as.numeric(args[2])
-out.dir = args[3]
+chr = args[3]
+out.dir = args[4]
+
+if (length(args) != 4){stop(paste0('\nPlease provide all required parameters.\n', usage))}
 
 #################### function to compute the average chip over window
 avgChipOverWindows <- function(ch, chr, w=NULL){
@@ -34,17 +39,23 @@ avgChipOverWindows <- function(ch, chr, w=NULL){
 if (file.exists((chip.file))) {
     cat ('Reading chip-seq coverage file ...\n')
     chip.data <- fread(chip.file)
+    colnames(chip.data) <- c('chrom','start','end','cov')
     chip.data$pos = (chip.data$start+chip.data$end)/2
-    chrs <- unique(chip.data$chrom)
+    if (is.na(chr)) {
+    	chrs <- unique(chip.data$chrom)
+    } else {
+	chrs = chr
+    }
     avg.chip.cov = NULL
 
     #Initiate the bar
-    pb <- txtProgressBar(min = 0, max = nrow(res), style = 3)
+    #pb <- txtProgressBar(min = 0, max = nrow(res), style = 3)
     for (c in chrs) {
+        cat('Running for chr:', c,'\n')
         ch.chr.data = chip.data[chip.data$chrom==c, ]
         avg.chip.cov = rbind(avg.chip.cov, avgChipOverWindows(ch.chr.data, c))
         #Update the progress bar
-        setTxtProgressBar(pb, i)
+        #setTxtProgressBar(pb, i)
     }
     
 } else {

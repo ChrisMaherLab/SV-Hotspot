@@ -88,7 +88,6 @@ OPTIONS:
 	-t/--pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to call peaks. default: 10 ]
 	-o/--output			output directory	<string>	[ results output directory. default: ./ ]
 	-p/--pval			pvalue cuttoff		<float>		[ pvalue threshold used for significance. default: 0.05 ]
-	-q/--FDR			qvalue cuttoff		<float>		[ qvalue (minimum FDR) cutoff to call significant genes. default: 0.05 ]
 	-G/--genes-of-int		list of genes		<filename>	[ list of genes of interest to be used for visualization ]
 	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" foramt separated by comma ]
 	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
@@ -151,7 +150,7 @@ Given the large quantities of data generated in ChIP-Seq, most computational ana
 ### Output 
 There two main files output in BED format: 
 
-1. ```annotated_peaks_summary_final.tsv```: this file has all information about identified peaks. 
+1. ```annotated_peaks_summary.tsv```: this file has all information about identified peaks. 
 
 2. ```genes.associated.with.SVs.tsv```: this file contains statisitcal information for all genes affected by SVs.
 
@@ -171,7 +170,7 @@ To test the tool, just run the following command:
 ```
 sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -e test_data/exp.tsv -c test_data/cna.tsv 
               --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed -o /SOME/PATH 
-              -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --FDR 0.05 
+              -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 
 	      --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 
 ```
 
@@ -210,8 +209,14 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 ```
 
 ### Example of tool visualization 
-<img align="center" src="images/AR.png" alt="visualization example">
- 
+#### (1) Recurrent SVs targeting a non-coding region located upstream of AR gene:
+<img align="center" src="images/AR_peak.png" alt="visualization example">
+
+#### (2) Circos plot of recurrent SV hotspots identified by SV-HotSpot across the genome:
+<div align="center">
+<img src="images/circos_plot.png" alt="visualization example" height="440" width="380">
+</div>
+
 ##
 ## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.

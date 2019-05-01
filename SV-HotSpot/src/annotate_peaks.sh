@@ -10,7 +10,6 @@ genome=$1
 region_of_interest=$2
 output_dir=$3
 num_nearby_genes=$4
-sv_path=$5
 
 ################# Annotate grouped peaks by overlapping with genes flanked up/downstream by 2kb
 #combine all peak groups
