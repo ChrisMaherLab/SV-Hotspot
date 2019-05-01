@@ -213,7 +213,7 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 <img align="center" src="images/AR_peak.png" alt="visualization example">
 
 ## Circos plot of recurrent SV hotspots identified by SV-HotSpot across the genome:
-<img align="center" src="images/circos_plot.png" height="42" width="42" alt="visualization example">
+<img align="center" src="images/circos_plot.png" height="100" width="100" alt="visualization example">
 
 ##
 ## References
