@@ -209,8 +209,12 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 ```
 
 ### Example of tool visualization 
+## Recurrent SVs targeting a non-coding region located upstream of AR gene:
 <img align="center" src="images/AR_peak.png" alt="visualization example">
- 
+
+## Circos plot of recurrent SV hotspots identified by SV-HotSpot across the genome:
+<img align="center" src="images/circos_plot" alt="visualization example">
+
 ##
 ## References
 1. Quigley, D. A., Dang, H. X., Zhao, S. G., Lloyd, P., Aggarwal, R., Alumkal, J. J., ... & Playdle, D. (2018). Genomic hallmarks and structural variation in metastatic prostate cancer. Cell, 174(3), 758-769.
