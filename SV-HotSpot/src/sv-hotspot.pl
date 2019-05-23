@@ -119,8 +119,8 @@ if (!$annot_file) {
 ######################################## Creat output directories ###############################################
 #################################################################################################################
 $output_dir = $output_dir.'/sv-hotspot-output';
-#system ("rm -rf $output_dir; mkdir $output_dir");
-#system ("rm -rf $output_dir/processed_data; mkdir $output_dir/processed_data");
+system ("rm -rf $output_dir; mkdir $output_dir");
+system ("rm -rf $output_dir/processed_data; mkdir $output_dir/processed_data");
 
 #################################################################################################################
 ########################################## Show all inputs ######################################################
@@ -163,12 +163,12 @@ print "########################################################\n\n";
 ### set start tim 
 my $start = localtime();
 
-#verify_input();
-#prepare_annot();
-#prepare_SVs();
-#identify_peaks();
-#annotate_peaks();
-#determine_association();
+verify_input();
+prepare_annot();
+prepare_SVs();
+identify_peaks();
+annotate_peaks();
+determine_association();
 visualize_res();
 
 ### set end time 
