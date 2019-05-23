@@ -168,9 +168,9 @@ To test the tool, we have provided an example data specifically for identifying 
 To test the tool, just run the following command:
 
 ```
-sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -e test_data/exp.tsv -c test_data/cna.tsv 
-              --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed -o /SOME/PATH 
-              -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 
+sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -e test_data/exp.tsv -c test_data/cna.tsv \
+              --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed -o /SOME/PATH \
+              -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
 	      --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 
 ```
 
@@ -203,8 +203,8 @@ OPTIONS:
 As an example, the following command plots peaks "pX.59" and "pX.60" generated from the above test. 
 
 ```
-plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e test_data/exp.tsv 
-             -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed 
+plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e test_data/exp.tsv \
+             -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed \
              -o /SOME/PATH --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
 ```
 
