@@ -13,6 +13,7 @@ use Getopt::Std;
 use Getopt::Long;
 use Getopt::Long qw(:config no_ignore_case bundling);
 use File::Basename;
+use List::MoreUtils qw(uniq);
 
 ####################################################################################
 ## You need to change this path to the location where you installed the tool  
@@ -195,10 +196,29 @@ sub verify_input
    my $sv_header = <$sv_f>;
    if ($sv_header !~ /\bchrom1\b/ || $sv_header!~ /\bstart1\b/ || $sv_header!~ /\bend1\b/ || $sv_header!~ /\bchrom2\b/ || $sv_header!~ /\bstart2\b/ || 
        $sv_header!~ /\bend2\b/ || $sv_header !~ /\bname\b/ || $sv_header!~ /\bscore\b/ || $sv_header!~ /\bstrand1\b/ ||    $sv_header !~ /\bstrand2\b/) {
-      print "The header of structural variants file has format different from what the tool accepts.\n";
+      print "\n Error: The header of structural variants file has format different from what the tool accepts.\n";
       exit(0);
    }
-   close $sv_f;
+     
+   ##### check the SV types present in the SV file 
+   my @tool_svtypes = qw (BND DEL DUP INV INS );
+   my @svtypes;
+   while (<$sv_f>) {
+     next if $.==1; 
+     my $col6 = (split)[6];
+     my @sv_type = split('\/', $col6);
+     push @svtypes, $sv_type[1]; 
+   }
+   my @unique_svtypes = uniq @svtypes;
+   foreach my $item (@unique_svtypes){
+     my $Found = grep { $item eq $_ } @tool_svtypes;
+     if ($Found ==0){
+         print"\n Error: SV types must be one of the following: BND, DEL, DUP, INV, INS and must have the same format. Currently SV-Hotspot accepts only those five types.\n";
+	 exit(0); 
+     }
+   }
+   
+   close $sv_f;  
    print "PASS.\n";
 
    ##### check the header of annotation file
@@ -207,7 +227,7 @@ sub verify_input
 	open my $annot, '<', $annot_file;
 	my $annot_header = <$annot>;
 	if ($annot_header !~ /\bchrom\b/ || $annot_header!~ /\bstart\b/ || $annot_header !~ /\bend\b/ || $annot_header !~ /\bgene\b/ || $annot_header !~ /\bscore\b/ || $annot_header !~ /\bstrand\b/) {
-      		print "The header of annotation file has a format different from what the tool accepts.\n";
+      		print "Error: The header of annotation file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
    close $annot; 
@@ -222,7 +242,7 @@ sub verify_input
           open my $roi, '<', $_;
 	  my $roi_header = <$roi>;
 	  if ($roi_header !~ /\bchrom\b/ || $roi_header !~ /\bstart\b/ || $roi_header !~ /\bend\b/ || $roi_header !~ /\bname\b/) {
-      		print "The header of region of interest file has a format different from what the tool accepts.\n";
+      		print "\n Error: The header of region of interest file has a format different from what the tool accepts.\n";
       		exit(0);
    	  }
           close $roi; 
@@ -237,7 +257,7 @@ sub verify_input
 	open my $chipCov, '<', $chip_cov;
 	my $chipCov_header = <$chipCov>;
 	if ($chipCov_header !~ /\bchrom\b/ || $chipCov_header !~ /\bstart\b/ || $chipCov_header !~ /\bend\b/ || $chipCov_header !~ /\bcov\b/) {
-      		print "The header of chip coverage file has a format different from what the tool accepts.\n";
+      		print "\n Error: The header of chip coverage file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
    	close $chipCov; 
@@ -258,7 +278,7 @@ sub verify_input
 	open my $cn, '<', $cn_file;
 	my $cn_header = <$cn>;
 	if ($cn_header !~ /\bchrom\b/ || $cn_header !~ /\bstart\b/ || $cn_header !~ /\bend\b/ || $cn_header !~ /\bsample\b/ || $cn_header !~ /\bcn\b/) {
-      		print "The header of copy number file has a format different from what the tool accepts.\n";
+      		print "\n Error: The header of copy number file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
    close $cn; 
@@ -280,7 +300,7 @@ sub verify_input
          if ($_ eq $feature[0]) { $Found = "1" } 
       }
       if (!$Found) {
-       	 print "Feature name in expression file doesn't match feature name in the annotation file!.\n";
+       	 print "\n Error: Feature name in expression file doesn't match feature name in the annotation file!.\n";
       	 exit(0);
       }
    close $annot; close $exp;
@@ -302,7 +322,7 @@ sub verify_input
       for(@genes) {
          $count{$_}++;
          if ($count{$_} > 1) { 
-            print "Expression file has duplicated rows!.\n";
+            print "\n Error: Expression file has duplicated rows!.\n";
             exit(0); 
          }
       }
