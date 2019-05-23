@@ -85,7 +85,7 @@ GetOptions
 
 usage() if (!$sv_file);
 
-my $max; ### for checking chip-seq coverage data
+#my $max; ### for checking chip-seq coverage data
 
 #################################################################################################################
 ######################### check if the genome name is in the list of bulit-in genomes ###########################
@@ -119,8 +119,8 @@ if (!$annot_file) {
 ######################################## Creat output directories ###############################################
 #################################################################################################################
 $output_dir = $output_dir.'/sv-hotspot-output';
-system ("rm -rf $output_dir; mkdir $output_dir");
-system ("rm -rf $output_dir/processed_data; mkdir $output_dir/processed_data");
+#system ("rm -rf $output_dir; mkdir $output_dir");
+#system ("rm -rf $output_dir/processed_data; mkdir $output_dir/processed_data");
 
 #################################################################################################################
 ########################################## Show all inputs ######################################################
@@ -163,12 +163,12 @@ print "########################################################\n\n";
 ### set start tim 
 my $start = localtime();
 
-verify_input();
-prepare_annot();
-prepare_SVs();
-identify_peaks();
-annotate_peaks();
-determine_association();
+#verify_input();
+#prepare_annot();
+#prepare_SVs();
+#identify_peaks();
+#annotate_peaks();
+#determine_association();
 visualize_res();
 
 ### set end time 
@@ -263,12 +263,13 @@ sub verify_input
    	close $chipCov; 
 
    	### check if the chip coverage file is an averaged file 
-   	$max = `awk '{print \$3-\$2}' $chip_cov | awk 'BEGIN{a=0}{if (\$1>a) a=\$1 fi} END{print a}'`;
-        $max = $max + 1;
-   	if ($max < 1000) { 
-        	print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
-            "\n  It is recommended you average chip coverage data using a window size range form 1-10k. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.\n\n"; 
-   	} 
+   	#$max = `awk '{print \$3-\$2}' $chip_cov | awk 'BEGIN{a=0}{if (\$1>a) a=\$1 fi} END {print a}'`;
+        #$max = $max + 1;
+   	#if ($max < 1000) { 
+        #	print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
+        #    "\n  It is recommended you average chip coverage data using a window size range form 1-10k. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.";
+	#    "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n"; 
+   	#} 
    }
    print "PASS.\n";
 
@@ -462,18 +463,18 @@ sub visualize_res
    print "--------------------------------------------------\n";
 
    ### check if chip-cov data was provided 
-   if ($chip_cov) { 
-     if ($max < 1000) { 
-      print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
-            "\n  It is recommended you average chip coverage data using at least 10K window. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.". 
-            "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
-      exit(0);  
-     } 
-   }
+   #if ($chip_cov) { 
+   #  if ($max < 1000) { 
+   #   print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
+   #         "\n  It is recommended you average chip coverage data using at least 10K window. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.". 
+   #         "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
+   #   exit(0);  
+   #  } 
+   #}
 
    if ($expr_file && $cn_file) {
       ### extract top peaks 
-      my $pks = `cut -f1 $output_dir/annotated_peaks_summary_final.tsv | grep -v "Peak.name" | head -$plot_top_peaks |  paste -sd, -`;
+      my $pks = `cut -f1 $output_dir/annotated_peaks_summary.tsv | grep -v "Peak.name" | head -$plot_top_peaks |  paste -sd, -`;
       chomp($pks);
       #system ("plot_peaks.r $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $plot_top_peaks $left_ext $rigth_ext");
 
