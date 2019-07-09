@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/local/bin/Rscript
 
 # Created by: Ha X. Dang <haxdang@gmail.com>
 # Modified by: Abdallah Eteleeb <eteleeb@gmail.com>

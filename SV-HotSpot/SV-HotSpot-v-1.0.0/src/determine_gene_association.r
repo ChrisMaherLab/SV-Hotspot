@@ -18,7 +18,7 @@ pval = as.numeric(args[6])
 stat_test = args[7]
 GsOI <- args[8]
 genome = args[9]
-tool.path = args[10]
+#tool.path = args[10]
 
 ### determine t-test used 
 if (!stat_test %in% c('wilcox.test', 't.test')) {
@@ -324,7 +324,7 @@ if (genome %in% built.in.genomes) {
     data(UCSC.Baylor.3.4.Rat.cytoBandIdeogram)
     cyto.info <- UCSC.Baylor.3.4.Rat.cytoBandIdeogram
   } else {
-    file.path= paste0(tool.path, "/annotations/cytoband_info/", genome, ".cytoBand.txt.gz")
+    file.path= paste0("annotations/cytoband_info/", genome, ".cytoBand.txt.gz")
     if (file.exists(file.path)) {
       cyto.info <- read.table(file.path, colClasses = c("character", "numeric", "numeric", "character", "character"), sep = "\t", stringsAsFactors = FALSE)  
       colnames(cyto.info) = c('Chromosome','chromStart','chromEnd','Name','Stain')

@@ -17,16 +17,16 @@ use List::MoreUtils qw(uniq);
 
 ####################################################################################
 ## You need to change this path to the location where you installed the tool  
-my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
+#my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
+#my $TOOL_PATH='/Users/eteleeb/SV-HotSpot/SV-HotSpot';
 ####################################################################################
-
 
 #define input options wi:qth default values 
 my $sv_file=0;
 my $genome='hg38';
 my $sliding_w_size = 100000;
 my $sliding_w_step = 1000; 
-my $output_dir = getcwd();
+my $output_dir = '/data';
 my $annot_file=0;
 my $peakPick_win=100;
 my $peakPick_minsd=5;
@@ -105,14 +105,17 @@ if (!$Found) {
           "For more information on how to extract this file, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
     exit(0); 
 } else {
-  $chromsize_file = $TOOL_PATH.'/annotations/'.$genome.'/chromsize.tsv';
+  #$chromsize_file = $TOOL_PATH.'/annotations/'.$genome.'/chromsize.tsv';
+  $chromsize_file = 'annotations/'.$genome.'/chromsize.tsv';
 }
+#print ($chromsize_file);
+#exit(0);
 
 #################################################################################################################
 ##################### check if annotation file was provided otherwise use built-in file #########################
 #################################################################################################################
 if (!$annot_file) {
-     $annot_file = $TOOL_PATH.'/annotations/'.$genome.'/genes.bed'
+     $annot_file = 'annotations/'.$genome.'/genes.bed'
 }
 
 #################################################################################################################
@@ -166,10 +169,10 @@ my $start = localtime();
 verify_input();
 prepare_annot();
 prepare_SVs();
-identify_peaks();
-annotate_peaks();
-determine_association();
-visualize_res();
+#identify_peaks();
+#annotate_peaks();
+#determine_association();
+#visualize_res();
 
 ### set end time 
 my $end = localtime();
@@ -185,15 +188,17 @@ print "-------------------------------------------------------------------------
 #################################################################################################################
 sub verify_input
 {
-   
    print "\n--------------------------------------------------\n";
    print "Input Verification Step\n"; 
    print "--------------------------------------------------\n";
    
    ##### check the header of the SV file 
    print " Checking structural varaints file format...";
-   open my $sv_f, '<', $sv_file;
+   #open my $sv_f, '<', $sv_file;
+   open(my $sv_f, '<', $sv_file) or die $!;
+
    my $sv_header = <$sv_f>;
+   #print "test: $sv_file\n";
    if ($sv_header !~ /\bchrom1\b/ || $sv_header!~ /\bstart1\b/ || $sv_header!~ /\bend1\b/ || $sv_header!~ /\bchrom2\b/ || $sv_header!~ /\bstart2\b/ || 
        $sv_header!~ /\bend2\b/ || $sv_header !~ /\bname\b/ || $sv_header!~ /\bscore\b/ || $sv_header!~ /\bstrand1\b/ ||    $sv_header !~ /\bstrand2\b/) {
       print "\n Error: The header of structural variants file has format different from what the tool accepts.\n";
@@ -226,13 +231,14 @@ sub verify_input
         print " Checking annotation file format...";
 	open my $annot, '<', $annot_file;
 	my $annot_header = <$annot>;
+        
 	if ($annot_header !~ /\bchrom\b/ || $annot_header!~ /\bstart\b/ || $annot_header !~ /\bend\b/ || $annot_header !~ /\bgene\b/ || $annot_header !~ /\bscore\b/ || $annot_header !~ /\bstrand\b/) {
       		print "Error: The header of annotation file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
-   close $annot; 
+   close $annot;
+   print "PASS.\n"; 
    }
-   print "PASS.\n";
 
    ##### check the header of region of interes file
    if ($region_of_int) { 
@@ -364,7 +370,7 @@ sub prepare_SVs
    #system ("for type in `cut -f4 $output_dir/processed_data/all_bp.bed | cut -f2 -d'/' | sort | uniq`; do cat $output_dir/processed_data/all_bp.bed | grep \"\/\$type\" > $output_dir/processed_data/bp.\$type.bed; done");
 
    ### generate bedpe file for DEL and DUP events
-   system ("generate-bedpe-for-DEL-DUP.r $sv_file $output_dir");
+   system ("Rscript generate-bedpe-for-DEL-DUP.r $sv_file $output_dir");
    system ("cat $output_dir/processed_data/all_bp.bed $output_dir/processed_data/del_dup_sv.bed > $output_dir/processed_data/all_bp_tmp.bed; mv $output_dir/processed_data/all_bp_tmp.bed $output_dir/processed_data/all_bp.bed");
    
    ### remove del_dup_sv.bed 
@@ -411,7 +417,7 @@ sub identify_peaks
    system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr");
    
    print "\nCall structural variant peaks (hotspots)\n";
-   system ("detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $genes_of_int $chromsize_file");
+   system ("Rscript detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $genes_of_int $chromsize_file");
 
    ### remove intermediate files 
    unlink("$output_dir/processed_data/genome.segments.bed"); 
@@ -430,7 +436,7 @@ sub annotate_peaks
   
    system("annotate_peaks.sh $genome $region_of_int $output_dir $num_nearby_genes"); 
    print ("Summarizing annotated peaks ...\n");
-   system ("summarize_peaks_results.r $output_dir $region_of_int $roi_lbl"); 
+   system ("Rscript summarize_peaks_results.r $output_dir $region_of_int $roi_lbl"); 
 }
 
 
@@ -444,7 +450,7 @@ sub determine_association
    print "-------------------------------------------------------------------------------------\n";
 
    if ($expr_file & $cn_file) {
-     system ("determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome $TOOL_PATH");
+     system ("Rscript determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome");
    } else {
      print "To determine the association between SVs and gene expression, both expression and copy number data are required. \n";
    exit(0); 
@@ -478,7 +484,7 @@ sub visualize_res
       chomp($pks);
       #system ("plot_peaks.r $sv_file $output_dir $expr_file $cn_file $chip_cov $t_amp $t_del $chip_cov_lbl $roi_lbl $plot_top_peaks $left_ext $rigth_ext");
 
-      system ("plot_peak_region.r $pks $output_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext ");
+      system ("Rscript plot_peak_region.r $pks $output_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext ");
    } else {
       print "Expression and copy number data are required to visualize hotspot reagions.\n";
       exit(0);
