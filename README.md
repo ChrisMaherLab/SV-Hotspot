@@ -62,7 +62,6 @@ export PATH=/SOME/PATH/src:$PATH
 #my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
 #``` 
 -->
-Note that you also need to either have the ``Rscript`` in your ``/usr/bin`` as ``/usr/bin/Rscript`` or change the path of Rscript in all R scripts available at "src" folder to your Rscript location. Default ``Rscript`` path is usually at  ```/usr/bin/Rscript``` for linux OS and at ```/usr/local/bin/Rscript``` for MAC OS X. 
 
 To ensure the the tools was installed correctly, just type the following command which shows the usage of the tool assuming the tool src directory in the PATH otherwise you need to provide the whole path to the main file. 
 
