@@ -33,9 +33,9 @@ Please make sure you have installed the following R packages:
 ### Installation
 
 Download SV-HotSpot from github repository at https://github.com/ChrisMaherLab/SV-Hotspot. Click on "Clone or download" and then click on "Download ZIP". You can also use "git clone" command as follows:
-```
-git clone https://github.com/ChrisMaherLab/SV-Hotspot.git
-```
+#```
+#git clone https://github.com/ChrisMaherLab/SV-Hotspot.git
+#```
 Once the tool package is downloaded, run these commands:
 
 ```
@@ -52,13 +52,13 @@ You also need to add the installation location to your PATH or add it to ~/.bach
 ```
 export PATH=/SOME/PATH/src:$PATH
 ```
-<b>CHANGING TOOL PATH (IMPORTANT) </b>
+#<b>CHANGING TOOL PATH (IMPORTANT) </b>
 
-Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
+#Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
 
-```
-my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
-```
+#```
+#my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
+#```
 Note that you also need to either have the ``Rscript`` in your ``/usr/bin`` as ``/usr/bin/Rscript`` or change the path of Rscript in all R scripts available at "src" folder to your Rscript location. Default ``Rscript`` path is usually at  ```/usr/bin/Rscript``` for linux OS and at ```/usr/local/bin/Rscript``` for MAC OS X. 
 
 To ensure the the tools was installed correctly, just type the following command which shows the usage of the tool assuming the tool src directory in the PATH otherwise you need to provide the whole path to the main file. 
