@@ -49,12 +49,12 @@ $ ./install.sh -o /SOME/PATH/
 
 Note that you need to change ```/SOME/PATH/``` to wherever you want to install the tool. 
  
-You also need to add the installation location to your PATH or add it to ~/.bachrc file before running the tool: 
+<!--- You also need to add the installation location to your PATH or add it to ~/.bachrc file before running the tool: 
 
 ```
 export PATH=/SOME/PATH/src:$PATH
 ```
-<!--- <b>CHANGING TOOL PATH (IMPORTANT) </b>
+<b>CHANGING TOOL PATH (IMPORTANT) </b>
 
 #Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
 

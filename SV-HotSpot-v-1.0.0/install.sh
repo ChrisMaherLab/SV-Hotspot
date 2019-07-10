@@ -17,9 +17,9 @@ dest_dir=${args[1]}
 echo
 echo "Creating installation folder..."
 
-#if [ ! -d $dest_dir ]; then
-#    mkdir -p $dest_dir
-#fi
+if [ ! -d $dest_dir ]; then
+    mkdir -p $dest_dir
+fi
 
 ### write the installation directory to a file 
 echo
@@ -32,6 +32,10 @@ echo "adding +x mode"
 chmod +x *.r
 chmod +x *.sh
 chmod +x *.pl
+
+#### add the installation path to the PATH variable 
+export PATH="$PWD":$PATH
+echo $PATH
 
 #echo "Please add $(pwd)/$dest_dir to your PATH. See details at https://github.com/ChrisMaherLab/SV-Hotspot."  
 #echo "Please make you you have installed the prerequisites. See details at https://github.com/ChrisMaherLab/SV-Hotspot."
