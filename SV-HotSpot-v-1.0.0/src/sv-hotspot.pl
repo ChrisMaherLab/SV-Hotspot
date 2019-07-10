@@ -16,7 +16,6 @@ use File::Basename;
 use List::MoreUtils qw(uniq);
 
 ####################################################################################
-## You need to change this path to the location where you installed the tool  
 #my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
 #my $TOOL_PATH='/Users/eteleeb/SV-HotSpot/SV-HotSpot';
 ####################################################################################
@@ -26,7 +25,7 @@ my $sv_file=0;
 my $genome='hg38';
 my $sliding_w_size = 100000;
 my $sliding_w_step = 1000; 
-my $output_dir = '/data';
+my $output_dir = getcwd();
 my $annot_file=0;
 my $peakPick_win=100;
 my $peakPick_minsd=5;
@@ -108,8 +107,6 @@ if (!$Found) {
   #$chromsize_file = $TOOL_PATH.'/annotations/'.$genome.'/chromsize.tsv';
   $chromsize_file = 'annotations/'.$genome.'/chromsize.tsv';
 }
-#print ($chromsize_file);
-#exit(0);
 
 #################################################################################################################
 ##################### check if annotation file was provided otherwise use built-in file #########################
@@ -169,7 +166,7 @@ my $start = localtime();
 verify_input();
 prepare_annot();
 prepare_SVs();
-#identify_peaks();
+identify_peaks();
 #annotate_peaks();
 #determine_association();
 #visualize_res();
@@ -253,9 +250,8 @@ sub verify_input
    	  }
           close $roi; 
       }
-	
+    print "PASS.\n";	
    }
-   print "PASS.\n";
 
    ##### check the header of chip coverage file
    if ($chip_cov) { 
@@ -275,9 +271,10 @@ sub verify_input
         #	print "\nWarning:\n  it seems the chip coverage file was not averaged using a window approach suggested in the documentation. Visualizing hotspots with the raw chip covergae data results in a very long running time.". 
         #    "\n  It is recommended you average chip coverage data using a window size range form 1-10k. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.";
 	#    "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n"; 
-   	#} 
+   	#}
+   print "PASS.\n"; 
    }
-   print "PASS.\n";
+   
 
    ##### check the header of copy number file 
    if ($cn_file) { 
@@ -289,8 +286,9 @@ sub verify_input
       		exit(0);
    	}
    close $cn; 
-   }
    print "PASS.\n";
+   }
+   
    
    #### check if feature name in annotation match the one in the expression 
    if ($annot_file && $expr_file) {
@@ -311,8 +309,9 @@ sub verify_input
       	 exit(0);
       }
    close $annot; close $exp;
-   }
    print "PASS.\n";
+   }
+   
 
    #### check if the expression file has no duplicated rows 
    if ($expr_file) {
@@ -333,8 +332,9 @@ sub verify_input
             exit(0); 
          }
       }
-   }
    print "PASS.\n";
+   }
+   
 
 }
 
@@ -350,7 +350,7 @@ sub prepare_annot
  
    ### prepare genes of interest file 
    if ($genes_of_int) {
-   #   $genes_of_int = $TOOL_PATH.'/annotations/genes-of-interest.txt';
+   #   $genes_of_int = 'annotations/genes-of-interest.txt';
    #   system("cat $genes_of_int | select-rows.pl 0 $annot_file 3 > $output_dir/processed_data/genes-of-interest.bed");
    #   $genes_of_int = $output_dir."/processed_data/genes-of-interest.bed"
    #} else {
@@ -387,7 +387,7 @@ sub identify_peaks
    print "STEP 1: Identifying Peaks (hotspot regions) \n";
    print "--------------------------------------------------\n";
    print "\nSegmenting the genome into sliding windows\n";
-   system ("genome-to-sliding-window.r $chromsize_file $sliding_w_size $sliding_w_step $output_dir $chrom");
+   system ("Rscript genome-to-sliding-window.r $chromsize_file $sliding_w_size $sliding_w_step $output_dir $chrom");
 
    print "Overlapping breakpoints with sliding windows\n";
    system ("intersectBed -wao -a $output_dir/processed_data/genome.segments.bed -b $output_dir/processed_data/all_bp.bed > $output_dir/processed_data/genome.segments.with.bps.bed");
@@ -406,11 +406,11 @@ sub identify_peaks
    @chr_files = sort @chr_files;
    foreach (@chr_files) { 
    	my $chr = $_;
-	system ("summarize-sample-count.r $chr $output_dir"); 
+	system ("Rscript summarize-sample-count.r $chr $output_dir"); 
    }
    
    ### combine all counts for all chromosomes
-   system("combine-counts-files.r $output_dir");
+   system("Rscript combine-counts-files.r $output_dir");
 
    ### remove folders 
    system ("rm -rf $output_dir/processed_data/counts");
