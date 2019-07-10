@@ -1,6 +1,6 @@
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
-SV-HotSpot is structural vairant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequecing data.  
+SV-HotSpot is s tructural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  
 
 ##
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
@@ -63,7 +63,7 @@ export PATH=/SOME/PATH/src:$PATH
 #``` 
 -->
 
-To ensure the the tools was installed correctly, just type the following command which shows the usage of the tool assuming the tool src directory in the PATH otherwise you need to provide the whole path to the main file. 
+To ensure the tools was installed correctly, type the following command which shows the usage of the tool. 
 
 ```
 sv-hotspot.pl
@@ -170,7 +170,7 @@ To test the tool, we have provided an example data specifically for identifying 
 To test the tool, just run the following command:
 
 ```
-sv-hotspot.pl -g hg38 --sv test_data/sv.bedpe -e test_data/exp.tsv -c test_data/cna.tsv \
+sv-hotspot.pl -g hg38 -C chrX --sv test_data/sv.bedpe -e test_data/exp.tsv -c test_data/cna.tsv \
               --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed -o /SOME/PATH \
               -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
 	      --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 
