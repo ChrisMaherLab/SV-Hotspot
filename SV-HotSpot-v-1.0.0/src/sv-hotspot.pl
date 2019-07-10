@@ -167,9 +167,9 @@ verify_input();
 prepare_annot();
 prepare_SVs();
 identify_peaks();
-#annotate_peaks();
-#determine_association();
-#visualize_res();
+annotate_peaks();
+determine_association();
+visualize_res();
 
 ### set end time 
 my $end = localtime();
