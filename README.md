@@ -33,8 +33,7 @@ Please make sure you have installed the following R packages:
 ### Installation
 
 Download SV-HotSpot from github repository at https://github.com/ChrisMaherLab/SV-Hotspot. Click on "Clone or download" and then click on "Download ZIP". 
-#You can also use "git clone" command as follows:
-<!--- 
+<!--- #You can also use "git clone" command as follows:
 #```
 #git clone https://github.com/ChrisMaherLab/SV-Hotspot.git
 #```
