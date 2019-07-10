@@ -40,7 +40,7 @@ Once the tool package is downloaded, run these commands:
 
 ```
 $ unzip SV-Hotspot-master.zip
-$ cd SV-Hotspot-master/SV-HotSpot
+$ cd SV-Hotspot-master/SV-HotSpot-v-1.0.0
 $ chmod +x install.sh
 $ ./install.sh -o /SOME/PATH/
 ```
