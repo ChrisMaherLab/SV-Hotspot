@@ -3,7 +3,6 @@
 <!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
 SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data types (including SVs, gene expression, and regulatory elements) to identify recurrent SVs and assess their potential consequences on the gene expression of nearby genes.
 
-##
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
 ## docker-sv-hotspot
@@ -75,12 +74,13 @@ To show the usage page of this script, run the following command:
 ```
 docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak
 ```
-To plot peaks, use the following command:
+To plot peaks, use the following command which plots pX.72 and pX.73:
 ```
-docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak -p pX.59,pX.60 --sv test_data/sv.bedpe \
-              --res-dir /data/SV-HOTSPOT-TEST -e /data/test_data/exp.tsv -c /data/test_data/cna.tsv --chip-cov \
-              /data/test_data/H3K27ac.bg -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST --t-amp 2.99 \
-              --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
+docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak -p pX.72,pX.73 \
+              --sv test_data/sv.bedpe --res-dir /data/SV-HOTSPOT-TEST -e /data/test_data/exp.tsv \
+              -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
+              -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST \
+              --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
 ```
 
 ## SV-HotSpot Manual
