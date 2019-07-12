@@ -10,7 +10,7 @@ SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at 
 To use SV-HotSpot, a docker image was created and is ready to use. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine.  
 You can download the image using the following "pull" command:
 ```
-<b>docker pull eteleeb/sv-hotspot</b>
+docker pull eteleeb/sv-hotspot
 ```
 To test the image, run the following command which shows the usage of this tool:
 ```
