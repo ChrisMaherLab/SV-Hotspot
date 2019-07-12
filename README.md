@@ -79,12 +79,12 @@ docker run eteleeb/sv-hotspot plot-peak
 To plot peaks, use the following command which plots pX.172 and pX.173:
 ```
 docker run -v /local/folder:/data sv-hotspot plot-peak -p pX.174 \
-       --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-	     -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-       --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
-       -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
-       -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
-       --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
+            --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+	          -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+            --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
+            -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
+            -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
+            --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
 ```
 
 ## SV-HotSpot Manual
