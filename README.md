@@ -64,8 +64,9 @@ To run test the , use the following command:
 docker run -v /local/folder/data:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv -c /data/test_data/cna.tsv \
               --chip-cov /data/test_data/H3K27ac.bg -r /data/test_data/enhancers.bed \
-              -o /data/SV-HOTSPOT-TEST -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test \
-              --pval 0.05 --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 --plot-top-peaks 2
+              -o /data/SV-HOTSPOT-TEST -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 \
+              --stat-test wilcox.test --pval 0.05 --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 \
+              --right-ext 0 --plot-top-peaks 2
 ```
 Please note that you need to change ```/local/folder/data``` to the local folder containinig the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
 
