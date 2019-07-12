@@ -75,7 +75,20 @@ docker run -v /local/folder/data:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C 
 Please note that you need to change ```/local/folder/data``` to the local folder containinig the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
 
 ### Plot Peaks (Hotspot sites)
+In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the above command since this process takes long time. Thus, we set the tool to plot only the top # of peaks (default is 10). In case you need to increase/decrease this number, you need to provide this parameter ```--plot-top-peaks=#``` with the number of peaks you want to plot. For this reason, we provided another script to plots peaks. You only need to provide the peak name(s) taken from "annotated_peaks_summary.tsv" file, the SVs file, the results directory, the expression and copy number data with the remaining parameters shown above. Peak names must be separated by comma. 
+To show the usage page of this script, run the following command: 
+```
+docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak
+```
+To plot peaks, use the following command:
+```
+docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak -p pX.59,pX.60 --sv test_data/sv.bedpe \
+              --res-dir /data/SV-HOTSPOT-TEST -e /data/test_data/exp.tsv -c /data/test_data/cna.tsv --chip-cov \
+              /data/test_data/H3K27ac.bg -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST --t-amp 2.99 \
+              --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
+```
 
+## SV-HotSpot Manual
 ### Input 
 The tool requires as an inpute the following:
 
