@@ -6,6 +6,7 @@ SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data 
 ##
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
+
 ## docker-sv-hotspot
 To use SV-HotSpot, a docker image was created and is ready to use. Please note that you need to install [Docker](https://docs.docker.com/) on your machine prior to using sv-hotspot image.  
 You can download the image using the following "pull" command:
@@ -83,7 +84,7 @@ docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak -p pX.72,pX.
               -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST \
               --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
 ```
-MMMMMM
+
 ## SV-HotSpot Manual
 ### Input 
 The tool requires as an inpute the following:
