@@ -61,19 +61,21 @@ OPTIONS:
 	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
  ```
  
- ## Test SV-hotspot 
- To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
+### Test SV-hotspot 
+To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 To run test the , use the following command:
 ```
 docker run -v /local/folder/data:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv -c /data/test_data/cna.tsv \
-              --chip-cov /data/test_data/H3K27ac.bg -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST \
-              -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
-              --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 --plot-top-peaks 2
+              --chip-cov /data/test_data/H3K27ac.bg -r /data/test_data/enhancers.bed \
+              -o /data/SV-HOTSPOT-TEST -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test \
+              --pval 0.05 --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 --plot-top-peaks 2
 ```
-Please note that you need to change ```/local/folder/data``` to the local folder containinig the "<b>test_data</b>" folder. The final output will be sent to folder as well.   
- 
+Please note that you need to change ```/local/folder/data``` to the local folder containinig the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
+
+### Plot Peaks (Hotspot sites)
+
 ### Input 
 The tool requires as an inpute the following:
 
