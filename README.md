@@ -120,7 +120,7 @@ All other parameters are optional and a default value was assigned to each (run 
 <b>IMPORTANT NOTES:</b>
 
 * To prepare all your files, please look at the examples provided in <b>test_data</b> and do accordingly. 
-* Structural variant types must be in the format of THREE letters. Possible SV types the tool accepts are: ```BND, DEL, DUP, INS, INV```. 
+* Structural variant types must be in the format of THREE letters and should only inclide the following SV types: ```BND, DEL, DUP, INS, INV```. 
 * All files headers should be the same as the ones in the examples files. 
 * The chromosome names in all files should be consistent and in the format of <b>chr#</b>. 
 * The feature name in the annotation file should be the same as the one in the expression file. 
@@ -138,7 +138,7 @@ There two main files output in BED format:
 
 3. In addition, SV-HotSpot provides various visualizations composed of overlaying tracks representing copy number aggregation, SV aggregation, and gene/regulatory/region of interest annotation tracks. 
 
-<u>Optional files:</u> 
+<u>Additional files:</u> 
 
 1. Peaks files for each chromosome and their corresponding figures. These files are located in the ``peaks`` folder. 
 2. UCSC custom track files. These files are located in ``peaks/ucsc_custom_track_files``. These files can be viewed on the UCSC Genome Browser.  
@@ -192,7 +192,7 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 ```
 -->
 
-### Example of tool visualization 
+### Example of SV-HotSpot visualization 
 #### (1) Recurrent SVs targeting a non-coding region located upstream of AR gene:
 <img align="center" src="images/AR_peak.png" alt="visualization example">
 
