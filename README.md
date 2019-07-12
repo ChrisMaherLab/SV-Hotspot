@@ -143,6 +143,7 @@ There two main files output in BED format:
 1. Peaks files for each chromosome and their corresponding figures. These files are located in the ``peaks`` folder. 
 2. UCSC custom track files. These files are located in ``peaks/ucsc_custom_track_files``. These files can be viewed on the UCSC Genome Browser.  
 
+<!---
 ### Running the tests
 
 To test the tool, we have provided an example data specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
@@ -189,6 +190,7 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
              -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed \
              -o /SOME/PATH --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
 ```
+-->
 
 ### Example of tool visualization 
 #### (1) Recurrent SVs targeting a non-coding region located upstream of AR gene:
