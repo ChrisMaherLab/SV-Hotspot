@@ -1,73 +1,29 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
-SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  
+<!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
+SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data types (including SVs, gene expression, and regulatory elements) to identify recurrent SVs and assess their potential consequences on the gene expression of nearby genes.
 
 ##
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
-## Getting Started
-
-These instructions will help you to install and use SV-HotSpot tool. Please read carefully all instructions before using the tool. Also make sure that all prerequisites and R packages are installed with the versions specified.  
-
-### Prerequisites
-
-To run SV-HotSpot, the following tools have to be installed and included in the PATH variable:
-
-* [Perl](https://www.perl.org/get.html)  
-* [BEDTools](https://bedtools.readthedocs.io/en/latest/) version 2.25.0
-* [R](https://www.r-project.org/) version 3.1.0 or higher 
-
-Please make sure you have installed the following R packages:
-
- 1. [peakPick](https://cran.r-project.org/web/packages/peakPick/vignettes/peakPick-vignette.html)
- 2. [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html)
- 3. [reshape2](https://cran.r-project.org/web/packages/reshape2/)
- 4. [grid](https://www.rdocumentation.org/packages/grid/versions/3.5.1)
- 5. [gridBase](https://cran.r-project.org/web/packages/gridBase/index.html)
- 6. [gridExtra](https://cran.r-project.org/web/packages/gridExtra/index.html)
- 7. [gtable](https://cran.r-project.org/web/packages/gtable/index.html)
- 8. [ggsignif](https://cran.r-project.org/web/packages/ggsignif/vignettes/intro.html)
- 9. [plyr](https://cran.r-project.org/web/packages/plyr/index.html)
- 10. [data.table](https://cran.r-project.org/web/packages/data.table/index.html)
-
-### Installation
-
-Download SV-HotSpot from github repository at https://github.com/ChrisMaherLab/SV-Hotspot. Click on "Clone or download" and then click on "Download ZIP". 
-<!--- #You can also use "git clone" command as follows:
-#```
-#git clone https://github.com/ChrisMaherLab/SV-Hotspot.git
-#```
--->
-Once the tool package is downloaded, run these commands:
-
+## docker-sv-hotspot
+To use SV-HotSpot, a docker image was created and is ready to use. Please note that you need to install [Docker](https://docs.docker.com/) on your machine prior to using sv-hotspot image.  
+You can download the image using the following command:
 ```
-$ unzip SV-Hotspot-master.zip
-$ cd SV-Hotspot-master/SV-HotSpot-v-1.0.0
-$ chmod +x install.sh
-$ ./install.sh -o /SOME/PATH/
+# Get Docker image
+docker pull eteleeb/sv-hotspot
+```
+To test the image, run the following command which should show the usage of this tool:
+```
+docker run eteleeb/sv-hotspot sv-hotspot
 ```
 
-Note that you need to change ```/SOME/PATH/``` to wherever you want to install the tool. 
- 
-<!--- You also need to add the installation location to your PATH or add it to ~/.bachrc file before running the tool: 
-
 ```
-export PATH=/SOME/PATH/src:$PATH
-```
-<b>CHANGING TOOL PATH (IMPORTANT) </b>
-
-#Open ```sv-hotspot.pl``` file and change this line by providing the path to the location where you installed the tool: 
-
-#```
-#my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
-#``` 
--->
-
-To ensure the tools was installed correctly, type the following command which shows the usage of the tool. 
-
-```
-sv-hotspot.pl
-
 USAGE:
       sv-hotspot.pl [OPTIONS] -g/--genome <genomeName> --sv <structuralVariants>
 
@@ -105,7 +61,6 @@ OPTIONS:
 	--left-ext			size of left extension	<int>		[ size of the left extension of the peak. default: 0bp ]
 	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
  ```
-
 ### Input 
 The tool requires as an inpute the following:
 
