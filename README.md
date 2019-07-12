@@ -1,8 +1,3 @@
----
-output:
-  html_document: default
-  pdf_document: default
----
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
 <!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
