@@ -7,7 +7,7 @@ SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data 
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
 ## docker-sv-hotspot
-To use SV-HotSpot, a docker image was created and is ready to use. Please note that you need to install [Docker](https://docs.docker.com/) on your machine prior to using sv-hotspot image.  
+To use SV-HotSpot, a docker image was created and is ready to use. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine.  
 You can download the image using the following "pull" command:
 ```
 docker pull eteleeb/sv-hotspot
@@ -61,28 +61,30 @@ To test SV-HotSpot, we have provided an example data available in "test_data" fo
 
 To run test the , use the following command:
 ```
-docker run -v /local/folder/data:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
+docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv -c /data/test_data/cna.tsv \
               --chip-cov /data/test_data/H3K27ac.bg -r /data/test_data/enhancers.bed \
               -o /data/SV-HOTSPOT-TEST -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 \
               --stat-test wilcox.test --pval 0.05 --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 \
               --right-ext 0 --plot-top-peaks 2
 ```
-Please note that you need to change ```/local/folder/data``` to the local folder containinig the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
+Please note that you need to change ```/local/folder``` to the your local folder on your machine. This fold must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
 
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the above command since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
 To show the usage page of this script, run the following command: 
 ```
-docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak
+docker run eteleeb/sv-hotspot plot-peak
 ```
-To plot peaks, use the following command which plots pX.72 and pX.73:
+To plot peaks, use the following command which plots pX.172 and pX.173:
 ```
-docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak -p pX.72,pX.73 \
-              --sv test_data/sv.bedpe --res-dir /data/SV-HOTSPOT-TEST -e /data/test_data/exp.tsv \
-              -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
-              -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST \
-              --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
+docker run -v /local/folder:/data sv-hotspot plot-peak -p pX.174 \
+       --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+	     -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+       --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
+       -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
+       -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
+       --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
 ```
 
 ## SV-HotSpot Manual
@@ -120,7 +122,7 @@ All other parameters are optional and a default value was assigned to each (run 
 <b>IMPORTANT NOTES:</b>
 
 * To prepare all your files, please look at the examples provided in <b>test_data</b> and do accordingly. 
-* Structural variant types must be in the format of THREE letters and should only inclide the following SV types: ```BND, DEL, DUP, INS, INV```. 
+* Structural variant types must be in the format of THREE letters and should only include the following types: ```BND, DEL, DUP, INS, INV```. 
 * All files headers should be the same as the ones in the examples files. 
 * The chromosome names in all files should be consistent and in the format of <b>chr#</b>. 
 * The feature name in the annotation file should be the same as the one in the expression file. 
