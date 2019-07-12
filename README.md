@@ -3,6 +3,7 @@
 <!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
 SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data types (including SVs, gene expression, and regulatory elements) to identify recurrent SVs and assess their potential consequences on the gene expression of nearby genes.
 
+
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
 ## docker-sv-hotspot
