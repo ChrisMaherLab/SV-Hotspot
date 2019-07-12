@@ -83,6 +83,7 @@ docker run -v /local/folder/data:/data eteleeb/sv-hotspot plot-peak -p pX.72,pX.
               -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST \
               --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
 ```
+MMMMMM
 ## SV-HotSpot Manual
 ### Input 
 The tool requires as an inpute the following:
