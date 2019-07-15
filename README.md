@@ -60,7 +60,10 @@ OPTIONS:
 To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 To run the test, use the following command:
-```
+```{css}
+.badCode {
+background-color: red;
+}
 docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
               -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
@@ -70,7 +73,7 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX 
 ```
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
 
-* ```/data``` is a folder on the image container used to receive the input data and has to be provided exactly as written in the command. 
+* ```/data``` is a folder on the image container used to receive the input data mapped by -v flag. This folder is used as a working diectory in the pipeline ...   
 
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the command above since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
