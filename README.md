@@ -60,8 +60,8 @@ OPTIONS:
 To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 To run the test, use the following command:
-```diff
-+ docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
+```css
+docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
               -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
               -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST -w 100000 \
