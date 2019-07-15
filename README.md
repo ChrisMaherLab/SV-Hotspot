@@ -61,7 +61,7 @@ To test SV-HotSpot, we have provided an example data available in "test_data" fo
 
 To run the test, use the following command:
 ```css
-// color:#c5f015
+texxt-color:#c5f015
 docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
               -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
