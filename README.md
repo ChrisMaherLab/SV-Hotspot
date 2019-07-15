@@ -68,7 +68,7 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX 
               --stat-test wilcox.test --pval 0.05 --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 \
               --right-ext 0 --plot-top-peaks 2
 ```
-Please note that you need to change ```/local/folder```to your local folder on your machine. This fold must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
+Please note that you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
 
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the above command since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
