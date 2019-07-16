@@ -77,7 +77,7 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX 
 ```
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
 
-* ```/data``` is a folder on the image container used to receive the input data mapped by -v flag. This folder is used as a working diectory in the pipeline ...   
+* ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way in the above command.    
 
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the command above since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
@@ -95,7 +95,7 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot plot-peak -p pX.174 \
            -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
            --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
 ```
-* Note that ```res-dir``` must be poin .... 
+* ```res-dir``` must refer to folder containing the results generated from running sv-hospot command with ```-o``` option . Please note that you always need to include "sv-hotspot-output" in the ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all outpur results.
 
 ## SV-HotSpot Manual
 ### Input 
