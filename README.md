@@ -10,9 +10,9 @@ SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at 
 To use SV-HotSpot, a docker image was created and is ready to use. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. 
 
 ### Installation of Docker
-* Ubuntu: follow the instructions to get Docker CE for Ubuntu.
-* Mac: follow the instructions to install the Stable verion of Docker CE on Mac.
-* Windows: follow the instructions to install Docker Toolbox on Windows.
+* Ubuntu: follow [the instructions](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/) to get Docker CE for Ubuntu.
+* Mac: follow [the instructions](https://store.docker.com/editions/community/docker-ce-desktop-mac) to install [the Stable verion of Docker CE](https://download.docker.com/mac/stable/Docker.dmg) on Mac.
+* Windows: follow [the instructions](https://docs.docker.com/toolbox/toolbox_install_windows/) to install [Docker Toolbox](https://download.docker.com/win/stable/DockerToolbox.exe) on Windows.
 
 To obtain the latest docker image, run the following in your command line:
 
