@@ -95,7 +95,7 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot plot-peak -p pX.174 \
            -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
            --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
 ```
-* ```res-dir``` must refer to folder containing the results generated from running sv-hospot command with ```-o``` option . Please note that you always need to include "sv-hotspot-output" in the ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all outpur results.
+* ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
 
 ## SV-HotSpot Manual
 ### Input 
