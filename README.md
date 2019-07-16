@@ -60,12 +60,7 @@ OPTIONS:
 To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 To run the test, use the following command:
-```{css}
-.badCode {
-background-color: red;
-}
 ```
-``` {code class.source="badCode"}
 docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
               -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
@@ -83,16 +78,17 @@ To show the usage page of this script, run the following command:
 ```
 docker run eteleeb/sv-hotspot plot-peak
 ```
-To plot peaks, use the following command which plots pX.172 and pX.173:
+To plot peaks, use the following command which plots pX.172 and pX.173 peaks:
 ```
 docker run -v /local/folder:/data sv-hotspot plot-peak -p pX.174 \
-            --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-            -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-            --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
-            -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
-            -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
-            --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
+           --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+	         -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+           --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
+           -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
+           -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
+           --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
 ```
+* Note that ```res-dir``` must be poin .... 
 
 ## SV-HotSpot Manual
 ### Input 
