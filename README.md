@@ -51,7 +51,7 @@ OPTIONS:
 	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" foramt separated by comma ]
 	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
 	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
-	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacnet peaks. default: 10kb ]
+	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
 	-k/--num-nearby-genes		Number nearby genes	<int>		[ number of up/downstream genes to the peak. default: 1 ]
 	--t-amp				amplification threshold	<float/int>	[ amplification cutoff. default: 2.8 ]
 	--t-del				deletion threshold	<float/int>	[ deletion cutoff. default: 0.5 ]
@@ -99,29 +99,28 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot plot-peak -p pX.174 \
 
 ## SV-HotSpot Manual
 ### Input 
-The tool requires as an inpute the following:
+The tool requires as an input the following:
 
 1. Genome assembly name (e.g. hg38, hg19, mm9, mm10, etc.) which is used to extract chromosomes sizes file (a tab-delimited file with two columns, <b>chrom</b> and <b>size</b>). Genome name should be one of the UCSC genome releases (https://genome.ucsc.edu/FAQ/FAQreleases.html#release1). Tool built-in genomes are: <b>hg18, hg19, hg38, mm9, mm10, dm3, dm6, rn5, rn6</b>. In case your genome is not listed above, please do the following:
 
       * Create a directoy with your genome name under ```annotations``` folder. This name will be used when run the tool.    
-      * Extract the chromosomes sizes file If your genome is available as one of the UCSC genome releases by running this             command:    
+      * Extract the chromosomes sizes file if your genome is available as one of the UCSC genome releases by running this             command:    
        
         ```mysql --user=genome --host=genome-mysql.cse.ucsc.edu -A -e "SELECT chrom, size FROM <genomeName>.chromInfo" > chromsize.tsv```
       
       * Save the file with the name ```chromsize.tsv``` and place in the genome name folder you created in step 1.
-      * In case your genome is not available in the UCSC genome releases, you need to prepare a a tab-delimited file with  
-        two columns, <b>chrom</b> and <b>size</b> and do step 3. 
+      * In case your genome is not available in the UCSC genome releases, you need to prepare a a tab-delimited file with two columns, <b>chrom</b> and <b>size</b> and do step 3. 
        
 2. Structural variants file in [BEDPE format](https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format) (Example of how to prepare this file is available in <b>test_data</b> folder). 
 
 <u>Optional files:</u> 
-1. Expression data in a matrix format where the first column represents the feature (e.g. gene) and columns represents samples. See the example provided at <b>test_data</b> folder. Please note that features in this file has to be unique. 
+1. Expression data in a matrix format where the first column represents the feature (e.g. gene) and columns represents samples. See the example provided at <b>test_data</b> folder. Please note that features in this file have to be unique. 
 
 2. Copy number segments in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. See the example at <b>test_data</b> on how to prepare this file.  
 
 3. An annotation file in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. If the user didn't provide this file, a built-in annotation file based on the genome name will be used. Please note that the feature in the expression file has to match the one in this file. 
 
-4. Region of interest file(s) (e.g. enhancers, transcription binding sites, etc) in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. An example of this file is given in <b>test_data</b> folrder. Multiple files can be provided but have to be separated by comma (make sure no space between the file names). 
+4. Region of interest file(s) (e.g. enhancers, transcription binding sites, etc) in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. An example of this file is given in <b>test_data</b> folder. Multiple files can be provided but have to be separated by comma (make sure no space between the file names). 
 
 5. ChIP-Seq coverage in [BED](https://genome.ucsc.edu/FAQ/FAQformat.html) format. See the example at <b>test_data</b> on how to prepare this file.  
 
