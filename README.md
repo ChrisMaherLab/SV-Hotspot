@@ -7,7 +7,10 @@ SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data 
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
 ## docker-sv-hotspot
-To use SV-HotSpot, a docker image was created and is ready to use. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. Full instructions on how to install Docker can be found at https://docs.docker.com/. 
+To use SV-HotSpot, a docker image was created and is ready to use. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. 
+
+# Installation of Docker
+
 
 You can download the image using the following "pull" command:
 ```
