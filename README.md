@@ -17,11 +17,11 @@ To use SV-HotSpot, a docker image was created and is ready to use. To run SV-Hot
 To obtain the latest docker image, run the following in your command line:
 
 ```
-docker pull eteleeb/sv-hotspot
+docker pull chrismaherlab/sv-hotspot
 ```
 To test the image, run the following command which shows the usage of this tool:
 ```
-docker run eteleeb/sv-hotspot sv-hotspot
+docker run chrismaherlab/sv-hotspot sv-hotspot
 ```
 
 ```
@@ -68,7 +68,7 @@ To test SV-HotSpot, we have provided an example data available in "test_data" fo
 
 To run the test, use the following command:
 ```
-docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX \
+docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
               -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
               -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST -w 100000 \
@@ -77,17 +77,17 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX 
 ```
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.
 * Please note that you need to provide the absolute path for ```/local/folder```. 
-* ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way in the above command.    
+* ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way as in the command above.    
 
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the command above since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
 To show the usage page of this script, run the following command: 
 ```
-docker run eteleeb/sv-hotspot plot-peak
+docker run chrismaherlab/sv-hotspot plot-peak
 ```
 To plot peaks, use the following command which plots pX.172 and pX.173 peaks:
 ```
-docker run -v /local/folder:/data eteleeb/sv-hotspot plot-peak -p pX.174 \
+docker run -v /local/folder:/data chrismaherlab/sv-hotspot plot-peak -p pX.174 \
            --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
            -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
            --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
