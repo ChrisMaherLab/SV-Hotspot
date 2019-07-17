@@ -48,7 +48,7 @@ OPTIONS:
 	-o/--output			output directory	<string>	[ results output directory. default: ./ ]
 	-p/--pval			pvalue cuttoff		<float>		[ pvalue threshold used for significance. default: 0.05 ]
 	-G/--genes-of-int		list of genes		<filename>	[ list of genes of interest to be used for visualization ]
-	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" foramt separated by comma ]
+	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" format separated by comma ]
 	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
 	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
 	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
@@ -75,8 +75,8 @@ docker run -v /local/folder:/data eteleeb/sv-hotspot sv-hotspot -g hg38 -C chrX 
               -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
               --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 --plot-top-peaks 2
 ```
-* Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.   
-
+* Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.
+* Please note that you need to provide the absolute path for ```/local/folder```. 
 * ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way in the above command.    
 
 ### Plot Peaks (Hotspot sites)
