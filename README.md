@@ -75,7 +75,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C
               -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
               --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 --plot-top-peaks 2
 ```
-* Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well.
+* Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well. Use ```"$PWD"``` in case you want to use the current directroy. 
 * Please note that you need to provide the absolute path for ```/local/folder```. 
 * ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way as in the command above.    
 
@@ -222,4 +222,4 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 Coming soon .... 
 
 ## Contact
-Abdallah Eteleeb: eteleeb@gmail.com
+Abdallah Eteleeb: eteleeb@wustl.edu
