@@ -7,12 +7,12 @@ SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data 
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
 
 ## SV-HotSpot Docker Instructions
-To use SV-HotSpot, a docker image was created and is ready to use. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. 
+To use SV-HotSpot, a docker image has been created and tested on Linux and Mac. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. 
 
 ### Installation of Docker
 * Ubuntu: follow [the instructions](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/) to get Docker CE for Ubuntu.
 * Mac: follow [the instructions](https://store.docker.com/editions/community/docker-ce-desktop-mac) to install [the Stable verion of Docker CE](https://download.docker.com/mac/stable/Docker.dmg) on Mac.
-* Windows: follow [the instructions](https://docs.docker.com/toolbox/toolbox_install_windows/) to install [Docker Toolbox](https://download.docker.com/win/stable/DockerToolbox.exe) on Windows.
+#* Windows: follow [the instructions](https://docs.docker.com/toolbox/toolbox_install_windows/) to install [Docker Toolbox](https://download.docker.com/win/stable/DockerToolbox.exe) on Windows.
 
 To obtain the latest docker image, run the following in your command line:
 
@@ -78,7 +78,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well. Use ```"$PWD"``` in case you want to use the current directroy. 
 * Please note that you need to provide the absolute path for ```/local/folder```. 
 * ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way as in the command above. 
-* For users running Docker on Windows using Docker Toolbox, please note that you need to share your local driver with VirtualBox VM to be able to mount any folder from it into a Docker container. Instructions on how to perform that can be found in [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/) installation instructions page. An additional instructions can be found [here](https://headsigned.com/posts/mounting-docker-volumes-with-docker-toolbox-for-windows/) as well.   
+#* For users running Docker on Windows using Docker Toolbox, please note that you need to share your local driver with VirtualBox VM to be able to mount any folder from it into a Docker container. Instructions on how to perform that can be found in [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/) installation instructions page. An additional instructions can be found [here](https://headsigned.com/posts/mounting-docker-volumes-with-docker-toolbox-for-windows/) as well.   
 
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the command above since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
