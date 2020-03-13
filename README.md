@@ -176,18 +176,18 @@ All other parameters are optional and a default value was assigned to each (run 
 
 <b>IMPORTANT NOTES:</b>
 
-* To prepare all your files, please look at the examples provided in <b>test_data</b> and do accordingly. 
+* To prepare all your files, please look at the examples provided in <b>test_data</b> folder and do accordingly. 
 * Structural variant types must be in the format of THREE letters and should only include the following types: ```BND, DEL, DUP, INS, INV```. 
 * All files headers should be the same as the ones in the examples files. 
 * The chromosome names in all files should be consistent and in the format of <b>chr#</b>. 
-* The feature name in the annotation file should be the same as the one in the expression file. 
+* The feature name in the annotation file and the expression file should be the same. 
 * The "<b>name</b>" column in the SVs file should be in the format of <u><i>sample/type</i></u> (e.g. <b>Sample1/INV</b>)
 
 ### ChIP-seq coverage data 
 Given the large quantities of data generated in ChIP-Seq, most computational analyses face significant challenges processing this large magnitude of data. Therefore, it is recommended that you average ChIP-seq data using a window of size range from 1-10k and provided in the format mentioned above.
 
 ### Output 
-There two main files output in BED format: 
+There are two main output files: 
 
 1. ```annotated_peaks_summary.tsv```: this file has all information about identified peaks. 
 
