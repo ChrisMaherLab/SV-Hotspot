@@ -1,7 +1,7 @@
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
 <!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
-SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data types (including SVs, gene expression, and regulatory elements) to identify recurrent SVs and assess their potential consequences on the gene expression of nearby genes.
+SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data types (including SVs, gene expression, and regulatory elements) to identify recurrent SVs and assess their potential consequences on the expression of nearby genes.
 
 ##
 SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
@@ -65,7 +65,7 @@ OPTIONS:
 	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
  ```
  
-### Test SV-hotspot 
+### Test SV-HotSpot
 To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 To run the test, use the following command:
