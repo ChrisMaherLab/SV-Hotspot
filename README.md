@@ -135,7 +135,9 @@ rm -rf /path/to/conda/environment
 ### Input 
 The tool requires as an input the following:
 
-1. Genome assembly name (e.g. hg38, hg19, mm9, mm10, etc.) which is used to extract chromosomes sizes file (a tab-delimited file with two columns, <b>chrom</b> and <b>size</b>). Genome name should be one of the UCSC genome releases (https://genome.ucsc.edu/FAQ/FAQreleases.html#release1). Tool built-in genomes are: <b>hg18, hg19, hg38, mm9, mm10, dm3, dm6, rn5, rn6</b>. In case your genome is not listed above, please do the following:
+1. Genome assembly name (e.g. hg38, hg19, mm9, mm10, etc.) which is used to extract chromosomes sizes file (a tab-delimited file with two columns, <b>chrom</b> and <b>size</b>). Genome name should be one of the UCSC genome releases (https://genome.ucsc.edu/FAQ/FAQreleases.html#release1). SV-HotSpot built-in genomes are: <b>hg18, hg19, hg38, mm9, mm10, dm3, dm6, rn5, rn6</b>. 
+<!---
+In case your genome is not listed above, please do the following:
 
       * Create a directoy with your genome name under ```annotations``` folder. This name will be used when run the tool.    
       * Extract the chromosomes sizes file if your genome is available as one of the UCSC genome releases by running this             command:    
@@ -144,8 +146,9 @@ The tool requires as an input the following:
       
       * Save the file with the name ```chromsize.tsv``` and place in the genome name folder you created in step 1.
       * In case your genome is not available in the UCSC genome releases, you need to prepare a a tab-delimited file with two columns, <b>chrom</b> and <b>size</b> and do step 3. 
-       
-2. Structural variants file in [BEDPE format](https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format) (Example of how to prepare this file is available in <b>test_data</b> folder). 
+-->
+
+2. Structural variants file in [BEDPE format](https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format) (Example of how to prepare this file is available in <b>test_data</b> folder). In case only VCF files are available, please try to convert them to BEDPE format using existing tools such vcftobedpe form svtools. Instructions on how to install it and use it can be found [here](https://github.com/hall-lab/svtools/blob/master/README.md). 
 
 <u>Optional files:</u> 
 1. Expression data in a matrix format where the first column represents the feature (e.g. gene) and columns represents samples. See the example provided at <b>test_data</b> folder. Please note that features in this file have to be unique. 
