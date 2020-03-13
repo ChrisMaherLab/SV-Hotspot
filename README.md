@@ -129,8 +129,7 @@ conda deactivate
 # remove the conda environment
 rm -rf /path/to/conda/environment
 
-
-
+```
 
 ## SV-HotSpot Manual
 ### Input 
