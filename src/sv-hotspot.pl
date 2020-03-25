@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl -w
 
 # SV-HSD: strucutral varaint tool for detecting host spots 
 # Created by Abdallah Eteleb <eteleeb@gmail.com> and Ha Dang Ha X. Dang <haxdang@gmail.com> 
@@ -25,7 +25,7 @@ my $sv_file=0;
 my $genome='hg38';
 my $sliding_w_size = 100000;
 my $sliding_w_step = 1000; 
-my $output_dir = '.';
+my $output_dir = getcwd;
 my $annot_file=0;
 my $peakPick_win=100;
 my $peakPick_minsd=5;
@@ -45,10 +45,12 @@ my $plot_top_peaks=10;
 my $num_nearby_genes=1;
 my $t_stat="wilcox.test"; 
 my $chip_cov=0;
-my $chip_cov_lbl='chip-seq-ncov.';
+my $chip_cov_lbl='ChIP-seq-cov.';
 my $roi_lbl = 0;
 my $left_ext = 0;
 my $right_ext = 0;
+my $merge_pct_samples = 5;
+my $stop_merge_num_peaks = 0;
 
 GetOptions
 (
@@ -79,12 +81,20 @@ GetOptions
     'chip-cov-lbl=s' => \$chip_cov_lbl,
     'roi-lbl=s' => \$roi_lbl,
     'left-ext=i' => \$left_ext,
-    'right-ext=i' => \$right_ext
+    'right-ext=i' => \$right_ext,
+    'merge-pct-samples=i' => \$merge_pct_samples,
+    'stop-merge-num-peaks=i' => \$stop_merge_num_peaks
 );
 
 usage() if (!$sv_file);
 
-#my $max; ### for checking chip-seq coverage data
+#################################################################################################################
+######################### check if the SV file exists ###########################
+#################################################################################################################
+if (! -e $sv_file) {
+    print ("\n Error: Structural variants file does not exist at the location you provided!.\n");
+    exit(0);
+} 
 
 #################################################################################################################
 ######################### check if the genome name is in the list of bulit-in genomes ###########################
@@ -100,7 +110,7 @@ foreach my $g (@genomes) {
 }
 
 if (!$Found) { 
-    print "\nError:\nThe genome name \"$genome\" is not in the list of built-in genomes. If your genome size is available, please prepare a file with chromosome names and sizes and place it in the annotations folder.\n".
+    print "\n Error:\nThe genome name \"$genome\" is not in the list of built-in genomes. If your genome size is available, please prepare a file with chromosome names and sizes and place it in the annotations folder.\n".
           "For more information on how to extract this file, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
     exit(0); 
 } else {
@@ -109,7 +119,7 @@ if (!$Found) {
 }
 
 #################################################################################################################
-##################### check if annotation file was provided otherwise use built-in file #########################
+##################### check if annotation file was provided, otherwise use built-in file #########################
 #################################################################################################################
 if (!$annot_file) {
      $annot_file = 'annotations/'.$genome.'/genes.bed'
@@ -153,9 +163,11 @@ print " ChIP-Seq cov. file    : $chip_cov\n";
 print " Statistical test      : $t_stat\n";
 print " Plot top peaks        : $plot_top_peaks\n";
 print " ChIP-seq coverage     : $chip_cov_lbl\n";
-#print " Region of interest    : $roi_lbl\n";
+#print " Region of interest   : $roi_lbl\n";
 print " Left extension size   : $left_ext\n";
 print " Right extension size  : $right_ext\n";
+print " % of samples to merge : $merge_pct_samples\n";
+print " # of stop-merge peaks : $stop_merge_num_peaks\n";
 print "########################################################\n\n";
 
 #################################################################################################################
@@ -164,12 +176,28 @@ print "########################################################\n\n";
 ### set start tim 
 my $start = localtime();
 
+### verify input and identify peaks
 verify_input();
 prepare_annot();
 prepare_SVs();
 identify_peaks();
-annotate_peaks();
+
+### annotate peaks
+opendir(DIR, $output_dir."/peaks");
+my @peaks_fils = grep(/group/,readdir(DIR));
+closedir(DIR);
+my $num_files = scalar @peaks_fils;
+if( $num_files ge 1) {
+   annotate_peaks();  
+} else {
+  print ("There were no peaks identified in this analysis!.\n");
+  exit(0);
+}
+
+### determine association
 determine_association();
+
+### visualize peaks 
 if ($plot_top_peaks gt 0) {
   visualize_res();
 }
@@ -216,7 +244,7 @@ sub verify_input
    #print "test: $sv_file\n";
    if ($sv_header !~ /\bchrom1\b/ || $sv_header!~ /\bstart1\b/ || $sv_header!~ /\bend1\b/ || $sv_header!~ /\bchrom2\b/ || $sv_header!~ /\bstart2\b/ || 
        $sv_header!~ /\bend2\b/ || $sv_header !~ /\bname\b/ || $sv_header!~ /\bscore\b/ || $sv_header!~ /\bstrand1\b/ ||    $sv_header !~ /\bstrand2\b/) {
-      print "\n Error: The header of structural variants file has format different from what the tool accepts.\n";
+      print "\nError: The header of structural variants file has format different from what the tool accepts.\n";
       exit(0);
    }
      
@@ -233,7 +261,7 @@ sub verify_input
    foreach my $item (@unique_svtypes){
      my $Found = grep { $item eq $_ } @tool_svtypes;
      if ($Found ==0){
-         print"\n Error: SV types must be one of the following: BND, DEL, DUP, INV, INS and must have the same format. Currently SV-Hotspot accepts only those five types.\n";
+         print"\nError: SV types must be one of the following: BND, DEL, DUP, INV, INS and must have the same format. Currently SV-Hotspot accepts only those five types.\n";
 	 exit(0); 
      }
    }
@@ -243,23 +271,31 @@ sub verify_input
 
    ##### check the header of annotation file
    if ($annot_file) { 
+     if (-e $annot_file) {
         print "Checking annotation file format...";
 	open my $annot, '<', $annot_file;
 	my $annot_header = <$annot>;
         
 	if ($annot_header !~ /\bchrom\b/ || $annot_header!~ /\bstart\b/ || $annot_header !~ /\bend\b/ || $annot_header !~ /\bgene\b/ || $annot_header !~ /\bscore\b/ || $annot_header !~ /\bstrand\b/) {
-      		print "Error: The header of annotation file has a format different from what the tool accepts.\n";
+      		print "\nError: The header of annotation file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
-   close $annot;
-   print "PASS.\n"; 
-   }
+   	
+   	close $annot;
+        print "PASS.\n"; 
+   
+      } else {
+        print ("\n Error: The annotation file does not exits!.\n");
+        exit(0); 
+     }
+  }
 
    ##### check the header of region of interes file
    if ($region_of_int) { 
    print "Checking region of interest file(s) format...";
       my @roi_files = split(",", $region_of_int);
       foreach (@roi_files) {
+        if (-e $_) {
           open my $roi, '<', $_;
 	  my $roi_header = <$roi>;
 	  if ($roi_header !~ /\bchrom\b/ || $roi_header !~ /\bstart\b/ || $roi_header !~ /\bend\b/ || $roi_header !~ /\bname\b/) {
@@ -267,21 +303,31 @@ sub verify_input
       		exit(0);
    	  }
           close $roi; 
+        } else {
+          print ("\nError: Region of interest \"".$_."\" file does not exits!.\n");
+          exit(0); 
+        }
       }
     print "PASS.\n";	
    }
 
    ##### check the header of chip coverage file
-   if ($chip_cov) { 
-        print "Checking ChIP-Seq coverage file format...";
+   if ($chip_cov) {
+     if (-e $chip_cov) {
+           print "Checking ChIP-Seq coverage file format...";
 	open my $chipCov, '<', $chip_cov;
 	my $chipCov_header = <$chipCov>;
 	if ($chipCov_header !~ /\bchrom\b/ || $chipCov_header !~ /\bstart\b/ || $chipCov_header !~ /\bend\b/ || $chipCov_header !~ /\bcov\b/) {
-      		print "\n Error: The header of chip coverage file has a format different from what the tool accepts.\n";
+      		print "\nError: The header of chip coverage file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
    	close $chipCov; 
-
+   	print "PASS.\n"; 
+     } else {
+        print ("\nError: The chip-seq coverage file does not exits!.\n");
+        exit(0); 
+     }
+   }
    	### check if the chip coverage file is an averaged file 
    	#$max = `awk '{print \$3-\$2}' $chip_cov | awk 'BEGIN{a=0}{if (\$1>a) a=\$1 fi} END {print a}'`;
         #$max = $max + 1;
@@ -290,23 +336,53 @@ sub verify_input
         #    "\n  It is recommended you average chip coverage data using a window size range form 1-10k. We have provided a script \"process_chip_cov.r\" for this process. You may consider using it.";
 	#    "\n  For more information, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n"; 
    	#}
-   print "PASS.\n"; 
-   }
    
-
+   
    ##### check the header of copy number file 
-   if ($cn_file) { 
-   print "Checking copy number file format...";
+   if ($cn_file) {
+     if (-e $cn_file) { 
+        print "Checking copy number file format...";
 	open my $cn, '<', $cn_file;
 	my $cn_header = <$cn>;
 	if ($cn_header !~ /\bchrom\b/ || $cn_header !~ /\bstart\b/ || $cn_header !~ /\bend\b/ || $cn_header !~ /\bsample\b/ || $cn_header !~ /\bcn\b/) {
       		print "\n Error: The header of copy number file has a format different from what the tool accepts.\n";
       		exit(0);
    	}
-   close $cn; 
-   print "PASS.\n";
+        close $cn; 
+        print "PASS.\n";
+     } else {
+        print ("\nError: The copy number file does not exits!.\n");
+        exit(0); 
+     }
+  
    }
    
+    #### check if the expression file has no duplicated rows 
+   if ($expr_file) {
+     if (-e $expr_file) {
+        print "Checking if the expression file has no duplicated rows...";
+        open( my $exp, '<', $expr_file) or die "Can't open file: $!";
+        my @genes; 
+        my %count;
+        while (my $line = <$exp>) {
+          next if $. == 1; 
+          my @row = split( "\t", $line );
+          push (@genes, $row[0]);
+        }
+        close $exp;
+        for(@genes) {
+          $count{$_}++;
+          if ($count{$_} > 1) { 
+             print "\nError: Expression file has duplicated rows!.\n";
+             exit(0); 
+          }
+        }
+        print "PASS.\n";
+     } else {
+        print ("\nError: The expression file does not exits!.\n");
+        exit(0); 
+     }
+   }  
    
    #### check if feature name in annotation match the one in the expression 
    if ($annot_file && $expr_file) {
@@ -323,37 +399,13 @@ sub verify_input
          if ($_ eq $feature[0]) { $Found = "1" } 
       }
       if (!$Found) {
-       	 print "\n Error: Feature name in expression file doesn't match feature name in the annotation file!.\n";
+       	 print "\nError: Feature name in expression file doesn't match feature name in the annotation file!.\n";
       	 exit(0);
       }
    close $annot; close $exp;
    print "PASS.\n";
    }
    
-
-   #### check if the expression file has no duplicated rows 
-   if ($expr_file) {
-      print "Checking if the expression file has no duplicated rows...";
-      open( my $exp, '<', $expr_file) or die "Can't open file: $!";
-      my @genes; 
-      my %count;
-      while (my $line = <$exp>) {
-        next if $. == 1; 
-        my @row = split( "\t", $line );
-        push (@genes, $row[0]);
-      }
-      close $exp;
-      for(@genes) {
-         $count{$_}++;
-         if ($count{$_} > 1) { 
-            print "\n Error: Expression file has duplicated rows!.\n";
-            exit(0); 
-         }
-      }
-   print "PASS.\n";
-   }
-   
-
 }
 
 
@@ -435,7 +487,7 @@ sub identify_peaks
    system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr");
    
    print "\nCall structural variant peaks (hotspots)\n";
-   system ("Rscript detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $genes_of_int $chromsize_file");
+   system ("Rscript detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_pct_samples $stop_merge_num_peaks $genes_of_int $chromsize_file");
 
    ### remove intermediate files 
    unlink("$output_dir/processed_data/genome.segments.bed"); 
@@ -532,8 +584,10 @@ sub usage
    print("\t-r/--region-of-int\t\tregion(s) of interest\t<filename>\t[ region of interest file(s) in \"BED\" format separated by comma ]\n");
    print("\t-C/--chrom\t\t\tchromosome name \t<string>\t[ chromosome name used to detect hotspots. default: ALL ]\n");
    print("\t-t/--sv-type\t\t\tstructural variant type\t<string>\t[ SV type used to detect hotspots. default: ALL ]\n");
-   print("\t-d/--merge-dist-size\t\tdistance size\t\t<int>\t\t[ distance cutoff used to merge adjacent peaks. default: 10kb ]\n");
-   print("\t-k/--num-nearby-genes\t\tNumber nearby genes\t<int>\t\t[ number of up/downstream genes to the peak. default: 1 ]\n");
+   #print("\t-d/--merge-dist-size\t\tdistance size\t\t<int>\t\t[ distance cutoff used to merge adjacent peaks. default: 10kb ]\n");
+   print("\t--merge-pct-samples\t\tpercentage of samples\t<int>\t\t[ percentage of samples cutoff to merge similar peaks. default: 5 ]\n");
+   print("\t--stop-merge-num-peaks\t\tnumber of peaks\t\t<int>\t\t[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]\n");
+   print("\t-k/--num-nearby-genes\t\tnumber nearby genes\t<int>\t\t[ number of up/downstream genes to the peak. default: 1 ]\n");
    print("\t--t-amp\t\t\t\tamplification threshold\t<float/int>\t[ amplification cutoff. default: 2.8 ]\n");
    print("\t--t-del\t\t\t\tdeletion threshold\t<float/int>\t[ deletion cutoff. default: 0.5 ]\n");
    print("\t--stat-test\t\t\tstatistical test\t<string>\t[ statistical test used for comparison (wilcox.test or t.test). default: wilcox.test ]\n");

@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/Rscript
 
 # Find regions/peaks whose SVs altered expression of nearby genes
 # Written by Abdallah Eteleeb & Ha Dang
@@ -453,7 +453,7 @@ for (k in 1:length(pks.to.plot)) {
     myheights = c(cnh, ddh, svh1,svh2, chiph, roih, geneh)
     
     #### plot all
-    g.title = paste0('Peak locus: ',p.corr$Chr, ':',  p.corr$Start, '-',  p.corr$End)
+    g.title = paste0('Peak locus: ',p.corr$Chr, ':',  p.corr$Start, '-',  p.corr$End,'\n')
     mytitle=textGrob(g.title, gp=gpar(fontsize=20,fontface="bold"))
     
     pdf(paste0(out.dir,'/peaks-plots/', pk,'.pdf'), width=18, height=sum(myheights), title='', useDingbats=F, onefile=FALSE)

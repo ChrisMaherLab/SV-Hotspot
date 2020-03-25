@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/Rscript
 
 # Summarize results for all peaks 
 # Created by: Abdallah Eteleeb <eteleeb@gmial.com>
@@ -104,7 +104,6 @@ for (i in 1:nrow(all.peaks)) {
     d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"), ov.roi)
 
   } else {
-    print (pk)
     d <- data.frame(p.res, overlap.genes=paste(ov.genes, collapse = "|"), nearby.genes=paste(nearby.genes, collapse = "|"))
   }
 

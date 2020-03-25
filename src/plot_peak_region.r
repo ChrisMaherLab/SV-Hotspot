@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/Rscript
 
 # Find regions/peaks whose SVs altered expression of nearby genes
 # Written by Abdallah Eteleeb & Ha Dang
@@ -365,7 +365,6 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
      reg.cn = cn_data[cn_data$chrom == pk.corr$Chr & (cn_data$pos > left | cn_data$pos < right),]
      reg.cn = reg.cn[tolower(reg.cn$cn.call) %in% c("amp", "del"), ]
      
-<<<<<<< HEAD
      if (nrow(reg.cn) !=0) { 
        
        s = round(reg.width/500)
@@ -405,20 +404,6 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
         p0 <- NULL
       }    
     
-=======
-     p0 = ggplot(win.data, aes(x=pos,y=num.samples, fill=cn.call)) + geom_bar(stat="identity")
-     p0 = p0 + scale_fill_manual(name="", values=c("amp"="#b53f4d", "del"="#2c7fb8"), labels=c("amp"="Gain", "del"="Loss"), drop=FALSE,
-                                 guide = guide_legend(override.aes = list(size = 7)))
-     p0 = p0 + theme_bw() + xlab('') + ylab('Copy number\nalterations frequency') + ggtitle(title)
-     p0 = p0 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-                     plot.title=element_text(size=16, hjust=0.5, face="bold"), axis.ticks = element_blank(),
-                     axis.text.x=element_blank(), axis.text.y=element_text(size=14, color="black"),
-                     axis.title.x=element_blank(), axis.title.y=element_text(size=16, color="black"),
-                     legend.key.size = unit(1,"cm"), legend.text=element_text(size=14),
-                     panel.background=element_rect(color="black"))
-     p0 = p0 + scale_x_continuous(limits=c(left, right), expand=c(0.05,0.05))
-     p0 = p0 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
->>>>>>> 6c810995ce8f8da6a3f5ee2e2c35284073378c3f
   #}
 
   ################################## Plot DUP $ DEL Freq ####################################
@@ -826,7 +811,7 @@ for (k in 1:length(pks.to.plot)) {
     #mywidths = c(1.5, plot.ex[["w1"]], plot.ex[["w2"]])
     
     #### plot all 
-    g.title = paste0('Peak locus: ',p.corr$Chr, ':',  p.corr$Start, '-',  p.corr$End)
+    g.title = paste0('Peak locus: ',p.corr$Chr, ':',  p.corr$Start, '-',  p.corr$End,'\n')
     mytitle=textGrob(g.title, gp=gpar(fontsize=20,fontface="bold"))
     
     pdf(paste0(out.dir,'/peaks-plots/',g,'_',pk,'.pdf'), width=18, height=sum(myheights), title='', useDingbats=F, onefile=FALSE)

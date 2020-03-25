@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/Rscript
 
 # Created by: Abdallah Eteleeb <eteleeb@gmail.com>
 

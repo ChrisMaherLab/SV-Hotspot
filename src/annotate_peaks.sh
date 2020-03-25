@@ -11,10 +11,21 @@ region_of_interest=$2
 output_dir=$3
 num_nearby_genes=$4
 
+#peak_files=$(find $output_dir/peaks/ -type f -name "*.peak.group.bed")
+
+#if [[ ( -z $peak_files ) ]]
+#then
+#    echo "There were no peaks identified for this analysis!."
+#    exit
+#fi
+
 
 ################# Annotate grouped peaks by overlapping with genes flanked up/downstream by 2kb
 #combine all peak groups
 cat $output_dir/peaks/*.peak.group.bed | awk '{if($0 !~"pct.samples" && $1 !="") { print $0}}' > $output_dir/peaks/all_peaks.bed    
+
+################# check if there were any peaks identified 
+
 
 ################# add peak.name column 
 awk -v OFS="\t" '{print $0, "p"substr($1,4)"."$4 }' $output_dir/peaks/all_peaks.bed | awk -v OFS="\t" '{print $1,$2,$3,$8,$4,$5,$6,$7}' > $output_dir/peaks/all_peaks2.bed; mv $output_dir/peaks/all_peaks2.bed $output_dir/peaks/all_peaks.bed  
@@ -29,6 +40,10 @@ awk -v OFS="\t" '{print $0, "overlap"}' $output_dir/processed_data/genes_overlap
 ### get up/downstream genes
 # produce two peaks with different strand from a non-stranded peak
 cat $output_dir/peaks/all_peaks.bed | awk -v OFS="\t" '{print $1,$2,$3,$4,".","+",$5,$6,$7,$8;print $1,$2,$3,$4,".","-",$5,$6,$7,$8}' > $output_dir/processed_data/all_peaks_with_strands.bed
+
+# sort the input file 
+sort -k1,1 -k2,2n $output_dir/processed_data/all_peaks_with_strands.bed > $output_dir/processed_data/all_peaks_with_strands_sorted.bed
+mv $output_dir/processed_data/all_peaks_with_strands_sorted.bed $output_dir/processed_data/all_peaks_with_strands.bed
 
 #closestBed -D a -io -k $num_nearby_genes -a $output_dir/peaks/all_peaks.bed -b $output_dir/processed_data/genes.bed > $output_dir/processed_data/peaks_with_nearest_genes.tsv
 closestBed -D a -io -iu -s -k $num_nearby_genes -a $output_dir/processed_data/all_peaks_with_strands.bed -b $output_dir/processed_data/genes.bed | cut -f1-4,7- > $output_dir/processed_data/peaks_with_nearest_genes.tsv

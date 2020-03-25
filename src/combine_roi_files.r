@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/Rscript
 
 # Summarize results for all peaks 
 # Created by: Abdallah Eteleeb <eteleeb@gmial.com>

@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/Rscript
 
 # Find regions/peaks whose SVs altered expression of nearby genes
 # Written by Abdallah Eteleeb & Ha Dang
