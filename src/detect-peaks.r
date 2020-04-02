@@ -13,11 +13,11 @@ peakPick.win = as.numeric(args[3])
 peakPick.minsd = as.numeric(args[4])
 pct.samples.cutoff = as.numeric(args[5])
 out.dir = args[6]
-#distance = as.numeric(args[7])
-merg.pct.samp = as.numeric(args[7])
-stop.merge.num.peaks = as.numeric(args[8])
-genes.of.int <- args[9]
-chr.size.file = args[10]
+distance = as.numeric(args[7])
+merg.pct.samp = as.numeric(args[8])
+stop.merge.num.peaks = as.numeric(args[9])
+genes.of.int <- args[10]
+chr.size.file = args[11]
 
 ### read all break points
 bp = read.table(paste0(out.dir,'/processed_data/all_bp.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
@@ -37,12 +37,17 @@ if (file.exists(paste0(out.dir,'/processed_data/counts.rds')) ){
 
 ### extract chromosome names 
 chr = read.table(chr.size.file, header=T, stringsAsFactors=F, sep='\t')
-if (chrs[1] == "ALL"){
-    chrs = chr$chrom
+if (chrs == "ALL"){
+    chr.names.found = chr$chrom
+} else {
+    chr.names.found = unlist(strsplit(chrs,  ",")) 
+    cat('Chromosomes to analyze:\n')
+    print (chr.names.found)
 }
-chrs = intersect(chrs, unique(counts$chr))
-cat('Chromosomes to analyze:\n')
-print(chrs)
+
+#chrs = intersect(chrs, unique(counts$chr))
+#cat('Chromosomes to analyze:\n')
+#print(chrs)
 
 ### read genes of interest file if provided 
 if (genes.of.int !=0) {
@@ -138,49 +143,54 @@ mergePeaks <- function(x, merge.pct.samples, new.pks.cutoff){
       right.peaks <- peaks[peaks > top.peak]
       
       ### loop through peaks located at the left to the top peak
-      num.new.peak = 0
-      for (pk in rev(left.peaks)){
-        if ( abs((xx$pct.samples[pk]  - top.pct.samples)) > merge.pct.samples) {
-          num.new.peak = num.new.peak + 1
-          if (num.new.peak > new.pks.cutoff) {
-            group = group + 1
-            top.peak = pk
-            top.pct.samples <- xx[top.peak, 'pct.samples']
-            num.new.peak = 0
-          } else {
-            xx$group[pk] = as.numeric(paste0(cl,'.',group))
+      if (length(left.peaks)> 0) {
+        num.new.peak = 0
+        for (pk in rev(left.peaks)){
+          if ( abs((xx$pct.samples[pk]  - top.pct.samples)) > merge.pct.samples) {
+            num.new.peak = num.new.peak + 1
+            if (num.new.peak > new.pks.cutoff) {
+              group = group + 1
+              top.peak = pk
+              top.pct.samples <- xx[top.peak, 'pct.samples']
+              num.new.peak = 0
+            } else {
+              xx$group[pk] = as.numeric(paste0(cl,'.',group))
+            }
           }
+          xx$group[pk] =as.numeric(paste0(cl,'.',group))
         }
-        xx$group[pk] =as.numeric(paste0(cl,'.',group))
       }
+   
       
       ### loop through peaks located at the right of the top peak
-      top.peak = first.top.peak
-      top.pct.samples <- xx[top.peak, 'pct.samples']
-      last.group =  group
-      group = 1
-      num.new.peak = 0
-      for (k in 1:length(right.peaks)){
-        pk = right.peaks[k]
-        if ( abs((xx$pct.samples[pk]  - top.pct.samples)) > merge.pct.samples) {
-          num.new.peak = num.new.peak + 1
-          if (num.new.peak > new.pks.cutoff) {
-            last.group = last.group + 1
-            top.peak = pk
-            top.pct.samples <- xx[top.peak, 'pct.samples']
-            xx$group[pk] = paste0(cl, '.', last.group)
-            group = last.group
-            num.new.peak = 0
+      if (length(right.peaks) > 0 ) {
+        top.peak = first.top.peak
+        top.pct.samples <- xx[top.peak, 'pct.samples']
+        last.group =  group
+        group = 1
+        num.new.peak = 0
+        for (k in 1:length(right.peaks)){
+          pk = right.peaks[k]
+          if ( abs((xx$pct.samples[pk]  - top.pct.samples)) > merge.pct.samples) {
+            num.new.peak = num.new.peak + 1
+            if (num.new.peak > new.pks.cutoff) {
+              last.group = last.group + 1
+              top.peak = pk
+              top.pct.samples <- xx[top.peak, 'pct.samples']
+              xx$group[pk] = paste0(cl, '.', last.group)
+              group = last.group
+              num.new.peak = 0
+            } else {
+              xx$group[pk] =  paste0(cl,'.',group)
+            }
+            
           } else {
             xx$group[pk] =  paste0(cl,'.',group)
           }
           
-        } else {
-          xx$group[pk] =  paste0(cl,'.',group)
-        }
-        
-      } ## end of FOR LOOP
-      
+        } ## end of FOR LOOP
+      }
+     
       
       ## combine all 
       merged_peaks <- rbind(merged_peaks, xx)
@@ -193,7 +203,6 @@ mergePeaks <- function(x, merge.pct.samples, new.pks.cutoff){
   }   ### end clusters 
   
   return(merged_peaks)
-  
 }
 
 groupPeaks <- function(x, d){
@@ -264,7 +273,7 @@ out.dir <- paste0(out.dir,'/peaks')
 dir.create(out.dir, showWarnings = FALSE)
 dir.create(paste0(out.dir,'/ucsc_custom_track_files'), showWarnings = FALSE )
 
-for (chr in chrs){
+for (chr in chr.names.found){
     cat(chr, '\n')
     x = counts[counts$chr == chr & counts$svtype == svtype,]
     x = x[order(x$pos),]

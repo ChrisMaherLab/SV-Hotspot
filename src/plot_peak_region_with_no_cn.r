@@ -100,8 +100,8 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    width = abs(pk.corr$End - pk.corr$Start)/1000
 
    ### add left and right extensions if provided 
-   left <- left - left.ext - 100000     
-   right <- right + right.ext  +100000
+   left <- left - left.ext     
+   right <- right + right.ext
    D = right - left
    #scale binwidth accordingly based on region width
    binwidth = D/75
@@ -187,7 +187,7 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
                          chip_seq$pos >= left & 
                          chip_seq$pos <= right,]
 
-     p3 = ggplot (reg.chip,aes(x=pos, y=cov)) + geom_bar(stat="identity", width = D/300)
+     p3 = ggplot (reg.chip,aes(x=pos, y=cov)) + geom_bar(stat="identity")
      p3 = p3 + theme_bw() + xlab('') + ylab(chip.cov.lbl)
      p3 = p3 + geom_vline(xintercept=c(pk.corr$Start, pk.corr$End), color='black', linetype='dashed')
      p3 = p3 + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(), axis.ticks = element_blank(),
@@ -356,7 +356,8 @@ if (roi.file !=0) {
 
 ######################################### plot peaks #############################################
 #### create directory for plots 
-if(!dir.exists(paste0(out.dir, '/peaks-plots'))){ dir.create(paste0(out.dir, '/peaks-plots')) }
+#if(!dir.exists(paste0(out.dir, '/peaks-plots'))){ dir.create(paste0(out.dir, '/peaks-plots')) }
+dir.create(paste0(out.dir, '/peaks-plots'), showWarnings = FALSE)
 
 ### extract peaks
 pks.to.plot = unlist(strsplit(pks.to.plot,  ","))

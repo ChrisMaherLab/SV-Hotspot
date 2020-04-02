@@ -25,7 +25,7 @@ my $sv_file=0;
 my $genome='hg38';
 my $sliding_w_size = 100000;
 my $sliding_w_step = 1000; 
-my $output_dir = getcwd;
+my $output_dir = getcwd; 
 my $annot_file=0;
 my $peakPick_win=100;
 my $peakPick_minsd=5;
@@ -487,7 +487,7 @@ sub identify_peaks
    system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr");
    
    print "\nCall structural variant peaks (hotspots)\n";
-   system ("Rscript detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_pct_samples $stop_merge_num_peaks $genes_of_int $chromsize_file");
+   system ("Rscript detect-peaks.r $sv_type $chrom $peakPick_win $peakPick_minsd $pct_samples_t $output_dir $merge_dist $merge_pct_samples $stop_merge_num_peaks $genes_of_int $chromsize_file");
 
    ### remove intermediate files 
    unlink("$output_dir/processed_data/genome.segments.bed"); 
