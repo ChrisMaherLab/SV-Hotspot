@@ -32,9 +32,19 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
   assoc.genes <- as.character(unique(genes$Gene))
   
   ### function to extract the top peak 
-  selectTopPeak <- function (pks) {
+  selectTopPeak <- function (pks, by='pvalue') {
+    if (by == 'pvalue'){
+        gg = genes[genes$Peak.name %in% pks,]
+        gg = gg[order(gg$Min.pval),]
+        # if there are two peaks with same p-value (which is rare), only one is chosen
+        # TODO: also sort by pct. samples after p-value
+        return(gg$Peak.name[1])
+    }
+
+    # if not ranking by pvalue, rank by percent samples
     top.peak <- peaks[peaks$Peak.name %in% pks, c('Peak.name', 'Start', 'End', 'Percentage.SV.samples')]
     top.peak2 <- top.peak[top.peak$Percentage.SV.samples == max(top.peak$Percentage.SV.samples), 'Peak.name']
+
     if (length(top.peak2) > 1) {
       top.peak$len <- top.peak$End - top.peak$Start
       top.peak2 <- top.peak[top.peak$len == min(top.peak$len), 'Peak.name']
@@ -44,6 +54,7 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
     }
     return (top.peak2)
   }
+
   
   filtered.res <- NULL
   for (i in 1:length(assoc.genes)) {
@@ -102,8 +113,11 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
           d2 <- data.frame(Gene=g, Peak.name = indep.peaks[k])
           filtered.res <- rbind(filtered.res, d2)
         }
+        
       } ## end of independent peaks 
-    }
+      
+    }  ## end of ELSE 
+    
   }    ## end of all genes 
   
   ### filter and write results 
@@ -111,6 +125,152 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
   write.table(annot.pks.final, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
   genes.final <- merge(genes, filtered.res, sort =F)
   write.table(genes.final, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+}
+##########################################################################################################
+
+##########################################################################################################
+###################### Function to compute the wilcoxon test for individual SV types #####################
+wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, BND.pats) { 
+  
+  svtypes.pvals = NULL
+  
+  #### DUP - comp 1-1 (SV samples versus non-SVs samples)
+  if (length(DUP.pats)!=0 & length(nonSV.pats)!=0 & (length(DUP.pats)>=5 | length(nonSV.pats)>=5) ) {
+    DUP_vs_nonDUP <- s_test(geneExp[geneExp$dup.status=="DUP", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    ## compute logFC and mean expression
+    mean_exp_DUP_SV <- mean(geneExp[geneExp$dup.status=="DUP", 'gene.exp'])
+    mean_exp_DUP_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    SV_vs_nonSV_LogFC_DUP <- signif(log2((mean_exp_DUP_SV+0.00001)/(mean_exp_DUP_nonSV+0.00001)), digits = 4)
+    c11 <- data.frame(SV_vs_nonSV_LogFC_DUP, SV_vs_nonSV_DUP_pval=DUP_vs_nonDUP$p.value, mean_exp_DUP_SV)
+  } else {
+    c11 <- data.frame(SV_vs_nonSV_LogFC_DUP=NA, SV_vs_nonSV_DUP_pval=NA, mean_exp_DUP_SV=NA)
+  }
+  
+  ### DUP - copm 1-2 (using gene neutral TD samples only)
+  neut.DUP = geneExp[geneExp$gene.cn.status=="neut" & geneExp$dup.status=="DUP",'gene.exp']
+  neut.nonDUP = geneExp[geneExp$gene.cn.status=="neut" & geneExp$sample.status=="non-SVs", 'gene.exp']
+  if(length(neut.DUP)!=0 & length(neut.nonDUP)!=0 & (length(neut.DUP)>=5 | length(neut.nonDUP)>=5 )) {
+    g.neutDUP <- s_test(neut.DUP, neut.nonDUP)
+    ## compute logFC and mean expression
+    mean_exp_DUP_SV_neut <- mean(neut.DUP)
+    mean_exp_nonSV_neut <- mean(neut.nonDUP)
+    SV_vs_nonSV_LogFC_neut_DUP <- signif(log2((mean_exp_DUP_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c12 <- data.frame(SV_vs_nonSV_LogFC_neut_DUP, DUP_vs_nonSV_neut_pval=g.neutDUP$p.value, mean_exp_DUP_SV_neut)
+    
+  } else {
+    c12 <- data.frame(SV_vs_nonSV_LogFC_neut_DUP=NA, DUP_vs_nonSV_neut_pval=NA, mean_exp_DUP_SV_neut=NA)
+  }
+  
+  
+  #### DEL - comp 2-1 (SV samples versus non-SVs samples)
+  if (length(DEL.pats)!=0 & length(nonSV.pats)!=0 & (length(DEL.pats)>=5 | length(nonSV.pats)>=5) ) {
+    DEL_vs_nonDEL <- s_test(geneExp[geneExp$del.status=="DEL", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    ## compute logFC and mean expression
+    mean_exp_DEL_SV <- mean(geneExp[geneExp$del.status=="DEL", 'gene.exp'])
+    mean_exp_DEL_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    SV_vs_nonSV_LogFC_DEL <- signif(log2((mean_exp_DEL_SV+0.00001)/(mean_exp_DEL_nonSV+0.00001)), digits = 4)
+    c21 <- data.frame(SV_vs_nonSV_LogFC_DEL, DEL_vs_nonSV_pval=DEL_vs_nonDEL$p.value, mean_exp_DEL_SV)
+  } else {
+    c21 <- data.frame(SV_vs_nonSV_LogFC_DEL=NA, DEL_vs_nonSV_pval=NA, mean_exp_DEL_SV=NA)
+  }
+  
+  ### DEL - copm 2-2 (using gene neutral DEL samples only)
+  neut.DEL = geneExp[geneExp$gene.cn.status=="neut" & geneExp$del.status=="DEL",'gene.exp']
+  neut.nonDEL = geneExp[geneExp$gene.cn.status=="neut" & geneExp$sample.status=="non-SVs", 'gene.exp']
+  if(length(neut.DEL)!=0 & length(neut.nonDEL)!=0 & (length(neut.DEL)>=5 | length(neut.nonDEL)>=5 )) {
+    g.neutDEL <- s_test(neut.DEL, neut.nonDEL)
+    ## compute logFC and mean expression
+    mean_exp_DEL_SV_neut <- mean(neut.DEL)
+    mean_exp_nonSV_neut <- mean(neut.nonDEL)
+    SV_vs_nonSV_LogFC_neut_DEL <- signif(log2((mean_exp_DEL_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c22 <- data.frame(SV_vs_nonSV_LogFC_neut_DEL, DEL_vs_nonSV_neut_pval=g.neutDEL$p.value, mean_exp_DEL_SV_neut)
+  } else {
+    c22 <- data.frame(SV_vs_nonSV_LogFC_neut_DEL=NA, DEL_vs_nonSV_neut_pval=NA, mean_exp_DEL_SV_neut=NA)
+  }
+  
+  
+  #### INS - comp 3-1 (SV samples versus non-SVs samples)
+  if (length(INS.pats)!=0 & length(nonSV.pats)!=0 & (length(INS.pats)>=5 | length(nonSV.pats)>=5) ) {
+    INS_vs_nonINS <- s_test(geneExp[geneExp$ins.status=="INS", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    ## compute logFC and mean expression
+    mean_exp_INS_SV <- mean(geneExp[geneExp$ins.status=="INS", 'gene.exp'])
+    mean_exp_INS_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    SV_vs_nonSV_LogFC_INS <- signif(log2((mean_exp_INS_SV+0.00001)/(mean_exp_INS_nonSV+0.00001)), digits = 4)
+    c31 <- data.frame(SV_vs_nonSV_LogFC_INS, INS_vs_nonSV_pval=INS_vs_nonINS$p.value, mean_exp_INS_SV)
+  } else {
+    c31 <- data.frame(SV_vs_nonSV_LogFC_INS=NA, INS_vs_nonSV_pval=NA, mean_exp_INS_SV=NA)
+  }
+  
+  ### INS - copm 3-2 (using gene neutral INS samples only)
+  neut.INS = geneExp[geneExp$gene.cn.status=="neut" & geneExp$ins.status=="INS",'gene.exp']
+  neut.nonINS = geneExp[geneExp$gene.cn.status=="neut" & geneExp$sample.status=="non-SVs", 'gene.exp']
+  if(length(neut.INS)!=0 & length(neut.nonINS)!=0 & (length(neut.INS)>=5 | length(neut.nonINS)>=5 )) {
+    g.neutINS <- s_test(neut.INS, neut.nonINS)
+    ## compute logFC and mean expression
+    mean_exp_INS_SV_neut <- mean(neut.INS)
+    mean_exp_nonSV_neut <- mean(neut.nonINS)
+    SV_vs_nonSV_LogFC_neut_INS <- signif(log2((mean_exp_INS_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c32 <- data.frame(SV_vs_nonSV_LogFC_neut_INS, INS_vs_nonSV_neut_pval=g.neutINS$p.value, mean_exp_INS_SV_neut)
+  } else {
+    c32 <- data.frame(SV_vs_nonSV_LogFC_neut_INS=NA, INS_vs_nonSV_neut_pval=NA, mean_exp_INS_SV_neut=NA)
+  }
+  
+  
+  #### INV - comp 4-1 (SV samples versus non-SVs samples)
+  if (length(INV.pats)!=0 & length(nonSV.pats)!=0 & (length(INV.pats)>=5 | length(nonSV.pats)>=5) ) {
+    INV_vs_nonINV <- s_test(geneExp[geneExp$inv.status=="INV", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    ## compute logFC and mean expression
+    mean_exp_INV_SV <- mean(geneExp[geneExp$inv.status=="INV", 'gene.exp'])
+    mean_exp_INV_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    SV_vs_nonSV_LogFC_INV <- signif(log2((mean_exp_INV_SV+0.00001)/(mean_exp_INV_nonSV+0.00001)), digits = 4)
+    c41 <- data.frame(SV_vs_nonSV_LogFC_INV, INV_vs_nonSV_pval=INV_vs_nonINV$p.value, mean_exp_INV_SV)
+  } else {
+    c41 <- data.frame(SV_vs_nonSV_LogFC_INV=NA, INV_vs_nonSV_pval=NA, mean_exp_INV_SV=NA)
+  }
+  
+  ### INV - copm 4-2 (using gene neutral INV samples only)
+  neut.INV = geneExp[geneExp$gene.cn.status=="neut" & geneExp$inv.status=="INV",'gene.exp']
+  neut.nonINV = geneExp[geneExp$gene.cn.status=="neut" & geneExp$sample.status=="non-SVs", 'gene.exp']
+  if(length(neut.INV)!=0 & length(neut.nonINV)!=0 & (length(neut.INV)>=5 | length(neut.nonINV)>=5 )) {
+    g.neutINV <- s_test(neut.INV, neut.nonINV)
+    ## compute logFC and mean expression
+    mean_exp_INV_SV_neut <- mean(neut.INV)
+    mean_exp_nonSV_neut <- mean(neut.nonINV)
+    SV_vs_nonSV_LogFC_neut_INV <- signif(log2((mean_exp_INV_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c42 <- data.frame(SV_vs_nonSV_LogFC_neut_INV, INV_vs_nonSV_neut_pval=g.neutINV$p.value, mean_exp_INV_SV_neut)
+  } else {
+    c42 <- data.frame(SV_vs_nonSV_LogFC_neut_INV=NA, INV_vs_nonSV_neut_pval=NA, mean_exp_INV_SV_neut=NA)
+  }
+  
+  #### BND - comp 5-1 (SV samples versus non-SVs samples)
+  if (length(BND.pats)!=0 & length(nonSV.pats)!=0 & (length(BND.pats)>=5 | length(nonSV.pats)>=5) ) {
+    BND_vs_nonBND <- s_test(geneExp[geneExp$bnd.status=="BND", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    ## compute logFC and mean expression
+    mean_exp_BND_SV <- mean(geneExp[geneExp$bnd.status=="BND", 'gene.exp'])
+    mean_exp_BND_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
+    SV_vs_nonSV_LogFC_BND <- signif(log2((mean_exp_BND_SV+0.00001)/(mean_exp_BND_nonSV+0.00001)), digits = 4)
+    c51 <- data.frame(SV_vs_nonSV_LogFC_BND, BND_vs_nonSV_pval=BND_vs_nonBND$p.value, mean_exp_BND_SV)
+  } else {
+    c51 <- data.frame(SV_vs_nonSV_LogFC_BND=NA, BND_vs_nonSV_pval=NA, mean_exp_BND_SV=NA)
+  }
+  
+  ### BND - copm 5-2 (using gene neutral BND samples only)
+  neut.BND = geneExp[geneExp$gene.cn.status=="neut" & geneExp$bnd.status=="BND",'gene.exp']
+  neut.nonBND = geneExp[geneExp$gene.cn.status=="neut" & geneExp$sample.status=="non-SVs", 'gene.exp']
+  if(length(neut.BND)!=0 & length(neut.nonBND)!=0 & (length(neut.BND)>=5 | length(neut.nonBND)>=5 )) {
+    g.neutBND <- s_test(neut.BND, neut.nonBND)
+    ## compute logFC and mean expression
+    mean_exp_BND_SV_neut <- mean(neut.BND)
+    mean_exp_nonSV_neut <- mean(neut.nonBND)
+    SV_vs_nonSV_LogFC_neut_BND <- signif(log2((mean_exp_BND_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c52 <- data.frame(SV_vs_nonSV_LogFC_neut_BND, BND_vs_nonSV_neut_pval=g.neutBND$p.value, mean_exp_BND_SV_neut)
+  } else {
+    c52 <- data.frame(SV_vs_nonSV_LogFC_neut_BND=NA, BND_vs_nonSV_neut_pval=NA, mean_exp_BND_SV_neut=NA)
+  }
+  
+  ## combine all 
+  svtypes.test.res <- cbind(c11,c12, c21,c22, c31,c32, c41,c42, c51,c52 )
+  return (svtypes.test.res)
 }
 ##########################################################################################################
 
@@ -196,18 +356,20 @@ for (i in 1:nrow(res)){
   #### include samples with no SVs as neutral samples 
   #pp.cn = rbind(pp.cn, data.frame(p.name=pk, sample=samples.with.no.SVs2, cn.value=0, cn.call="neut"))
   
+  #### keep samples with expression data only 
+  pp = pp[pp$sample %in% exp.data.cols, ]
+  
   ### extract sv/other samples 
   sv.pats <- unique(pp$sample)
-  #sv.pats <- unique(strsplit(res[res$Peak.name==pk, 'sample'], ","))
   nonSV.pats <- unique(samples.with.sv[!samples.with.sv %in% sv.pats])
-  #nonSV.pats <- c(unique(samples.with.sv[!samples.with.sv %in% unique(pp$sample)]), samples.with.no.SVs) 
-  td.pats <- unique(pp[pp$sv.type=="DUP", 'sample'])
   
-  #### keep samples with expression data only 
-  sv.pats = sv.pats[sv.pats %in% exp.data.cols]
-  nonSV.pats = nonSV.pats[nonSV.pats %in% exp.data.cols]
-  td.pats  = td.pats[td.pats %in% exp.data.cols]
-
+  ### extract sv types  
+  DUP.pats <- unique(pp[pp$sv.type=="DUP", 'sample'])
+  DEL.pats <- unique(pp[pp$sv.type=="DEL", 'sample'])
+  INS.pats <- unique(pp[pp$sv.type=="INS", 'sample'])    
+  INV.pats <- unique(pp[pp$sv.type=="INV", 'sample'])    
+  BND.pats <- unique(pp[pp$sv.type=="BND", 'sample']) 
+  
   #p.genes.res <- NULL
   for (j in 1:length(genes.in.peak)) {
     g = genes.in.peak[j]
@@ -216,13 +378,7 @@ for (i in 1:nrow(res)){
     g.amp.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="amp",'sample'])
     g.del.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="del",'sample'])
  
-#   ### extract peak copy number samples
-#   pk.neut.samples <- unique(pp.cn[pp.cn$cn.call=="neut",'sample'])  
-#   pk.amp.samples <-  unique(pp.cn[pp.cn$cn.call=="amp",'sample'])   
-#   pk.del.samples <-  unique(pp.cn[pp.cn$cn.call=="del",'sample'])   
-
     ### extract expression 
-    #g.exp <- as.data.frame(t(exp[exp[,feature.col]==g, shared.samples ]))
     g.exp <- as.data.frame(t(exp[exp[,1]==g, exp.data.cols]))
     g.exp$sample <- rownames(g.exp)
     rownames(g.exp) <- NULL
@@ -239,25 +395,33 @@ for (i in 1:nrow(res)){
     g.exp[g.exp$sample %in% g.amp.samples, "gene.cn.status"] <- "amp"
     g.exp[g.exp$sample %in% g.del.samples, "gene.cn.status"] <- "del"
 
-    #### add peak copy number status 
-#     g.exp$pk.cn.status <- "unknown"
-#     g.exp[g.exp$sample %in% pk.neut.samples, "pk.cn.status"] <- "neut"
-#     g.exp[g.exp$sample %in% pk.amp.samples, "pk.cn.status"] <- "amp"
-#     g.exp[g.exp$sample %in% pk.del.samples, "pk.cn.status"] <- "del"
-
-    #### add tandem duplication status 
-    g.exp$td.status <- 'non-TD'
-    g.exp[g.exp$sample %in% td.pats, 'td.status'] <- 'TD'
-         
+    #### add SV types status 
+    g.exp$dup.status <- 'nonDUP'
+    g.exp[g.exp$sample %in% DUP.pats, 'dup.status'] <- 'DUP'
+    
+    g.exp$del.status <- 'nonDEL'
+    g.exp[g.exp$sample %in% DEL.pats, 'del.status'] <- 'DEL'
+    
+    g.exp$ins.status <- 'nonINS'
+    g.exp[g.exp$sample %in% INS.pats, 'ins.status'] <- 'INS'
+    
+    g.exp$inv.status <- 'nonINV'
+    g.exp[g.exp$sample %in% INV.pats, 'inv.status'] <- 'INV'
+    
+    g.exp$bnd.status <- 'nonBND'
+    g.exp[g.exp$sample %in% BND.pats, 'bnd.status'] <- 'BND'
+    
     ################################ Perform wilcoxon test ##################################################
-    pvals = NULL
     ### comp 1 (SV samples versus non-SVs samples)
     if (length(sv.pats)!=0 & length(nonSV.pats)!=0 & (length(sv.pats)>=5 | length(nonSV.pats)>=5) ) {
     	  SVs_vs_non.SVs <- s_test(g.exp[g.exp$sample.status=="SVs", 'gene.exp'], g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
-        #pvals <- c(pvals, SVs_vs_non.SVs$p.value)
-        pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-all', pval=SVs_vs_non.SVs$p.value))
+        ## computer logFC and mean expresison
+        mean_exp_SV <- mean(g.exp[g.exp$sample.status=="SVs", 'gene.exp'])
+        mean_exp_nonSV <- mean(g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
+        SV_vs_nonSV_LogFC = signif(log2((mean_exp_SV+0.00001)/(mean_exp_nonSV+0.00001)), digits = 4)
+        c1 <- data.frame(SV_vs_nonSV_LogFC, SVs_vs_nonSVs_pval=SVs_vs_non.SVs$p.value, mean_exp_SV,mean_exp_nonSV)
     } else {
-	      pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-all', pval=NA))    
+	      c1 <- data.frame(SV_vs_nonSV_LogFC=NA, SVs_vs_nonSVs_pval=NA, mean_exp_SV=NA, mean_exp_nonSV=NA)
     } 
 
     ### copm 2 (using gene neutral samples only)
@@ -265,96 +429,72 @@ for (i in 1:nrow(res)){
     neut.nonSVs = g.exp[g.exp$gene.cn.status=="neut" & g.exp$sample.status=="non-SVs", 'gene.exp']
     if(length(neut.SVs)!=0 & length(neut.nonSVs)!=0 & (length(neut.SVs)>=5 | length(neut.nonSVs)>=5)) {
     	  g.neut.comp <- s_test(neut.SVs, neut.nonSVs)
-        #pvals <- c(pvals, g.neut.comp$p.value)
-    	  pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-neut', pval=g.neut.comp$p.value))
+    	  ## computer logFC and mean expresison
+    	  mean_exp_neut_SV <- mean(neut.SVs)
+    	  mean_exp_neut_nonSV <- mean(neut.nonSVs)
+    	  SV_vs_nonSV_LogFC_neut = signif(log2((mean_exp_neut_SV+0.00001)/(mean_exp_neut_nonSV+0.00001)), digits = 4)
+    	  c2 <- data.frame(SV_vs_nonSV_LogFC_neut,SV_vs_nonSV_neut_pval=g.neut.comp$p.value, mean_exp_neut_SV, mean_exp_neut_nonSV)
+    	 
     } else {
-          pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-neut', pval=NA))
+        c2 <-data.frame(SV_vs_nonSV_LogFC_neut=NA, SVs_vs_nonSVs_neut_pval=NA, mean_exp_neut_SV=NA, mean_exp_neut_nonSV=NA)
     }
+    
     ### copm 3 (using gene amplified samples only)
     amp.SVs = g.exp[g.exp$gene.cn.status=="amp" & g.exp$sample.status=="SVs",'gene.exp']
     amp.nonSVs = g.exp[g.exp$gene.cn.status=="amp" & g.exp$sample.status=="non-SVs", 'gene.exp']
     if(length(amp.SVs)!=0 & length(amp.nonSVs)!=0 & (length(amp.SVs)>=5 | length(amp.nonSVs)>=5 )) {
     	  g.amp.comp <- s_test(amp.SVs, amp.nonSVs)
-        #pvals <- c(pvals, g.amp.comp$p.value)
-    	  pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-amp', pval=g.amp.comp$p.value))
+    	  ## computer logFC and mean expresison
+    	  mean_exp_amp_SV <- mean(amp.SVs)
+    	  mean_exp_amp_nonSV <- mean(amp.nonSVs)
+    	  SV_vs_nonSV_LogFC_amp = signif(log2((mean_exp_amp_SV+0.00001)/(mean_exp_amp_nonSV+0.00001)), digits = 4)
+    	  c3 <- data.frame(SV_vs_nonSV_LogFC_amp, SV_vs_nonSV_amp_pval=g.amp.comp$p.value, mean_exp_amp_SV,mean_exp_amp_nonSV)
     } else {
-          pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-amp', pval=NA))
+        c3 <- data.frame(SV_vs_nonSV_LogFC_amp=NA, SV_vs_nonSV_amp_pval=NA, mean_exp_amp_SV=NA, mean_exp_amp_nonSV=NA)
     }
+    
     ### copm 4 (using gene deleted samples only)
     del.SVs = g.exp[g.exp$gene.cn.status=="del" & g.exp$sample.status=="SVs",'gene.exp']
     del.nonSVs = g.exp[g.exp$gene.cn.status=="del" & g.exp$sample.status=="non-SVs", 'gene.exp']
     if(length(del.SVs) !=0 & length(del.nonSVs) !=0 & (length(del.SVs)>=5 | length(del.nonSVs)>=5 )) {
          g.del.comp <- s_test(del.SVs, del.nonSVs)
-         #pvals <- c(pvals, g.del.comp$p.value)
-         pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-del', pval=g.del.comp$p.value))
+         ## computer logFC and mean expresison
+         mean_exp_del_SV <- mean(del.SVs)
+         mean_exp_del_nonSV <- mean(del.nonSVs)
+         SV_vs_nonSV_LogFC_del = signif(log2((mean_exp_del_SV+0.00001)/(mean_exp_del_nonSV+0.00001)), digits = 4)
+         c4 <- data.frame(SV_vs_nonSV_LogFC_del, SV_vs_nonSV_del_pval=g.del.comp$p.value, mean_exp_del_SV, mean_exp_del_nonSV)
     } else {
-      	 pvals <- rbind(pvals, data.frame(comp='SVs-vs-nonSVs-del', pval=NA)) 
+      	 c4 <- data.frame(SV_vs_nonSV_LogFC_del=NA,SV_vs_nonSV_del_pval=NA, mean_exp_del_SV=NA, mean_exp_del_nonSV=NA) 
     }
     ###########################################################################################################
     
-    # ################################ Perform wilcoxon test for TD samples only ###############################
-    # ### comp 1 (SV samples versus non-SVs samples)
-    # if (length(td.pats)!=0 & length(nonSV.pats)!=0 & (length(td.pats)>=5 | length(nonSV.pats)>=5) ) {
-    #     TD_vs_nonTD <- s_test(g.exp[g.exp$td.status=="TD", 'gene.exp'], g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
-    #     #pvals <- c(pvals, TD_vs_nonTD$p.value)
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-all', pval=TD_vs_nonTD$p.value))
-    # } else {
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-all', pval=NA))
-    # }
-    # ### copm 2 (using gene neutral TD samples only)
-    # neut.TDs = g.exp[g.exp$gene.cn.status=="neut" & g.exp$td.status=="TD",'gene.exp']
-    # neut.nonTDs = g.exp[g.exp$gene.cn.status=="neut" & g.exp$sample.status=="non-SVs", 'gene.exp']
-    # if(length(neut.TDs)!=0 & length(neut.nonTDs)!=0 & (length(neut.TDs)>=5 | length(neut.nonTDs)>=5 )) {
-    #     g.neutTD.comp <- s_test(neut.TDs, neut.nonTDs)
-    #     #pvals <- c(pvals, g.neutTD.comp$p.value)
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-neut', pval=g.neutTD.comp$p.value))
-    # } else {
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-neut', pval=NA))
-    # }
-    # ### copm 3 (using gene amplified TD samples)
-    # amp.TDs = g.exp[g.exp$gene.cn.status=="amp" & g.exp$td.status=="TD",'gene.exp']
-    # amp.nonTDs = g.exp[g.exp$gene.cn.status=="amp" & g.exp$sample.status=="non-SVs", 'gene.exp']
-    # if(length(amp.TDs)!=0 & length(amp.nonTDs)!=0 & (length(amp.TDs)>=5 | length(amp.nonTDs)>=5 )) {
-    #     g.ampTD.comp <- s_test(amp.TDs, amp.nonTDs)
-    #     #pvals <- c(pvals, g.ampTD.comp$p.value)
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-amp', pval=g.ampTD.comp$p.value))
-    # } else {
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-amp', pval=NA))
-    # }
-    # ### copm 4 (using gene deleted TD samples only)
-    # del.TDs = g.exp[g.exp$gene.cn.status=="del" & g.exp$td.status=="TD",'gene.exp']
-    # del.nonTDs = g.exp[g.exp$gene.cn.status=="del" & g.exp$sdelle.status=="non-SVs", 'gene.exp']
-    # if(length(del.TDs)!=0 & length(del.nonTDs)!=0 & (length(del.TDs)>=5 | length(del.nonTDs)>=5 )) {
-    #     g.delTD.comp <- s_test(del.TDs, del.nonTDs)
-    #     #pvals <- c(pvals, g.delTD.comp$p.value)
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-del', pval=g.delTD.comp$p.value))
-    # } else {
-    #     pvals <- rbind(pvals, data.frame(comp='TDs-vs-nonTDs-del', pval=NA))
-    # }
-    ###########################################################################################################
-
-    ### extract the smallest p-value 
-    pvals$pval = signif(pvals$pval, digits=3)
-    g.pval <- signif(min(pvals[!is.na(pvals$pval), 'pval']), digits=4)
+    ################################# Perform wilcoxon test for individual SV types ###############################
+    svtype_stat_res <- suppressWarnings (wilcox_test_SVtypes(g.exp, DUP.pats, DEL.pats, INS.pats,INV.pats, BND.pats))
+    ## combine all 
+    stat_test_res <- cbind(c1,c2,c3,c4, svtype_stat_res)
+    
+    ### extract the smallest p-value
+    pvalues.cols <- colnames(stat_test_res)[grep("pval", colnames(stat_test_res))]
+    g.pval <- min(stat_test_res[, pvalues.cols], na.rm = T)
     if (is.na(g.pval) ) { g.pval = 1 } 
  
     ### copmute mean expression of sv samples and other samples 
-    SVs_mean_exp <- mean(g.exp[g.exp$sample.status=="SVs", 'gene.exp'])
-    nonSVs_mean_exp <- mean(g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
-    log.fc = signif(log2((SVs_mean_exp+0.00001)/(nonSVs_mean_exp+0.00001)), digits = 4)
-    status <- 'nc'
-    if (log.fc > 0) { status <- 'up'}  
-    if (log.fc < 0) { status <- 'dn'}  
+    # SVs_mean_exp <- mean(g.exp[g.exp$sample.status=="SVs", 'gene.exp'])
+    # nonSVs_mean_exp <- mean(g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
+    # log.fc = signif(log2((SVs_mean_exp+0.00001)/(nonSVs_mean_exp+0.00001)), digits = 4)
+    # status <- 'nc'
+    # if (log.fc > 0) { status <- 'up'}  
+    # if (log.fc < 0) { status <- 'dn'}  
     
     #### combine results
-    pvals.res = as.data.frame(t(pvals))
-    rownames(pvals.res) = NULL
-    cols = as.character(pvals$comp)
-    colnames(pvals.res) = cols 
-    pvals.res = pvals.res[-1,]
+    #pvals.res = as.data.frame(t(pvals))
+    #rownames(pvals.res) = NULL
+    #cols = as.character(pvals$comp)
+    #colnames(pvals.res) = cols 
+    #pvals.res = pvals.res[-1,]
 
-    d <- data.frame(gene=g, Peak.name=pk, Peak.locus = pk.locus, Number.SV.samples = pk.num.samples, Percentage.SV.samples = pk.perc.samples,  
-                    logFC=log.fc, min.pval=g.pval, pvals.res, SVs.vs.nonSVs.status=status, SVs_mean_exp, nonSVs_mean_exp)
+    d <- data.frame(Gene=g, Peak.name=pk, Peak.locus = pk.locus, Number.SV.samples = pk.num.samples, 
+                    Percentage.SV.samples = pk.perc.samples, Min.pval=g.pval, stat_test_res)
     all.genes.res <- rbind(all.genes.res, d)  ### for statistical information about genes 
     
   }  ### end of genes in the current peak 
@@ -367,26 +507,19 @@ for (i in 1:nrow(res)){
 write.table(all.genes.res, file=paste0(out.dir, '/processed_data/de_results_for_all_genes.tsv'), sep="\t", quote=F, row.names=F)
 
 #### extract significant genes using min p-value threshold
-sig.genes = all.genes.res[all.genes.res$min.pval < pval, ]
-sig.genes <- sig.genes[order(sig.genes$min.pval), ]
+sig.genes = all.genes.res[all.genes.res$Min.pval < pval, ]
+sig.genes <- sig.genes[order(sig.genes$Min.pval), ]
 
 ### merge and write resulls
 if (nrow(sig.genes) > 0 ) {
-   final.res <- aggregate(gene ~ Peak.name, data=sig.genes, FUN=paste, collapse='|')
+   final.res <- aggregate(Gene ~ Peak.name, data=sig.genes, FUN=paste, collapse='|')
    colnames(final.res) <- c('Peak.name', 'Associated.genes')
    final.res <- merge(res, final.res, sort =F)
    final.res <- final.res[order(final.res$Percentage.SV.samples, decreasing = T), ]
-   #write.table(final.res, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
-
-   #### write resutls for genes assoicated with SV peaks 
-   pval.cols = colnames(sig.genes)[grepl(".vs.", colnames(sig.genes)) & colnames(sig.genes) !="SVs.vs.nonSVs.status"]
-   colnames(sig.genes) = c("Gene", "Peak.name", "Peak.locus", "Number.SV.samples","Percentage.SV.samples", 
-                           "LogFC","Min.pval",paste0(pval.cols,".pval"),"SVs.vs.nonSVs.status", "SVs.mean.exp","nonSVs.mean.exp")
    
    #### filter results by selecting the top peaks based on the significance of overlap 
    pickTopPeaks(final.res, sig.genes, length(samples.with.sv))
-   #write.table(sig.genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
-   
+
 } else {
    cat(paste("No associated genes were detected using p-value cutoff of", pval, "\n"))   
 }
@@ -445,6 +578,7 @@ if (genome %in% built.in.genomes) {
   rcircos.params <- RCircos.Get.Plot.Parameters()
   rcircos.params$text.size = 0.5
   rcircos.params$track.height <- 0.25
+  rcircos.params$track.background <- 'white'
   RCircos.Reset.Plot.Parameters(rcircos.params)
   #RCircos.List.Plot.Parameters()
   
@@ -460,9 +594,9 @@ if (genome %in% built.in.genomes) {
   ## extract top peaks for each chromosome 
   mydata.dt = as.data.table(mydata)
   top.pks = unique(as.character(mydata.dt[mydata.dt[, .I[pct.samples==max(pct.samples)], by=p.chr]$V1]$Peak.name))
-  mydata$PlotColor <- "red"
+  mydata$PlotColor <- "gray60"
   mydata[mydata$Peak.name %in% top.pks, "PlotColor"] = "blue"
-  RCircos.Histogram.Plot(mydata, data.col=5, track.num=1, "in", min.value=0, max.value=100 )
+  RCircos.Histogram.Plot(mydata, data.col=5, track.num=1, "in", min.value=0, max.value=ceiling(max(mydata$pct.samples))+2)
   ### plot legend 
   legend (-0.45,-1.4, legend=c('All peaks', 'Top peaks'), fill=c("red","blue"),  horiz = TRUE, bty="n",
           border="white", cex=0.7, x.intersp=0.5)
