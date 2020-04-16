@@ -1,6 +1,6 @@
 Gene Symbol	Name	Entrez GeneId	Genome Location	Tier	Hallmark	Chr Band	Somatic	Germline	Tumour Types(Somatic)	Tumour Types(Germline)	Cancer Syndrome	Tissue Type	Molecular Genetics	Role in Cancer	Mutation Types	Translocation Partner	Other Germline Mut	Other Syndrome	Synonyms
 A1CF	APOBEC1 complementation factor	29974	10:50799421-50885675	2		11.23	yes		melanoma			E		oncogene	Mis				"29974,A1CF,ACF,ACF64,ACF65,APOBEC1CF,ASP,ENSG00000148584.14"
-ABI1	abl-interactor 1	10006	10:26746593-26860935	1	Yes	12.1	yes		AML			L	Dom	"TSG, fusion"	T	KMT2A			"10006,ABI-1,ABI1,E3B1,ENSG00000136754.17,Q8IZP0,SSH3BP1"
+ABI1	abl-interactor_1	10006	10:26746593-26860935	1	Yes	12.1	yes		AML			L	Dom	"TSG, fusion"	T	KMT2A			"10006,ABI-1,ABI1,E3B1,ENSG00000136754.17,Q8IZP0,SSH3BP1"
 ABL1	v-abl Abelson murine leukemia viral oncogene homolog 1	25	9:130713946-130885683	1	Yes	34.12	yes		"CML, ALL, T-ALL"			L	Dom	"oncogene, fusion"	"T, Mis"	"BCR, ETV6, NUP214"			"25,ABL,ABL1,ENSG00000097007.17,JTK7,P00519,c-ABL,p150"
 ABL2	"c-abl oncogene 2, non-receptor tyrosine kinase"	27	1:179099327-179229601	1		25.2	yes		AML			L	Dom	"oncogene, fusion"	T	ETV6			"27,ABL2,ABLL,ARG,ENSG00000143322.19,P42684"
 ACKR3	atypical chemokine receptor 3	57007	2:236569641-236582358	1	Yes	37.3	yes		lipoma			M	Dom	"oncogene, fusion"	T	HMGA2			"57007,ACKR3,CMKOR1,CXCR7,ENSG00000144476.5,GPR159,P25106,RDC1"
