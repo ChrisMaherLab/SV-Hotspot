@@ -131,7 +131,8 @@ Output will be written to SV-HotSpot result directory which includes the followi
     2) genes.associated.with.SVs.filtered.tsv
 
 
-### Plot Peaks (Hotspot sites)
+### Plot whole genome circos and individual chromsome plots of sample counts of SVs
+
 
 ## SV-HotSpot Conda Installation
 This package is available as conda package.  To install it via `conda`, try the following:
