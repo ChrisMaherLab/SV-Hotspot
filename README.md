@@ -107,7 +107,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot plot-peak -p pX.174 \
 ```
 * ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
 
-### Filter results 
+### Filtering results 
 SV-Hotspot provides a filtering R coomand to perform post-filtering of SV-HotSpot results based on multiple criteria  including gene association significance, log fold-change, mean expression, number of associated.genes, peak width, and minimum percentage of samples. To performe any filtering, run the ```filter.r``` command as follows: 
  ```
  Usage:  Rscript filter.r
