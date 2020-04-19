@@ -54,6 +54,8 @@ OPTIONS:
 	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
 	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
 	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
+	--merge-pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to merge similar peaks. default: 5 ]
+	--stop-merge-num-peaks		number of peaks		<int>		[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]
 	-k/--num-nearby-genes		Number nearby genes	<int>		[ number of up/downstream genes to the peak. default: 1 ]
 	--t-amp				amplification threshold	<float/int>	[ amplification cutoff. default: 2.8 ]
 	--t-del				deletion threshold	<float/int>	[ deletion cutoff. default: 0.5 ]
@@ -63,6 +65,8 @@ OPTIONS:
 	--plot-top-peaks		plot top # peaks	<int>		[ number of top peaks to plot. default: top 10 ]
 	--left-ext			size of left extension	<int>		[ size of the left extension of the peak. default: 0bp ]
 	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
+	--genes-to-plot			genes names		<string>	[ names of genes to show on the plot. default: none ]
+	--plot-layout			plot orientation	<string>	[ orientation of the peak plot (wide or narrow). default: narrow ]
  ```
  
 ### Test SV-HotSpot
