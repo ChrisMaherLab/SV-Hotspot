@@ -111,17 +111,17 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot plot-peak -p pX.174 \
 SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot results based on multiple criteria including gene association significance, log fold-change, mean expression, number of associated.genes, peak width, and minimum percentage of samples. To performed any filtering, run the ```filter.r``` command as follows:
  ```
  Usage:  Rscript filter.r
-    <SV-HotSpot_result_dir>
-    <max.p-value-to-infer-expression-association>
-    <min.logfc>
-    <min.group.expr>
-    <max.number.of.associated.gene.per.peak, peak w/ more genes associated are ignored>
-    <max.peak.length, peak wider than this w/o assoc. w/ known genes are ignored>
-    <min.peak.percent.samples, 0-100, peaks with percent of samples < this are ignored>
-    <tsv_file_of_cosmic_census_genes>
-    <csv_other_known_genes_to_keep>
+             <SV-HotSpot_result_dir>
+             <max.p-value-to-infer-expression-association>
+             <min.logfc>
+             <min.group.expr>
+             <max.number.of.associated.gene.per.peak, peak w/ more genes associated are ignored>
+             <max.peak.length, peak wider than this w/o assoc. w/ known genes are ignored>
+             <min.peak.percent.samples, 0-100, peaks with percent of samples < this are ignored>
+             <tsv_file_of_cosmic_census_genes>
+             <csv_other_known_genes_to_keep>
 
-    Example: 
+         Example: 
             Rscript filter.r /path/to/sv-hotspot-output 0.05 0.22 10 9 500000 15 \
                              data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
 ```
@@ -134,20 +134,20 @@ Output will be written to SV-HotSpot result directory which includes the followi
 ### Plot whole genome circos and individual chromsome plots of sample counts of SVs
 SVHotSpot also provides an additional visualization of the distribution of identified peaks on each chromosome. The script ```plot_whole_genome.r``` can be used to generate a circos plot to shows the percentage of samples harboring any type of SVs (outer track) or individual types of SVs (inner tracks) targeting genomic windows. In addition, the script generate for each chromosome the the distribution of identified peaks. This script can be run as follows. 
 ```
-   Rscript plot_whole_genome.r
-    <SV-Hotspot_result_dir>
-    <annotation_dir>
-    <genome_assembly_version, eg. hg38>
-    <plot_circos, eg. TRUE, FALSE>
-    <chromosomes_to_plot, eg. "ALL", "chr1,chrX"> 
-    <genes_to_show, eg. "ERG,PTEN,ETV1">
-    <color_genes_by_association_direction_with_SV, eg. "TRUE", "FALSE">
-    <output_figure_format, eg. "png", "pdf">
-    <output_figure_dir>
+   Usage: Rscript plot_whole_genome.r
+             <SV-Hotspot_result_dir>
+             <annotation_dir>
+             <genome_assembly_version, eg. hg38>
+             <plot_circos, eg. TRUE, FALSE>
+             <chromosomes_to_plot, eg. "ALL", "chr1,chrX"> 
+             <genes_to_show, eg. "ERG,PTEN,ETV1">
+             <color_genes_by_association_direction_with_SV, eg. "TRUE", "FALSE">
+             <output_figure_format, eg. "png", "pdf">
+             <output_figure_dir>
 
-    Example:
-           Rscript ../plot_whole_genome.r 
-          ../path/to/sv-hotspot-output /path/to/annotations hg38 TRUE chr1,chrX,chr21 ERG,AR,PTEN TRUE png out
+   Example:
+           Rscript plot_whole_genome.r /path/to/sv-hotspot-output /path/to/annotations \
+                                        hg38 TRUE chr1,chrX,chr21 ERG,AR,PTEN TRUE png out
 ```
 
 ## SV-HotSpot Conda Installation
