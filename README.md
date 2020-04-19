@@ -300,7 +300,7 @@ plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e t
 
 ### Example of SV-HotSpot visualization 
 #### (1) Recurrent SVs targeting a non-coding region located upstream of AR gene:
-<img align="center" src="images/AR_peak.png" alt="visualization example" width="2550"" height="3300">
+<img align="center" src="images/AR_peak.png" alt="visualization example" width="2550" height="3300">
 
 #### (2) Circos plot of recurrent SV hotspots identified by SV-HotSpot across the genome:
 <div align="center">
