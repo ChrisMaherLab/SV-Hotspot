@@ -128,7 +128,6 @@ SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot 
 Output will be written to SV-HotSpot result directory which includes the following two files: 
 
     1) annotated_peaks_summary.filtered.tsv
-    
     2) genes.associated.with.SVs.filtered.tsv
 
 
