@@ -150,8 +150,7 @@ long = cnt$stop > cnt$chr.len
 cnt$stop[long] = cnt$chr.len[long]
 
 # read peaks & gene associations
-pkall = read.table(file.path(svh.res.dir,
-                             'annotated_peaks_summary.filtered.tsv'),
+pkall = read.table(file.path(svh.res.dir,'annotated_peaks_summary.filtered.tsv'),
                    header=T, stringsAsFactors=F)
 pk = pkall
 gg = read.table(paste0(svh.res.dir, '/genes.associated.with.SVs.filtered.tsv'),

@@ -39,7 +39,7 @@ cosmic.census.file = args[8]
 known.genes = unlist(strsplit(args[9], ','))
 
 # read col changes
-cc = read.table('cols.tsv', header=T, stringsAsFactors=F, sep='\t')
+#cc = read.table('cols.tsv', header=T, stringsAsFactors=F, sep='\t')
 
 # read cosmic census genes
 cosmic = read.table(cosmic.census.file, header=T, stringsAsFactors=F, sep='\t')
@@ -61,9 +61,10 @@ z = read.table(file.path(in.res.dir, 'genes.associated.with.SVs.tsv'),
                header=T, stringsAsFactors=F, sep='\t')
 z = merge(z,x[, c('Peak.name', 'peak.len', 'peak.density',
                   'Percentage.SV.types', 'Dominant.svtype')])
-for (i in 1:nrow(cc)){
-    colnames(z)[colnames(z) == cc$current[i]] = cc$new[i]
-}
+
+#for (i in 1:nrow(cc)){
+#    colnames(z)[colnames(z) == cc$current[i]] = cc$new[i]
+#}
 
 # remove comparisons with gene gain/loss
 z = z[, !grepl('ggain|gloss', colnames(z))]
@@ -213,7 +214,9 @@ d$chr = sub('chr', '', d$chr)
 if (!('Y' %in% d$chr)){
     d = rbind(d, data.frame(chr='Y', num.associated.genes=0, num.peaks=0))
 }
-d = d[match(c(1:22, 'X', 'Y'), d$chr),]
+matched_chrs = match(c(1:22, 'X', 'Y'), d$chr)
+d = d[matched_chrs[!is.na(matched_chrs)],]
+
 d$chr = factor(d$chr, levels=d$chr)
 d = melt(d, id.var='chr')
 colnames(d) = c('chr', 'grp', 'count')
@@ -227,7 +230,7 @@ p = (ggplot(d, aes(x=chr, y=count, fill=grp, color=grp))
      + theme_bw()
      + scale_color_manual(values=c('darkgreen', 'cadetblue'))
      + scale_fill_manual(values=c('darkgreen', 'cadetblue'))
-     + theme(legend.position='top', panel.grid=element_blank(),
+     + theme(legend.position='top', panel.grid=element_blank()
      )
      
 )

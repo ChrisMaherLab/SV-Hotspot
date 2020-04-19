@@ -31,6 +31,8 @@ my $chip_cov_lbl='chip-seq\ncov.';
 my $left_ext = 0;
 my $right_ext = 0;
 #my $use_dom = '0';
+my $genes_to_show='';
+my $plot_layout="narrow";
 
 GetOptions
 (
@@ -47,11 +49,13 @@ GetOptions
     'chip-cov-lbl=s' => \$chip_cov_lbl,
     #'roi-lbl=s' => \$roi_lbl,
     'left-ext=i' => \$left_ext,
-    'right-ext=i' => \$right_ext
+    'right-ext=i' => \$right_ext,
+    'genes-to-plot=s' => \$genes_to_show,
+    'plot-layout=s' => \$plot_layout
     #'use-dom=s' => \$use_dom
 );
 
-#usage() if (!$peak | !$sv_file | !$res_dir);
+usage() if (!$peak | !$sv_file | !$res_dir);
 
 print "\n---------------------------------------------\n";
 print "            Plotting Peak: $peak\n";
@@ -69,7 +73,7 @@ print "---------------------------------------------\n";
 #}
 
 if ($expr_file & $cn_file) { 
-   system ("Rscript plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext");
+   system ("Rscript plot_peak_region.r $peak $res_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext $genes_to_show $plot_layout");
 } elsif (!$expr_file) {
    system ("Rscript plot_peak_region_with_no_exp.r $peak $res_dir $sv_file $output_dir $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext");
 } elsif (!$cn_file) {
@@ -113,6 +117,9 @@ sub usage
    #print("\t--roi-lbl\t\t\tregion of int. label\t<string>\t[ the region of interest label used in  the plot (e.g. enhancers) ]\n");
    print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ number of extended bases from the left side of the peak. default: 0 ]\n");
    print("\t--right-ext\t\t\tsize of right extension\t<int>\t\t[ number of extended bases from the right side of the peak. default: 0 ]\n");
+   print("\t--genes-to-plot\t\t\tgenes names\t\t<string>\t[ names of genes to show on the plot. default: none ]\n");
+   print("\t--plot-layout\t\t\tplot orientation\t<string>\t[ orientation of the peak plot (wide or narrow). default: narrow ]\n");
+
    #print("\t--use-dom\t\t\tuse dominant SV type\t<T/F>\t\t[ if this option is enabled (T), only the dominant SV type will be ploteed . default: F ]\n");
 
    print ("\n");

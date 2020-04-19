@@ -25,7 +25,7 @@ my $sv_file=0;
 my $genome='hg38';
 my $sliding_w_size = 100000;
 my $sliding_w_step = 1000; 
-my $output_dir = getcwd; 
+my $output_dir = '/data';
 my $annot_file=0;
 my $peakPick_win=100;
 my $peakPick_minsd=5;
@@ -51,6 +51,8 @@ my $left_ext = 0;
 my $right_ext = 0;
 my $merge_pct_samples = 5;
 my $stop_merge_num_peaks = 0;
+my $genes_to_show='';
+my $plot_layout="narrow";
 
 GetOptions
 (
@@ -83,7 +85,10 @@ GetOptions
     'left-ext=i' => \$left_ext,
     'right-ext=i' => \$right_ext,
     'merge-pct-samples=i' => \$merge_pct_samples,
-    'stop-merge-num-peaks=i' => \$stop_merge_num_peaks
+    'stop-merge-num-peaks=i' => \$stop_merge_num_peaks,
+    'genes-to-plot=s' => \$genes_to_show,
+    'plot-layout=s' => \$plot_layout
+    
 );
 
 usage() if (!$sv_file);
@@ -543,7 +548,7 @@ sub visualize_res
    chomp($pks);
    
    if ($expr_file & $cn_file) {
-      system ("Rscript plot_peak_region.r $pks $output_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext ");
+      system ("Rscript plot_peak_region.r $pks $output_dir $sv_file $output_dir $expr_file $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext $genes_to_show $plot_layout");
    } elsif (!$expr_file) {
       system ("Rscript plot_peak_region_with_no_exp.r $pks $output_dir $sv_file $output_dir $cn_file $region_of_int $chip_cov $t_amp $t_del $chip_cov_lbl $left_ext $right_ext ");
    } elsif (!$cn_file) {
@@ -584,7 +589,7 @@ sub usage
    print("\t-r/--region-of-int\t\tregion(s) of interest\t<filename>\t[ region of interest file(s) in \"BED\" format separated by comma ]\n");
    print("\t-C/--chrom\t\t\tchromosome name \t<string>\t[ chromosome name used to detect hotspots. default: ALL ]\n");
    print("\t-t/--sv-type\t\t\tstructural variant type\t<string>\t[ SV type used to detect hotspots. default: ALL ]\n");
-   #print("\t-d/--merge-dist-size\t\tdistance size\t\t<int>\t\t[ distance cutoff used to merge adjacent peaks. default: 10kb ]\n");
+   print("\t-d/--merge-dist-size\t\tdistance size\t\t<int>\t\t[ distance cutoff used to merge adjacent peaks. default: 10kb ]\n");
    print("\t--merge-pct-samples\t\tpercentage of samples\t<int>\t\t[ percentage of samples cutoff to merge similar peaks. default: 5 ]\n");
    print("\t--stop-merge-num-peaks\t\tnumber of peaks\t\t<int>\t\t[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]\n");
    print("\t-k/--num-nearby-genes\t\tnumber nearby genes\t<int>\t\t[ number of up/downstream genes to the peak. default: 1 ]\n");
@@ -597,6 +602,9 @@ sub usage
    print("\t--plot-top-peaks\t\tplot top # peaks\t<int>\t\t[ number of top peaks to plot. default: top 10 ]\n");
    print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ size of the left extension of the peak. default: 0bp ]\n");
    print("\t--right-ext\t\t\tsize of right extension\t<int>\t\t[ size of the right extension of the peak. default: 0bp ]\n");
+   
+   print("\t--genes-to-plot\t\t\tgenes names\t\t<string>\t[ names of genes to show on the plot. default: none ]\n");
+   print("\t--plot-layout\t\t\tplot orientation\t<string>\t[ orientation of the peak plot (wide or narrow). default: narrow ]\n");
 
    #print("\t--keep-processed_data\t\t\tkeep intermediate files\t<string>\t[ if this option is enabled (T), all intermediate processed_dataorary files will be kept. default: F ]\n");
 
@@ -604,5 +612,6 @@ sub usage
    
    exit 0;
 }
+
 
 

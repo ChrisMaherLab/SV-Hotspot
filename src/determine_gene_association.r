@@ -138,12 +138,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if (length(DUP.pats)!=0 & length(nonSV.pats)!=0 & (length(DUP.pats)>=5 | length(nonSV.pats)>=5) ) {
     DUP_vs_nonDUP <- s_test(geneExp[geneExp$dup.status=="DUP", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
     ## compute logFC and mean expression
-    mean_exp_DUP_SV <- mean(geneExp[geneExp$dup.status=="DUP", 'gene.exp'])
+    DUP_mean.exp <- mean(geneExp[geneExp$dup.status=="DUP", 'gene.exp'])
     mean_exp_DUP_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
-    SV_vs_nonSV_LogFC_DUP <- signif(log2((mean_exp_DUP_SV+0.00001)/(mean_exp_DUP_nonSV+0.00001)), digits = 4)
-    c11 <- data.frame(SV_vs_nonSV_LogFC_DUP, SV_vs_nonSV_DUP_pval=DUP_vs_nonDUP$p.value, mean_exp_DUP_SV)
+    DUP_vs_NoSV_LogFC <- signif(log2((DUP_mean.exp+0.00001)/(mean_exp_DUP_nonSV+0.00001)), digits = 4)
+    c11 <- data.frame(DUP_vs_NoSV_LogFC, DUP_vs_NoSV_PValue=DUP_vs_nonDUP$p.value, DUP_mean.exp)
   } else {
-    c11 <- data.frame(SV_vs_nonSV_LogFC_DUP=NA, SV_vs_nonSV_DUP_pval=NA, mean_exp_DUP_SV=NA)
+    c11 <- data.frame(DUP_vs_NoSV_LogFC=NA, DUP_vs_NoSV_PValue=NA, DUP_mean.exp=NA)
   }
   
   ### DUP - copm 1-2 (using gene neutral TD samples only)
@@ -152,13 +152,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if(length(neut.DUP)!=0 & length(neut.nonDUP)!=0 & (length(neut.DUP)>=5 | length(neut.nonDUP)>=5 )) {
     g.neutDUP <- s_test(neut.DUP, neut.nonDUP)
     ## compute logFC and mean expression
-    mean_exp_DUP_SV_neut <- mean(neut.DUP)
+    DUP.gneut_mean.exp <- mean(neut.DUP)
     mean_exp_nonSV_neut <- mean(neut.nonDUP)
-    SV_vs_nonSV_LogFC_neut_DUP <- signif(log2((mean_exp_DUP_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
-    c12 <- data.frame(SV_vs_nonSV_LogFC_neut_DUP, DUP_vs_nonSV_neut_pval=g.neutDUP$p.value, mean_exp_DUP_SV_neut)
-    
+    DUP.gneut_vs_NoSV.gneut_LogFC <- signif(log2((DUP.gneut_mean.exp+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c12 <- data.frame(DUP.gneut_vs_NoSV.gneut_LogFC, DUP.gneut_vs_NoSV.gneut_PValue=g.neutDUP$p.value, DUP.gneut_mean.exp)
   } else {
-    c12 <- data.frame(SV_vs_nonSV_LogFC_neut_DUP=NA, DUP_vs_nonSV_neut_pval=NA, mean_exp_DUP_SV_neut=NA)
+    c12 <- data.frame(DUP.gneut_vs_NoSV.gneut_LogFC=NA, DUP.gneut_vs_NoSV.gneut_PValue=NA, DUP.gneut_mean.exp=NA)
   }
   
   
@@ -166,12 +165,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if (length(DEL.pats)!=0 & length(nonSV.pats)!=0 & (length(DEL.pats)>=5 | length(nonSV.pats)>=5) ) {
     DEL_vs_nonDEL <- s_test(geneExp[geneExp$del.status=="DEL", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
     ## compute logFC and mean expression
-    mean_exp_DEL_SV <- mean(geneExp[geneExp$del.status=="DEL", 'gene.exp'])
+    DEL_mean.exp <- mean(geneExp[geneExp$del.status=="DEL", 'gene.exp'])
     mean_exp_DEL_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
-    SV_vs_nonSV_LogFC_DEL <- signif(log2((mean_exp_DEL_SV+0.00001)/(mean_exp_DEL_nonSV+0.00001)), digits = 4)
-    c21 <- data.frame(SV_vs_nonSV_LogFC_DEL, DEL_vs_nonSV_pval=DEL_vs_nonDEL$p.value, mean_exp_DEL_SV)
+    DEL_vs_NoSV_LogFC <- signif(log2((DEL_mean.exp+0.00001)/(mean_exp_DEL_nonSV+0.00001)), digits = 4)
+    c21 <- data.frame(DEL_vs_NoSV_LogFC, DEL_vs_NoSV_PValue=DEL_vs_nonDEL$p.value, DEL_mean.exp)
   } else {
-    c21 <- data.frame(SV_vs_nonSV_LogFC_DEL=NA, DEL_vs_nonSV_pval=NA, mean_exp_DEL_SV=NA)
+    c21 <- data.frame(DEL_vs_NoSV_LogFC=NA, DEL_vs_NoSV_PValue=NA, DEL_mean.exp=NA)
   }
   
   ### DEL - copm 2-2 (using gene neutral DEL samples only)
@@ -180,12 +179,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if(length(neut.DEL)!=0 & length(neut.nonDEL)!=0 & (length(neut.DEL)>=5 | length(neut.nonDEL)>=5 )) {
     g.neutDEL <- s_test(neut.DEL, neut.nonDEL)
     ## compute logFC and mean expression
-    mean_exp_DEL_SV_neut <- mean(neut.DEL)
+    DEL.gneut_mean.exp <- mean(neut.DEL)
     mean_exp_nonSV_neut <- mean(neut.nonDEL)
-    SV_vs_nonSV_LogFC_neut_DEL <- signif(log2((mean_exp_DEL_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
-    c22 <- data.frame(SV_vs_nonSV_LogFC_neut_DEL, DEL_vs_nonSV_neut_pval=g.neutDEL$p.value, mean_exp_DEL_SV_neut)
+    DEL.gneut_vs_NoSV.gneut_LogFC <- signif(log2((DEL.gneut_mean.exp+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c22 <- data.frame(DEL.gneut_vs_NoSV.gneut_LogFC, DEL.gneut_vs_NoSV.gneut_PValue=g.neutDEL$p.value, DEL.gneut_mean.exp)
   } else {
-    c22 <- data.frame(SV_vs_nonSV_LogFC_neut_DEL=NA, DEL_vs_nonSV_neut_pval=NA, mean_exp_DEL_SV_neut=NA)
+    c22 <- data.frame(DEL.gneut_vs_NoSV.gneut_LogFC=NA, DEL.gneut_vs_NoSV.gneut_PValue=NA, DEL.gneut_mean.exp=NA)
   }
   
   
@@ -193,12 +192,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if (length(INS.pats)!=0 & length(nonSV.pats)!=0 & (length(INS.pats)>=5 | length(nonSV.pats)>=5) ) {
     INS_vs_nonINS <- s_test(geneExp[geneExp$ins.status=="INS", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
     ## compute logFC and mean expression
-    mean_exp_INS_SV <- mean(geneExp[geneExp$ins.status=="INS", 'gene.exp'])
+    INS_mean.exp <- mean(geneExp[geneExp$ins.status=="INS", 'gene.exp'])
     mean_exp_INS_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
-    SV_vs_nonSV_LogFC_INS <- signif(log2((mean_exp_INS_SV+0.00001)/(mean_exp_INS_nonSV+0.00001)), digits = 4)
-    c31 <- data.frame(SV_vs_nonSV_LogFC_INS, INS_vs_nonSV_pval=INS_vs_nonINS$p.value, mean_exp_INS_SV)
+    INS_vs_NoSV_LogFC <- signif(log2((INS_mean.exp+0.00001)/(mean_exp_INS_nonSV+0.00001)), digits = 4)
+    c31 <- data.frame(INS_vs_NoSV_LogFC, INS_vs_NoSV_PValue=INS_vs_nonINS$p.value, INS_mean.exp)
   } else {
-    c31 <- data.frame(SV_vs_nonSV_LogFC_INS=NA, INS_vs_nonSV_pval=NA, mean_exp_INS_SV=NA)
+    c31 <- data.frame(INS_vs_NoSV_LogFC=NA, INS_vs_NoSV_PValue=NA, INS_mean.exp=NA)
   }
   
   ### INS - copm 3-2 (using gene neutral INS samples only)
@@ -207,12 +206,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if(length(neut.INS)!=0 & length(neut.nonINS)!=0 & (length(neut.INS)>=5 | length(neut.nonINS)>=5 )) {
     g.neutINS <- s_test(neut.INS, neut.nonINS)
     ## compute logFC and mean expression
-    mean_exp_INS_SV_neut <- mean(neut.INS)
+    INS.gneut_mean.exp <- mean(neut.INS)
     mean_exp_nonSV_neut <- mean(neut.nonINS)
-    SV_vs_nonSV_LogFC_neut_INS <- signif(log2((mean_exp_INS_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
-    c32 <- data.frame(SV_vs_nonSV_LogFC_neut_INS, INS_vs_nonSV_neut_pval=g.neutINS$p.value, mean_exp_INS_SV_neut)
+    INS.gneut_vs_NoSV.gneut_LogFC <- signif(log2((INS.gneut_mean.exp+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c32 <- data.frame(INS.gneut_vs_NoSV.gneut_LogFC, INS.gneut_vs_NoSV.gneut_PValue=g.neutINS$p.value, INS.gneut_mean.exp)
   } else {
-    c32 <- data.frame(SV_vs_nonSV_LogFC_neut_INS=NA, INS_vs_nonSV_neut_pval=NA, mean_exp_INS_SV_neut=NA)
+    c32 <- data.frame(INS.gneut_vs_NoSV.gneut_LogFC=NA, INS.gneut_vs_NoSV.gneut_PValue=NA, INS.gneut_mean.exp=NA)
   }
   
   
@@ -220,12 +219,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if (length(INV.pats)!=0 & length(nonSV.pats)!=0 & (length(INV.pats)>=5 | length(nonSV.pats)>=5) ) {
     INV_vs_nonINV <- s_test(geneExp[geneExp$inv.status=="INV", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
     ## compute logFC and mean expression
-    mean_exp_INV_SV <- mean(geneExp[geneExp$inv.status=="INV", 'gene.exp'])
+    INV_mean.exp <- mean(geneExp[geneExp$inv.status=="INV", 'gene.exp'])
     mean_exp_INV_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
-    SV_vs_nonSV_LogFC_INV <- signif(log2((mean_exp_INV_SV+0.00001)/(mean_exp_INV_nonSV+0.00001)), digits = 4)
-    c41 <- data.frame(SV_vs_nonSV_LogFC_INV, INV_vs_nonSV_pval=INV_vs_nonINV$p.value, mean_exp_INV_SV)
+    INV_vs_NoSV_LogFC <- signif(log2((INV_mean.exp+0.00001)/(mean_exp_INV_nonSV+0.00001)), digits = 4)
+    c41 <- data.frame(INV_vs_NoSV_LogFC, INV_vs_NoSV_PValue=INV_vs_nonINV$p.value, INV_mean.exp)
   } else {
-    c41 <- data.frame(SV_vs_nonSV_LogFC_INV=NA, INV_vs_nonSV_pval=NA, mean_exp_INV_SV=NA)
+    c41 <- data.frame(INV_vs_NoSV_LogFC=NA, INV_vs_NoSV_PValue=NA, INV_mean.exp=NA)
   }
   
   ### INV - copm 4-2 (using gene neutral INV samples only)
@@ -234,24 +233,24 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if(length(neut.INV)!=0 & length(neut.nonINV)!=0 & (length(neut.INV)>=5 | length(neut.nonINV)>=5 )) {
     g.neutINV <- s_test(neut.INV, neut.nonINV)
     ## compute logFC and mean expression
-    mean_exp_INV_SV_neut <- mean(neut.INV)
+    INV.gneut_mean.exp <- mean(neut.INV)
     mean_exp_nonSV_neut <- mean(neut.nonINV)
-    SV_vs_nonSV_LogFC_neut_INV <- signif(log2((mean_exp_INV_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
-    c42 <- data.frame(SV_vs_nonSV_LogFC_neut_INV, INV_vs_nonSV_neut_pval=g.neutINV$p.value, mean_exp_INV_SV_neut)
+    INV.gneut_vs_NoSV.gneut_LogFC <- signif(log2((INV.gneut_mean.exp+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c42 <- data.frame(INV.gneut_vs_NoSV.gneut_LogFC, INV.gneut_vs_NoSV.gneut_PValue=g.neutINV$p.value, INV.gneut_mean.exp)
   } else {
-    c42 <- data.frame(SV_vs_nonSV_LogFC_neut_INV=NA, INV_vs_nonSV_neut_pval=NA, mean_exp_INV_SV_neut=NA)
+    c42 <- data.frame(INV.gneut_vs_NoSV.gneut_LogFC=NA, INV.gneut_vs_NoSV.gneut_PValue=NA, INV.gneut_mean.exp=NA)
   }
   
   #### BND - comp 5-1 (SV samples versus non-SVs samples)
   if (length(BND.pats)!=0 & length(nonSV.pats)!=0 & (length(BND.pats)>=5 | length(nonSV.pats)>=5) ) {
     BND_vs_nonBND <- s_test(geneExp[geneExp$bnd.status=="BND", 'gene.exp'], geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
     ## compute logFC and mean expression
-    mean_exp_BND_SV <- mean(geneExp[geneExp$bnd.status=="BND", 'gene.exp'])
+    BND_mean.exp <- mean(geneExp[geneExp$bnd.status=="BND", 'gene.exp'])
     mean_exp_BND_nonSV <- mean(geneExp[geneExp$sample.status=="non-SVs", 'gene.exp'])
-    SV_vs_nonSV_LogFC_BND <- signif(log2((mean_exp_BND_SV+0.00001)/(mean_exp_BND_nonSV+0.00001)), digits = 4)
-    c51 <- data.frame(SV_vs_nonSV_LogFC_BND, BND_vs_nonSV_pval=BND_vs_nonBND$p.value, mean_exp_BND_SV)
+    BND_vs_NoSV_LogFC <- signif(log2((BND_mean.exp+0.00001)/(mean_exp_BND_nonSV+0.00001)), digits = 4)
+    c51 <- data.frame(BND_vs_NoSV_LogFC, BND_vs_NoSV_PValue=BND_vs_nonBND$p.value, BND_mean.exp)
   } else {
-    c51 <- data.frame(SV_vs_nonSV_LogFC_BND=NA, BND_vs_nonSV_pval=NA, mean_exp_BND_SV=NA)
+    c51 <- data.frame(BND_vs_NoSV_LogFC=NA, BND_vs_NoSV_PValue=NA, BND_mean.exp=NA)
   }
   
   ### BND - copm 5-2 (using gene neutral BND samples only)
@@ -260,12 +259,12 @@ wilcox_test_SVtypes <- function(geneExp, DUP.pats, DEL.pats, INS.pats,INV.pats, 
   if(length(neut.BND)!=0 & length(neut.nonBND)!=0 & (length(neut.BND)>=5 | length(neut.nonBND)>=5 )) {
     g.neutBND <- s_test(neut.BND, neut.nonBND)
     ## compute logFC and mean expression
-    mean_exp_BND_SV_neut <- mean(neut.BND)
+    BND.gneut_mean.exp <- mean(neut.BND)
     mean_exp_nonSV_neut <- mean(neut.nonBND)
-    SV_vs_nonSV_LogFC_neut_BND <- signif(log2((mean_exp_BND_SV_neut+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
-    c52 <- data.frame(SV_vs_nonSV_LogFC_neut_BND, BND_vs_nonSV_neut_pval=g.neutBND$p.value, mean_exp_BND_SV_neut)
+    BND.gneut_vs_NoSV.gneut_LogFC <- signif(log2((BND.gneut_mean.exp+0.00001)/(mean_exp_nonSV_neut+0.00001)), digits = 4)
+    c52 <- data.frame(BND.gneut_vs_NoSV.gneut_LogFC, BND.gneut_vs_NoSV.gneut_PValue=g.neutBND$p.value, BND.gneut_mean.exp)
   } else {
-    c52 <- data.frame(SV_vs_nonSV_LogFC_neut_BND=NA, BND_vs_nonSV_neut_pval=NA, mean_exp_BND_SV_neut=NA)
+    c52 <- data.frame(BND.gneut_vs_NoSV.gneut_LogFC=NA, BND.gneut_vs_NoSV.gneut_PValue=NA, BND.gneut_mean.exp=NA)
   }
   
   ## combine all 
@@ -416,12 +415,12 @@ for (i in 1:nrow(res)){
     if (length(sv.pats)!=0 & length(nonSV.pats)!=0 & (length(sv.pats)>=5 | length(nonSV.pats)>=5) ) {
     	  SVs_vs_non.SVs <- s_test(g.exp[g.exp$sample.status=="SVs", 'gene.exp'], g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
         ## computer logFC and mean expresison
-        mean_exp_SV <- mean(g.exp[g.exp$sample.status=="SVs", 'gene.exp'])
-        mean_exp_nonSV <- mean(g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
-        SV_vs_nonSV_LogFC = signif(log2((mean_exp_SV+0.00001)/(mean_exp_nonSV+0.00001)), digits = 4)
-        c1 <- data.frame(SV_vs_nonSV_LogFC, SVs_vs_nonSVs_pval=SVs_vs_non.SVs$p.value, mean_exp_SV,mean_exp_nonSV)
+        SV_mean.exp <- mean(g.exp[g.exp$sample.status=="SVs", 'gene.exp'])
+        NoSV_mean.exp <- mean(g.exp[g.exp$sample.status=="non-SVs", 'gene.exp'])
+        SV_vs_NoSV_LogFC = signif(log2((SV_mean.exp+0.00001)/(NoSV_mean.exp+0.00001)), digits = 4)
+        c1 <- data.frame(SV_vs_NoSV_LogFC, SV_vs_NoSV_PValue=SVs_vs_non.SVs$p.value, SV_mean.exp,NoSV_mean.exp)
     } else {
-	      c1 <- data.frame(SV_vs_nonSV_LogFC=NA, SVs_vs_nonSVs_pval=NA, mean_exp_SV=NA, mean_exp_nonSV=NA)
+	      c1 <- data.frame(SV_vs_NoSV_LogFC=NA, SV_vs_NoSV_PValue=NA, SV_mean.exp=NA, NoSV_mean.exp=NA)
     } 
 
     ### copm 2 (using gene neutral samples only)
@@ -430,13 +429,13 @@ for (i in 1:nrow(res)){
     if(length(neut.SVs)!=0 & length(neut.nonSVs)!=0 & (length(neut.SVs)>=5 | length(neut.nonSVs)>=5)) {
     	  g.neut.comp <- s_test(neut.SVs, neut.nonSVs)
     	  ## computer logFC and mean expresison
-    	  mean_exp_neut_SV <- mean(neut.SVs)
-    	  mean_exp_neut_nonSV <- mean(neut.nonSVs)
-    	  SV_vs_nonSV_LogFC_neut = signif(log2((mean_exp_neut_SV+0.00001)/(mean_exp_neut_nonSV+0.00001)), digits = 4)
-    	  c2 <- data.frame(SV_vs_nonSV_LogFC_neut,SV_vs_nonSV_neut_pval=g.neut.comp$p.value, mean_exp_neut_SV, mean_exp_neut_nonSV)
+    	  SV.gneut_mean.exp <- mean(neut.SVs)
+    	  NoSV.gneut_mean.exp <- mean(neut.nonSVs)
+    	  SV.gneut_vs_NoSV.gneut_LogFC = signif(log2((SV.gneut_mean.exp+0.00001)/(NoSV.gneut_mean.exp+0.00001)), digits = 4)
+    	  c2 <- data.frame(SV.gneut_vs_NoSV.gneut_LogFC,SV.gneut_vs_NoSV.gneut_PValue=g.neut.comp$p.value, SV.gneut_mean.exp, NoSV.gneut_mean.exp)
     	 
     } else {
-        c2 <-data.frame(SV_vs_nonSV_LogFC_neut=NA, SVs_vs_nonSVs_neut_pval=NA, mean_exp_neut_SV=NA, mean_exp_neut_nonSV=NA)
+        c2 <-data.frame(SV.gneut_vs_NoSV.gneut_LogFC=NA, SV.gneut_vs_NoSV.gneut_PValue=NA, SV.gneut_mean.exp=NA, NoSV.gneut_mean.exp=NA)
     }
     
     ### copm 3 (using gene amplified samples only)
@@ -445,12 +444,12 @@ for (i in 1:nrow(res)){
     if(length(amp.SVs)!=0 & length(amp.nonSVs)!=0 & (length(amp.SVs)>=5 | length(amp.nonSVs)>=5 )) {
     	  g.amp.comp <- s_test(amp.SVs, amp.nonSVs)
     	  ## computer logFC and mean expresison
-    	  mean_exp_amp_SV <- mean(amp.SVs)
-    	  mean_exp_amp_nonSV <- mean(amp.nonSVs)
-    	  SV_vs_nonSV_LogFC_amp = signif(log2((mean_exp_amp_SV+0.00001)/(mean_exp_amp_nonSV+0.00001)), digits = 4)
-    	  c3 <- data.frame(SV_vs_nonSV_LogFC_amp, SV_vs_nonSV_amp_pval=g.amp.comp$p.value, mean_exp_amp_SV,mean_exp_amp_nonSV)
+    	  SV.ggain_mean.exp <- mean(amp.SVs)
+    	  NoSV.ggain_mean.exp <- mean(amp.nonSVs)
+    	  SV.ggain_vs_NoSV.ggain_LogFC = signif(log2((SV.ggain_mean.exp+0.00001)/(NoSV.ggain_mean.exp+0.00001)), digits = 4)
+    	  c3 <- data.frame(SV.ggain_vs_NoSV.ggain_LogFC, SV.ggain_vs_NoSV.ggain_PValue=g.amp.comp$p.value, SV.ggain_mean.exp,NoSV.ggain_mean.exp)
     } else {
-        c3 <- data.frame(SV_vs_nonSV_LogFC_amp=NA, SV_vs_nonSV_amp_pval=NA, mean_exp_amp_SV=NA, mean_exp_amp_nonSV=NA)
+        c3 <- data.frame(SV.ggain_vs_NoSV.ggain_LogFC=NA, SV.ggain_vs_NoSV.ggain_PValue=NA, SV.ggain_mean.exp=NA, NoSV.ggain_mean.exp=NA)
     }
     
     ### copm 4 (using gene deleted samples only)
@@ -459,12 +458,12 @@ for (i in 1:nrow(res)){
     if(length(del.SVs) !=0 & length(del.nonSVs) !=0 & (length(del.SVs)>=5 | length(del.nonSVs)>=5 )) {
          g.del.comp <- s_test(del.SVs, del.nonSVs)
          ## computer logFC and mean expresison
-         mean_exp_del_SV <- mean(del.SVs)
-         mean_exp_del_nonSV <- mean(del.nonSVs)
-         SV_vs_nonSV_LogFC_del = signif(log2((mean_exp_del_SV+0.00001)/(mean_exp_del_nonSV+0.00001)), digits = 4)
-         c4 <- data.frame(SV_vs_nonSV_LogFC_del, SV_vs_nonSV_del_pval=g.del.comp$p.value, mean_exp_del_SV, mean_exp_del_nonSV)
+         SV.gloss_mean.exp <- mean(del.SVs)
+         NoSV.gloss_mean.exp <- mean(del.nonSVs)
+         SV.gloss_vs_NoSV.gloss_LogFC = signif(log2((SV.gloss_mean.exp+0.00001)/(NoSV.gloss_mean.exp+0.00001)), digits = 4)
+         c4 <- data.frame(SV.gloss_vs_NoSV.gloss_LogFC, SV.gloss_vs_NoSV.gloss_PValue=g.del.comp$p.value, SV.gloss_mean.exp, NoSV.gloss_mean.exp)
     } else {
-      	 c4 <- data.frame(SV_vs_nonSV_LogFC_del=NA,SV_vs_nonSV_del_pval=NA, mean_exp_del_SV=NA, mean_exp_del_nonSV=NA) 
+      	 c4 <- data.frame(SV.gloss_vs_NoSV.gloss_LogFC=NA,SV.gloss_vs_NoSV.gloss_PValue=NA, SV.gloss_mean.exp=NA, NoSV.gloss_mean.exp=NA) 
     }
     ###########################################################################################################
     
@@ -474,7 +473,7 @@ for (i in 1:nrow(res)){
     stat_test_res <- cbind(c1,c2,c3,c4, svtype_stat_res)
     
     ### extract the smallest p-value
-    pvalues.cols <- colnames(stat_test_res)[grep("pval", colnames(stat_test_res))]
+    pvalues.cols <- colnames(stat_test_res)[grep("PValue", colnames(stat_test_res))]
     g.pval <- min(stat_test_res[, pvalues.cols], na.rm = T)
     if (is.na(g.pval) ) { g.pval = 1 } 
  
