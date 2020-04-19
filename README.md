@@ -121,10 +121,13 @@ SV-Hotspot provides a filtering R coomand to perform post-filtering of SV-HotSpo
     <tsv_file_of_cosmic_census_genes>
     <csv_other_known_genes_to_keep>
 
-    eg. Rscript filter.r sv-hotspot-output 0.05 0.22 10 9 500000 15 
-            data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
+    Example: 
+            Rscript filter.r sv-hotspot-output 0.05 0.22 10 9 500000 15 \
+                             data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
 ```
-
+Output will be written to SV-HotSpot result directory which includes the following two files:
+    1) annotated_peaks_summary.filtered.tsv
+    2) genes.associated.with.SVs.filtered.tsv
 
 ### Plot Peaks (Hotspot sites)
 
