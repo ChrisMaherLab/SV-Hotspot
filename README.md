@@ -108,7 +108,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot plot-peak -p pX.174 \
 * ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
 
 ### Filtering results 
-SV-Hotspot provides a filtering R coomand to perform post-filtering of SV-HotSpot results based on multiple criteria  including gene association significance, log fold-change, mean expression, number of associated.genes, peak width, and minimum percentage of samples. To performe any filtering, run the ```filter.r``` command as follows: 
+SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot results based on multiple criteria including gene association significance, log fold-change, mean expression, number of associated.genes, peak width, and minimum percentage of samples. To performed any filtering, run the ```filter.r``` command as follows:
  ```
  Usage:  Rscript filter.r
     <SV-HotSpot_result_dir>
@@ -122,10 +122,10 @@ SV-Hotspot provides a filtering R coomand to perform post-filtering of SV-HotSpo
     <csv_other_known_genes_to_keep>
 
     Example: 
-            Rscript filter.r sv-hotspot-output 0.05 0.22 10 9 500000 15 \
+            Rscript filter.r /path/to/sv-hotspot-output 0.05 0.22 10 9 500000 15 \
                              data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
 ```
-Output will be written to SV-HotSpot result directory which includes the following two files:
+Output will be written to SV-HotSpot result directory which includes the following two files:<br>
     1) annotated_peaks_summary.filtered.tsv
     2) genes.associated.with.SVs.filtered.tsv
 
