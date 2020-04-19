@@ -126,9 +126,10 @@ SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot 
                              data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
 ```
 Output will be written to SV-HotSpot result directory which includes the following two files: 
-<br />
+<ul>
     1) annotated_peaks_summary.filtered.tsv
     2) genes.associated.with.SVs.filtered.tsv
+</ul>
 
 ### Plot Peaks (Hotspot sites)
 
