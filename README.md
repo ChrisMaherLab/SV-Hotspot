@@ -65,7 +65,8 @@ OPTIONS:
 	--plot-top-peaks		plot top # peaks	<int>		[ number of top peaks to plot. default: top 10 ]
 	--left-ext			size of left extension	<int>		[ size of the left extension of the peak. default: 0bp ]
 	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
-	--genes-to-plot			genes names		<string>	[ names of genes to show on the plot. default: none ]
+	--genes-to-plot			genes names		<string>	[ names of genes to show on the plot. default: none.
+										  If no genes were provided, all genes in the peak will be plotted ]
 	--plot-layout			plot orientation	<string>	[ orientation of the peak plot (wide or narrow). default: narrow ]
  ```
  
