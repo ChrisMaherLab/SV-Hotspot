@@ -132,7 +132,23 @@ Output will be written to SV-HotSpot result directory which includes the followi
 
 
 ### Plot whole genome circos and individual chromsome plots of sample counts of SVs
+SVHotSpot also provides an additional visualization of the distribution of identified peaks on each chromosome. The script ```plot_whole_genome.r``` can be used to generate a circos plot to shows the percentage of samples harboring any type of SVs (outer track) or individual types of SVs (inner tracks) targeting genomic windows. In addition, the script generate for each chromosome the the distribution of identified peaks. This script can be run as follows. 
+```
+   Rscript plot_whole_genome.r
+    <SV-Hotspot_result_dir>
+    <annotation_dir>
+    <genome_assembly_version, eg. hg38>
+    <plot_circos, eg. TRUE, FALSE>
+    <chromosomes_to_plot, eg. "ALL", "chr1,chrX"> 
+    <genes_to_show, eg. "ERG,PTEN,ETV1">
+    <color_genes_by_association_direction_with_SV, eg. "TRUE", "FALSE">
+    <output_figure_format, eg. "png", "pdf">
+    <output_figure_dir>
 
+    Example:
+           Rscript ../plot_whole_genome.r 
+          ../path/to/sv-hotspot-output /path/to/annotations hg38 TRUE chr1,chrX,chr21 ERG,AR,PTEN TRUE png out
+```
 
 ## SV-HotSpot Conda Installation
 This package is available as conda package.  To install it via `conda`, try the following:
