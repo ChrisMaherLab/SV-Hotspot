@@ -107,6 +107,27 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot plot-peak -p pX.174 \
 ```
 * ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
 
+### Filter results 
+SV-Hotspot provides a filtering R coomand to perform post-filtering of SV-HotSpot results based on multiple criteria  including gene association significance, log fold-change, mean expression, number of associated.genes, peak width, and minimum percentage of samples. To performe any filtering, run the ```filter.r``` command as follows: 
+ ```
+ Usage:  Rscript filter.r
+    <SV-HotSpot_result_dir>
+    <max.p-value-to-infer-expression-association>
+    <min.logfc>
+    <min.group.expr>
+    <max.number.of.associated.gene.per.peak, peak w/ more genes associated are ignored>
+    <max.peak.length, peak wider than this w/o assoc. w/ known genes are ignored>
+    <min.peak.percent.samples, 0-100, peaks with percent of samples < this are ignored>
+    <tsv_file_of_cosmic_census_genes>
+    <csv_other_known_genes_to_keep>
+
+    eg. Rscript filter.r sv-hotspot-output 0.05 0.22 10 9 500000 15 
+            data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
+```
+
+
+### Plot Peaks (Hotspot sites)
+
 ## SV-HotSpot Conda Installation
 This package is available as conda package.  To install it via `conda`, try the following:
 
