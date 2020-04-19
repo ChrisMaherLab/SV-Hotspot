@@ -77,9 +77,11 @@ To run the test, use the following command:
 docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
               -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
-              -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST -w 100000 \
-              -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
-              --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 --plot-top-peaks 2
+              -r /data/test_data/enhancers.bed -o /data/SV-HOTSPOT-TEST \
+			        -w 100000 -s 30000 -d 50000 --merge-pct-samples 5 \
+			        -t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
+              --chip-cov-lbl H3K27ac --left-ext 100000 --right-ext 100000 --plot-top-peaks 1 
+              
 ```
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well. Use ```"$PWD"``` in case you want to use the current directroy. 
 * Please note that you need to provide the absolute path for ```/local/folder```. 
@@ -101,7 +103,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot plot-peak -p pX.174 \
            --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
            -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
            -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
-           --chip-cov-lbl H3K27ac --left-ext 0 --right-ext 0
+           --chip-cov-lbl H3K27ac --left-ext 100000 --right-ext 100000
 ```
 * ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
 
