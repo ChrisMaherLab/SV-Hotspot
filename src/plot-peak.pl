@@ -31,7 +31,7 @@ my $chip_cov_lbl='chip-seq\ncov.';
 my $left_ext = 0;
 my $right_ext = 0;
 #my $use_dom = '0';
-my $genes_to_show='';
+my $genes_to_show='none';
 my $plot_layout="narrow";
 
 GetOptions
@@ -117,7 +117,8 @@ sub usage
    #print("\t--roi-lbl\t\t\tregion of int. label\t<string>\t[ the region of interest label used in  the plot (e.g. enhancers) ]\n");
    print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ number of extended bases from the left side of the peak. default: 0 ]\n");
    print("\t--right-ext\t\t\tsize of right extension\t<int>\t\t[ number of extended bases from the right side of the peak. default: 0 ]\n");
-   print("\t--genes-to-plot\t\t\tgenes names\t\t<string>\t[ names of genes to show on the plot. default: none ]\n");
+   print("\t--genes-to-plot\t\t\tgenes names\t\t<string>\t[ names of genes to show on the plot. default: none.\n".
+          "\t\t\t\t\t\t\t\t\t\t  If no genes were provided, all genes in the peak will be plotted ]\n");
    print("\t--plot-layout\t\t\tplot orientation\t<string>\t[ orientation of the peak plot (wide or narrow). default: narrow ]\n");
 
    #print("\t--use-dom\t\t\tuse dominant SV type\t<T/F>\t\t[ if this option is enabled (T), only the dominant SV type will be ploteed . default: F ]\n");

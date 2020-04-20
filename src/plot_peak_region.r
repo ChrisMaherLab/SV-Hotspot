@@ -64,7 +64,7 @@ chip.cov.lbl= args[11]
 left.ext = as.numeric(args[12])
 right.ext = as.numeric(args[13])
 genes.to.show = unlist(strsplit(args[14], ','))
-if (is.na(genes.to.show) || genes.to.show == '-'){genes.to.show = NULL}
+if (genes.to.show=='none' || genes.to.show == '-'){genes.to.show = NULL}
 layout = args[15]
 if(is.na(layout)){layout = 'narrow'}
 
@@ -147,7 +147,7 @@ pileUp <- function(x, chrom, left, right){
 pileUp2 <- function(x, chrom, left, right, svtypes=c('DUP','DEL')){
     # select events that overlap with region to plot (left, right)
     x = x[x$chrom1 == chrom | x$chrom2 == chrom,]
-    print(c(chrom, left, right))
+    #print(c(chrom, left, right))
     # DUP, DEL, INS, INV (same chromsome breakpoints)
     sel = x$chrom1 == chrom & x$chrom2 == chrom &
            (x$pos1 <= right & x$pos1 >= left | 
@@ -160,8 +160,8 @@ pileUp2 <- function(x, chrom, left, right, svtypes=c('DUP','DEL')){
     x$pos2[x$svtype == 'BND' & !sel.bnd.2] = NA
 
     x = x[sel | sel.bnd.1 | sel.bnd.2,]
-    print(table(x$svtype))
-    print(table(x$chrom1, x$chrom2))
+    #print(table(x$svtype))
+    #print(table(x$chrom1, x$chrom2))
 
     # order/pile up
     x$sign = ifelse(x$svtype == 'DUP', 1, 0)
@@ -457,7 +457,6 @@ plot.exp.amp.del <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pat
 
 ################################### FUNCTION TO PLOT PEAKS REGIONS ################################################
 plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
-    print(genes.in.p)
 
    #construct region coordinates 
    right = max(pk.corr$Start, pk.corr$End, genes.in.p$g.start, genes.in.p$g.stop)
@@ -497,9 +496,9 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    dup_del$pos2[dup_del$pos2 > right] = right
 
    rwidth = right - left + 1
-   print(rwidth)
+   #print(rwidth)
    rstep = max(round(rwidth/5/5/10^5)*5*10^5, 2*10^5)
-   print(rstep)
+   #print(rstep)
    brks = seq(0,10^9,rstep)
    brks = brks[brks >= left & brks <= right]
    xlabs = as.character(brks/(10^6))
@@ -509,7 +508,6 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
    #print(labs)
    
 
- 
   ################################## plot region copy number ###############################################
   #if (is.cn.avail) {
      reg.width = (right - left)+1
@@ -762,6 +760,7 @@ plot.region <- function(pk, pk.corr, gene, genes.in.p, p.roi, D=NULL){
   #genes.in.p = rbind(genes.in.p, erg, ehc)
 
   if (!is.null(genes.to.show)){genes.in.p = genes.in.p[genes.in.p$gene %in% genes.to.show,]}
+   
   p5 = (ggplot(genes.in.p)
         #+ geom_segment(aes(x=g.start, xend=g.stop, y=2, yend=2),
         #       color=with(genes.in.p,ifelse(g.strand=="+",'darkgreen',
@@ -977,7 +976,6 @@ for (k in 1:length(pks.to.plot)) {
   ### extract locus information for effected genes 
   genes.in.peak <- unique(genes.and.peaks[genes.and.peaks$p.name==pk,c('g.chr','g.start','g.stop','gene','g.strand')])
 
-
   ### extract peak data
   pp = pks[pks$p.name==pk & pks$sample %in% samples.with.sv, ]
   pp.cn = pks.cn[pks.cn$p.name==pk & pks.cn$sample %in% samples.with.sv, c('p.name','sample', 'cn.value', 'cn.call')]
@@ -1030,8 +1028,11 @@ for (k in 1:length(pks.to.plot)) {
   for (j in 1:length(assoc.genes)) {
     g = assoc.genes[j]
 
-    if (!is.null(genes.to.show) && !(g %in% genes.to.show)){next}
-
+    # check if genes to show were provided
+    if (!is.null(genes.to.show)) {
+      if (!is.null(genes.to.show) && !(g %in% genes.to.show)) {next}
+    } 
+    
     ### extract gene copy number samples  
     g.neut.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="neut",'sample'])
     g.amp.samples <- unique(genes.cn[genes.cn$gene==g & genes.cn$cn.call =="amp",'sample'])

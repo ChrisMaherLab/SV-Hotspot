@@ -51,7 +51,7 @@ my $left_ext = 0;
 my $right_ext = 0;
 my $merge_pct_samples = 5;
 my $stop_merge_num_peaks = 0;
-my $genes_to_show='';
+my $genes_to_show='none';
 my $plot_layout="narrow";
 
 GetOptions
@@ -603,7 +603,8 @@ sub usage
    print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ size of the left extension of the peak. default: 0bp ]\n");
    print("\t--right-ext\t\t\tsize of right extension\t<int>\t\t[ size of the right extension of the peak. default: 0bp ]\n");
    
-   print("\t--genes-to-plot\t\t\tgenes names\t\t<string>\t[ names of genes to show on the plot. default: none ]\n");
+   print("\t--genes-to-plot\t\t\tgenes names\t\t<string>\t[ names of genes to show on the plot. default: none.\n".
+          "\t\t\t\t\t\t\t\t\t\t  If no genes were provided, all genes in the peak will be plotted ]\n");
    print("\t--plot-layout\t\t\tplot orientation\t<string>\t[ orientation of the peak plot (wide or narrow). default: narrow ]\n");
 
    #print("\t--keep-processed_data\t\t\tkeep intermediate files\t<string>\t[ if this option is enabled (T), all intermediate processed_dataorary files will be kept. default: F ]\n");
