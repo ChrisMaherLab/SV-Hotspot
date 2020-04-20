@@ -102,7 +102,7 @@ To plot peaks, use the following command which plots pX.172 and pX.173 peaks:
 docker run -v "$PWD":/data chrismaherlab/sv-hotspot plot-peak \
            -p pX.55.1 --genes-to-plot AR \
            --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-	         -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+           -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
            --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
            -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
            -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
