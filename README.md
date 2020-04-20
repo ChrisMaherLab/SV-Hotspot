@@ -82,8 +82,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C
 			        -w 100000 -s 30000 -d 50000 --merge-pct-samples 5 \
 			        -t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
               --chip-cov-lbl H3K27ac --left-ext 100000 --right-ext 100000 \
-              --plot-top-peaks 1 --genes-to-plot AR 
-              
+              --plot-top-peaks 1 --genes-to-plot AR
 ```
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well. Use ```"$PWD"``` in case you want to use the current directroy. 
 * Please note that you need to provide the absolute path for ```/local/folder```. 
