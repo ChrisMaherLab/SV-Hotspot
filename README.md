@@ -1,10 +1,10 @@
 # SV-HotSpot
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
 <!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
-SV-HotSpot is a Linux-based command-line pipeline that integrates multiple data types (including SVs, gene expression, and regulatory elements) to identify recurrent SVs and assess their potential consequences on the expression of nearby genes.
+SV-HotSpot is a tool for detection and visualization of genome hotspots targeted by recurrent structural variants (SVs) associated with gene expression. To so so, SV-HotSpot seamlessly integrates SV calls, gene expression, genome annotations (inluding genes and other functional elements such as regulatory elements) to identify and annotate recurrent SVs, and assess their potential consequences on the expression of nearby genes.
 
 ##
-SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu) and [The McDonnell Genome Institute](https://www.genome.wustl.edu/). 
+SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at [Washington University in St. Louis](http://www.wustl.edu).
 
 ## SV-HotSpot Docker Instructions
 To use SV-HotSpot, a docker image has been created and tested on Linux and Mac. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. 
@@ -120,7 +120,7 @@ SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot 
              <min.group.expr>
              <max.number.of.associated.gene.per.peak, peak w/ more genes associated are ignored>
              <max.peak.length, peak wider than this w/o assoc. w/ known genes are ignored>
-             <min.peak.percent.samples, 0-100, peaks with percent of samples < this are ignored>
+             <min.peak.percent.samples, 0-100, peaks with percent of samples smaller than this are ignored>
              <tsv_file_of_cosmic_census_genes>
              <csv_other_known_genes_to_keep>
 
@@ -135,7 +135,7 @@ Output will be written to SV-HotSpot result directory which includes the followi
 
 
 ### Plot whole genome circos and individual chromsome plots of sample counts of SVs
-SVHotSpot also provides an additional visualization of the distribution of identified peaks on each chromosome. The script ```plot_whole_genome.r``` can be used to generate a circos plot to shows the percentage of samples harboring any type of SVs (outer track) or individual types of SVs (inner tracks) targeting genomic windows. In addition, the script generate for each chromosome the the distribution of identified peaks. This script can be run as follows. 
+SV-HotSpot also provides an additional visualization of the distribution of identified peaks on each chromosome. The script ```plot_whole_genome.r``` can be used to generate a circos plot to shows the percentage of samples harboring any type of SVs (outer track) or individual types of SVs (inner tracks) targeting genomic windows. In addition, the script generate for each chromosome the the distribution of identified peaks. This script can be run as follows. 
 ```
    Usage: Rscript plot_whole_genome.r
              <SV-Hotspot_result_dir>
