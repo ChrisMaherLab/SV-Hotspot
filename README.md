@@ -1,4 +1,4 @@
-# SV-HotSpot
+# SV-HotSpot: detection of hotspots targeted by recurrent structural variants associated with gene expression
 <img align="left" width="150" src="images/logo.png" alt="tool logo">
 <!--- SV-HotSpot is a structural variant hotspots detection tool. It detects SVs and determine their effect on nearby gene expression using whole-genome sequencing data.  -->
 SV-HotSpot is a tool for detection and visualization of genome hotspots targeted by recurrent structural variants (SVs) associated with gene expression. To so so, SV-HotSpot seamlessly integrates SV calls, gene expression, genome annotations (inluding genes and other functional elements such as regulatory elements) to identify and annotate recurrent SVs, and assess their potential consequences on the expression of nearby genes.
@@ -9,7 +9,7 @@ SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at 
 ## SV-HotSpot Docker Instructions
 To use SV-HotSpot, a docker image has been created and tested on Linux and Mac. To run SV-HotSpot, you need to have [Docker](https://docs.docker.com/) installed on your machine. 
 
-### Installation of Docker
+### Docker Installation
 * Ubuntu: follow [the instructions](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/) to get Docker CE for Ubuntu.
 * Mac: follow [the instructions](https://store.docker.com/editions/community/docker-ce-desktop-mac) to install [the Stable verion of Docker CE](https://download.docker.com/mac/stable/Docker.dmg) on Mac.
 <!--- 
@@ -70,10 +70,10 @@ OPTIONS:
 	--plot-layout			plot orientation	<string>	[ orientation of the peak plot (wide or narrow). default: narrow ]
  ```
  
-### Test SV-HotSpot
-To test SV-HotSpot, we have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
+### How to run SV-HotSpot using Docker?
+We have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
-To run the test, use the following command:
+To run SV-HotSpot on this test data, use the following command:
 ```
 docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C chrX \
               --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
@@ -91,27 +91,10 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C
 <!---
 * For users running Docker on Windows using Docker Toolbox, please note that you need to share your local driver with VirtualBox VM to be able to mount any folder from it into a Docker container. Instructions on how to perform that can be found in [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/) installation instructions page. An additional instructions can be found [here](https://headsigned.com/posts/mounting-docker-volumes-with-docker-toolbox-for-windows/) as well.   
 -->
-### Plot Peaks (Hotspot sites)
-In some cases when the number of detected peaks is high, it is impractical to plot all peaks using the command above since this process takes a long time. Thus, we set SV-HotSpot to plot only top peaks (default is 10). Set ```--plot-top-peaks=#``` if you want to increase/decrease the number of peaks you want to plot. For this reason, we provided another script to plot peaks. You only need to provide peak name(s) taken from "annotated_peaks_summary.tsv" file, SVs file, results directory, expression and copy number data as well as the remaining parameters shown above. Peak names must be separated by comma and no space between them. 
-To show the usage page of this script, run the following command: 
-```
-docker run chrismaherlab/sv-hotspot plot-peak
-```
-To plot peaks, use the following command which plots pX.172 and pX.173 peaks:
-```
-docker run -v "$PWD":/data chrismaherlab/sv-hotspot plot-peak \
-           -p pX.55.1 --genes-to-plot AR \
-           --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-           -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
-           --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
-           -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
-           -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
-           --chip-cov-lbl H3K27ac --left-ext 100000 --right-ext 100000
-```
-* ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
 
-### Filtering results 
-SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot results based on multiple criteria including gene association significance, log fold-change, mean expression, number of associated.genes, peak width, and minimum percentage of samples. To performed filtering, run the ```filter.r``` command as follows:
+### Post-processing and filtering
+Once hotspots of SVs are identified, users should perform post-processing and filtering. SV-HotSpot provides a script to perform post-filtering of the results based on multiple criteria including filtering of genes with low expression and/or weak expression association (p-value, logFC, mean group expression), removal of wide peaks not associated with known cancer genes (eg. using COSMIC census genes), removal of peaks with low number of samples harboring hotspot SVs.  To performed filtering, run the ```filter.r``` command as follows:
+
  ```
  Usage:  Rscript filter.r
              <SV-HotSpot_result_dir>
@@ -128,14 +111,37 @@ SV-HotSpot provides a filtering command to perform post-filtering of SV-HotSpot 
             Rscript filter.r /path/to/sv-hotspot-output 0.05 0.22 10 9 500000 15 \
                              data/cosmic_census_genes.tsv AR,ERG,PTEN,TP53
 ```
+
 Output will be written to SV-HotSpot result directory which includes the following two files: 
 
     1) annotated_peaks_summary.filtered.tsv
     2) genes.associated.with.SVs.filtered.tsv
 
 
-### Plot whole genome circos and individual chromsome plots of sample counts of SVs
-SV-HotSpot also provides an additional visualization of the distribution of identified peaks on each chromosome. The script ```plot_whole_genome.r``` can be used to generate a circos plot to shows the percentage of samples harboring any type of SVs (outer track) or individual types of SVs (inner tracks) targeting genomic windows. In addition, the script generate for each chromosome the the distribution of identified peaks. This script can be run as follows. 
+### Visualization of hotpots (peaks)
+The top hotspots are automatically visualized when running SV-Hotspot detection (parameter ```--plot-top-peaks=#``` when running SV-HotSpot detection). Additionally, users can plot hotspots identified by SV-HotSpot independently of SV-Hotspot detection. To plot hotspot sites (or peaks), run the following command:
+
+To show the usage page of this script, run the following command: 
+```
+docker run chrismaherlab/sv-hotspot plot-peak
+```
+To plot peaks, use the following command which plots pX.172 and pX.173 peaks (peak name(s) taken from "annotated_peaks_summary.tsv" output file). You will also need to provide the SV calls file used to run SV-Hotspot, path to SV-HotSpot results directory, expression and copy number data, and the remaining parameters shown in SV-HotSpot detection command above. Peak names must be separated by comma and no space between them.
+
+```
+docker run -v "$PWD":/data chrismaherlab/sv-hotspot plot-peak \
+           -p pX.55.1 --genes-to-plot AR \
+           --res-dir /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+           -o /data/SV-HOTSPOT-TEST/sv-hotspot-output \
+           --sv /data/test_data/sv.bedpe -e /data/test_data/exp.tsv \
+           -c /data/test_data/cna.tsv --chip-cov /data/test_data/H3K27ac.bg \
+           -r /data/test_data/enhancers.bed --t-amp 2.99 --t-del 1.35 \
+           --chip-cov-lbl H3K27ac --left-ext 100000 --right-ext 100000
+```
+* ```res-dir``` must refer to the folder containing the results generated from running sv-hospot command with ```-o``` option. Please note that you need to include "sv-hotspot-output" at the end of ```res-dir``` path since SV-HotSpot always creates this folder which is used to write all output results.
+
+### Visualization of whole genome and individual chromsomes
+SV-HotSpot also provides whole genome level visualization of hotspot sites. The script ```plot_whole_genome.r``` can be used to generate the histogram aggregation of the counts of samples harboring structural variants at whole genome level (circos plot) or individual chromosome level. This script can be run as follows.
+
 ```
    Usage: Rscript plot_whole_genome.r
              <SV-Hotspot_result_dir>
