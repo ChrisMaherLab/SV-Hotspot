@@ -16,8 +16,8 @@ use File::Basename;
 use List::MoreUtils qw(uniq);
 
 ####################################################################################
-#my $TOOL_PATH='/gscmnt/gc5111/research/eteleeb/projects/SV-HotSpot';
-#my $TOOL_PATH='/Users/eteleeb/SV-HotSpot/SV-HotSpot';
+### Please change this line to your SV-HotSpot directory 
+my $TOOL_PATH='/Users/eteleeb/SV-HotSpot';
 ####################################################################################
 
 #define input options wi:qth default values 
@@ -119,16 +119,16 @@ if (!$Found) {
           "For more information on how to extract this file, please refer to the documentation page on https://github.com/ChrisMaherLab/SV-Hotspot\n\n";
     exit(0); 
 } else {
-  #$chromsize_file = $TOOL_PATH.'/annotations/'.$genome.'/chromsize.tsv';
-  $chromsize_file = 'annotations/'.$genome.'/chromsize.tsv';
+  $chromsize_file = $TOOL_PATH.'/annotations/'.$genome.'/chromsize.tsv';
+  #$chromsize_file = 'annotations/'.$genome.'/chromsize.tsv';
 }
 
 #################################################################################################################
 ##################### check if annotation file was provided, otherwise use built-in file #########################
 #################################################################################################################
 if (!$annot_file) {
-     $annot_file = 'annotations/'.$genome.'/genes.bed'
-     #$annot_file = $TOOL_PATH.'/annotations/'.$genome.'/genes.bed'
+     #$annot_file = 'annotations/'.$genome.'/genes.bed'
+     $annot_file = $TOOL_PATH.'/annotations/'.$genome.'/genes.bed'
 }
 
 #################################################################################################################
@@ -525,7 +525,7 @@ sub determine_association
    print "-------------------------------------------------------------------------------------\n";
 
    if ($expr_file & $cn_file) {
-     system ("Rscript determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome");
+     system ("Rscript determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome $TOOL_PATH");
    } else {
      print "To determine the association between SVs and gene expression, both expression and copy number data are required. \n";
      return(); 
