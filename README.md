@@ -182,11 +182,13 @@ sv-hotspot.pl --help
 # To run the test, use the following command:
 
 sv-hotspot.pl -g hg38 -C chrX -o SV-HOTSPOT-BIOCONDA-TEST \
-              --sv /path/to/test_data/sv.bedpe -e /path/to/test_data/exp.tsv \
-              -c /path/to/test_data/cna.tsv -r /path/to/test_data/enhancers.bed \
+              --sv /path/to/test_data/sv.bedpe \
+              -e /path/to/test_data/exp.tsv \
+              -c /path/to/test_data/cna.tsv \
+              -r /path/to/test_data/enhancers.bed \
               --chip-cov /path/to/test_data/H3K27ac.bg \
-              -w 100000 -s 30000 -d 50000 --t-amp 2.99 --t-del 1.35 \
-              --stat-test wilcox.test --pval 0.05 \
+              -w 100000 -s 30000 -d 50000 --t-amp 2.99 \
+              --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
               --chip-cov-lbl H3K27ac --left-ext 100000 \
               --right-ext 100000 --plot-top-peaks 1
 
