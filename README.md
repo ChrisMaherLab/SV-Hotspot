@@ -160,7 +160,7 @@ SV-HotSpot also provides whole genome level visualization of hotspot sites. The 
 ```
 
 ## SV-HotSpot Conda Installation
-This package is available as conda package.  To install it via `conda`, try the following:
+The SV-HotSpot is available as a conda package. To install it via `conda`, try the following:
 
 ```bash
 # create and activate a conda environment
