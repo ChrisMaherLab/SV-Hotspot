@@ -192,8 +192,11 @@ sv-hotspot.pl -g hg38 -C chrX -o SV-HOTSPOT-BIOCONDA-TEST \
               --chip-cov-lbl H3K27ac --left-ext 100000 \
               --right-ext 100000 --plot-top-peaks 1
 
-# where "env" is the name of the conda/environment you created. 
-# Please note that to run the tool, the "annotations" directory has to be at the same location where you run the tool. This can be done by creating a soft link to the directoryusing this command:
+# where "env" is the name of the conda environment you created.
+ 
+# Please note that to run the tool, the "annotations" directory has to be at the same location where you run  
+#the tool. This can be done by creating a soft link to the directoryusing this command:
+
 ln -s /path/to/env/annotations
  
 # get out of conda environment
