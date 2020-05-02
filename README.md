@@ -194,8 +194,7 @@ sv-hotspot.pl -g hg38 -C chrX -o SV-HOTSPOT-BIOCONDA-TEST \
 
 # where "env" is the name of the conda environment you created.
  
-# Please note that to run the tool, the "annotations" directory has to be at the same location where you run  
-#the tool. This can be done by creating a soft link to the directoryusing this command:
+# Please note that to run the tool, the "annotations" directory has to be at the same location where you run the tool.                                                            This can be done by creating a soft link to the directory using the following command:
 
 ln -s /path/to/env/annotations
  
