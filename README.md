@@ -188,9 +188,15 @@ OPTIONS:
 As an example, the following command plots peak "pX.55" from the above test. 
 
 ```
-plot-peak.pl -p pX.55 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e test_data/exp.tsv \
-             -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed \
-             -o /SOME/PATH --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
+PATH_TO_SV_HOTSPOT/src/plot-peak.pl -p pX.55 \
+             --sv PATH_TO_SV_HOTSPOT/test_data/sv.bedpe \ 
+             --res-dir /RESULTS/PATH \
+             -e PATH_TO_SV_HOTSPOT/test_data/exp.tsv \
+             -c PATH_TO_SV_HOTSPOT/test_data/cna.tsv \
+             --chip-cov PATH_TO_SV_HOTSPOT/test_data/H3K27ac.bg \
+             -r PATH_TO_SV_HOTSPOT/test_data/enhancers.bed \
+             -o /SOME/PATH --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac \
+             --left-ext 100000 --rigth-ext 100000
 ```
 
 ### Example of SV-HotSpot visualization 
