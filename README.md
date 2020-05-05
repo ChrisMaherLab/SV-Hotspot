@@ -188,7 +188,7 @@ OPTIONS:
 As an example, the following command plots peak "pX.55" from the above test. 
 
 ```
-PATH_TO_SV_HOTSPOT/src/plot-peak.pl -p pX.55 \
+PATH_TO_SV_HOTSPOT/src/plot-peak.pl -p pX.55.1 \
              --sv PATH_TO_SV_HOTSPOT/test_data/sv.bedpe \ 
              --res-dir /RESULTS/PATH \
              -e PATH_TO_SV_HOTSPOT/test_data/exp.tsv \
