@@ -8,6 +8,28 @@ SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at 
 
 
 ## SV-HotSpot Manual
+
+### Installation
+Clone the SV-Hotspot repository
+```
+git clone https://github.com/ChrisMaherLab/SV-Hotspot.git
+```
+Install required R packages by running the following command inside an R session.
+
+```
+install.packages(peakPick)
+install.packages(ggplot2)
+install.packages(plyr)
+install.packages(reshape2)
+install.packages(grid)
+install.packages(gridExtra)
+install.packages(gtable)
+install.packages(RCircos)
+install.packages(stringr)
+install.packages(ggsignif)
+```
+
+
 ### Input 
 The tool requires as an input the following:
 
