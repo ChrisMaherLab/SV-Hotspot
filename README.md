@@ -163,11 +163,13 @@ SV-HotSpot also provides whole genome level visualization of hotspot sites. The 
 The SV-HotSpot is available as a conda package. To install it via `conda`, try the following:
 
 ```bash
-# create and activate a conda environment
-conda create --yes --prefix /path/to/conda/environment
-conda activate /path/to/conda/environment
+# Create and activate a conda environment
+# where SV_HOTSPOT_CONDA_ENV_PATH is a local path/directory on your disk
+# that you want to create to store the conda environment for SV-HotSpot
+conda create --yes --prefix SV_HOTSPOT_CONDA_ENV_PATH
+conda activate SV_HOTSPOT_CONDA_ENV_PATH
 
-# install sv-hotspot via conda
+# Install SV-HotSpot via conda
 conda install --yes \
     --channel bioconda \
     --channel conda-forge \
@@ -175,35 +177,31 @@ conda install --yes \
     --channel default \
     sv-hotspot
 
-# test out installation
-which sv-hotspot.pl  # should be /path/to/conda/environment/bin/sv-hotspot.pl
+# Test if SV-HotSpot is installed
+which sv-hotspot.pl  # should return SV_HOTSPOT_CONDA_ENV_PATH/sv-hotspot.pl
 sv-hotspot.pl --help
 
-# To run the test, use the following command:
+# To run the test, use the following commands:
 
+# the current version requires the annotations in current directory (fix is undergoing)
+ln -s SV_HOTSPOT_CONDA_ENV_PATH/annotations 
+
+# run SV-HotSpot
+# note: SV-HotSpot installation comes with test data from the mCRPC cohort
+# stored at SV_HOTSPOT_CONDA_ENV_PATH/test_data
 sv-hotspot.pl -g hg38 -C chrX -o SV-HOTSPOT-BIOCONDA-TEST \
-              --sv /path/to/env/test_data/sv.bedpe \
-              -e /path/to/env/test_data/exp.tsv \
-              -c /path/to/env/test_data/cna.tsv \
-              -r /path/to/env/test_data/enhancers.bed \
-              --chip-cov /path/to/env/test_data/H3K27ac.bg \
+              --sv SV_HOTSPOT_CONDA_ENV_PATH/test_data/sv.bedpe \
+              -e SV_HOTSPOT_CONDA_ENV_PATH/test_data/exp.tsv \
+              -c SV_HOTSPOT_CONDA_ENV_PATH/test_data/cna.tsv \
+              -r SV_HOTSPOT_CONDA_ENV_PATH/test_data/enhancers.bed \
+              --chip-cov SV_HOTSPOT_CONDA_ENV_PATH/test_data/H3K27ac.bg \
               -w 100000 -s 30000 -d 50000 --t-amp 2.99 \
               --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
               --chip-cov-lbl H3K27ac --left-ext 100000 \
               --right-ext 100000 --plot-top-peaks 1
 
-# where "env" is the name of the conda environment you created.
- 
-# Please note that the "annotations" directory should be at the same location of sv-hotspot.pl. 
-# This can be done by creating a symbolic link to the directory using the following command:
-
-ln -s /path/to/env/annotations
- 
-# get out of conda environment
+# Get out of conda environment
 conda deactivate
-
-# remove the conda environment
-rm -rf /path/to/conda/environment
 
 ```
 
