@@ -28,8 +28,6 @@ Rscript plot_whole_genome.r
 
 args = commandArgs(T)
 
-#args = c('output/100-30-50-prank/sv-hotspot-output', 'annotations', 'hg38', 'ALL', 'ERG,PTEN,ETV1,TP53,AR,TMPRSS2,AXL,RB1,CDK4,NCOA2,MYC,CCND1,CHD1,ETV4,CDKN1B,ETV5,FOXA1,AR_enhcr', 'FALSE', 'png', 'output/100-30-50-prank/figs/circosXXX')
-
 if (length(args) != 9){stop(usage)}
 
 svh.res.dir = args[1]
