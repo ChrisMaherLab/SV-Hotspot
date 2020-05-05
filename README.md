@@ -185,7 +185,7 @@ OPTIONS:
 	--right-ext	size of right extension	<int>		[ number of extended bases from the right side of the peak. default: 0 ]
 ```
 
-As an example, the following command plots peak "pX.55" from the above test. 
+As an example, the following command plots peak "pX.55.1" from the above test. 
 
 ```
 PATH_TO_SV_HOTSPOT/src/plot-peak.pl -p pX.55.1 \
