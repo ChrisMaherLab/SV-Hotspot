@@ -10,11 +10,12 @@ SV-HotSpot is developed at [Christopher Maher Lab](http://www.maherlab.com/) at 
 ## SV-HotSpot Manual
 
 ### Installation
-Clone the SV-Hotspot repository
+Clone the SV-Hotspot repository (with PATH_TO_SV_HOTSPOT is the local directory where you want to install SV-HotSpot):
 ```
+cd PATH_TO_SV_HOTSPOT
 git clone https://github.com/ChrisMaherLab/SV-Hotspot.git
 ```
-Install required R packages by running the following command inside an R session.
+Install required R packages by running the following command inside an R session:
 
 ```
 install.packages(peakPick)
@@ -30,7 +31,7 @@ install.packages(ggsignif)
 ```
 
 
-### Input 
+### Preparing Input 
 The tool requires as an input the following:
 
 1. Genome assembly name (e.g. hg38, hg19, mm9, mm10, etc.) which is used to extract chromosomes sizes file (a tab-delimited file with two columns, <b>chrom</b> and <b>size</b>). Genome name should be one of the UCSC genome releases (https://genome.ucsc.edu/FAQ/FAQreleases.html#release1). SV-HotSpot built-in genomes are: <b>hg18, hg19, hg38, mm9, mm10, dm3, dm6, rn5, rn6</b>. 
@@ -77,6 +78,29 @@ All other parameters are optional and a default value was assigned to each (run 
 Given the large quantities of data generated in ChIP-Seq, most computational analyses face significant challenges processing this large magnitude of data. Therefore, it is recommended that you average ChIP-seq data using a window of size range from 1-10k and provided in the format mentioned above.
 -->
 
+### Running SV-Hotspot
+Assume PATH_TO_SV_HOTSPOT is the local directory where SV-HotSpot was installed, the following command runs SV-HotSpot on the mCRPC test data provided by SV-HotSpot. The test data are specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
+
+To test the tool with test data, just run the following command:
+
+```
+PATH_TO_SV_HOTSPOT/src/sv-hotspot.pl -o OUTPUT \
+	-g hg38 -C chrX \
+	--sv PATH_TO_SV_HOTSPOT/test_data/sv.bedpe \
+	-e PATH_TO_SV_HOTSPOT/test_data/exp.tsv \
+	-c PATH_TO_SV_HOTSPOT/test_data/cna.tsv \
+	-r PATH_TO_SV_HOTSPOT/test_data/enhancers.bed \
+	--chip-cov PATH_TO_SV_HOTSPOT/test_data/H3K27ac.bg \
+	--chip-cov-lbl H3K27ac \
+	-w 100000 -s 30000 -d 50000 \
+	--t-amp 2.99 --t-del 1.35 \
+	--stat-test wilcox.test --pval 0.05 \
+	--plot-top-peaks 10 --left-ext 100000 --right-ext 100000
+
+```
+
+Results will be written to OUTPUT/sv-hotspot-output directory specified in the command.
+
 ### Output 
 There are two main output files: 
 
@@ -91,26 +115,11 @@ There are two main output files:
 1. Peaks files for each chromosome and their corresponding figures. These files are located in the ``peaks`` folder. 
 2. UCSC custom track files. These files are located in ``peaks/ucsc_custom_track_files``. These files can be viewed on the UCSC Genome Browser.  
 
-<!---
-### Running the tests
-
-To test the tool, we have provided an example data specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
-
-To test the tool, just run the following command:
-
-```
-sv-hotspot.pl -g hg38 -C chrX --sv test_data/sv.bedpe -e test_data/exp.tsv -c test_data/cna.tsv \
-              --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed -o /SOME/PATH \
-              -w 100000 -s 1000 --t-amp 2.99 --t-del 1.35 --stat-test wilcox.test --pval 0.05 \
-	      --chip-cov-lbl H3K27ac -d 10000 --left-ext 0 --right-ext 0 
-```
-
-Note that you need to change ```/SOME/PATH``` with the output directory you want. Once the tools is done, a folder called "sv-hotspot-output" wil have the final results. 
-
 ### Plot Peaks (Hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks as this process takes long time. Thus, we set the tool to plot only the top # of peaks (default is 10). In case you need to increase/decrease this number, you need to provide this parameter ```--plot-top-peaks=#``` with the number of peaks required. Set this parameter to 0 in case you do not want to plot any peaks. 
 
 To plot peak(s), we provided a script for this process. You just need to provide the peak name(s), SV file, the results directory, the expression, and copy number data with the remaining parameters shown above. Peak names must be separated by comma. To show the usage page of this command type the following command: 
+
 ```
 plot-peak.pl
 
@@ -131,14 +140,13 @@ OPTIONS:
 	--right-ext	size of right extension	<int>		[ number of extended bases from the right side of the peak. default: 0 ]
 ```
 
-As an example, the following command plots peaks "pX.59" and "pX.60" generated from the above test. 
+As an example, the following command plots peak "pX.55" from the above test. 
 
 ```
-plot-peak.pl -p pX.59,pX.60 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e test_data/exp.tsv \
+plot-peak.pl -p pX.55 --sv test_data/sv.bedpe --res-dir /RESULTS/PATH -e test_data/exp.tsv \
              -c test_data/cna.tsv --chip-cov test_data/H3K27ac.bg -r test_data/enhancers.bed \
              -o /SOME/PATH --t-amp 2.99 --t-del 1.35 --chip-cov-lbl H3K27ac --left-ext 0 --rigth-ext 0
 ```
--->
 
 ### Example of SV-HotSpot visualization 
 #### (1) Recurrent SVs targeting a non-coding region located upstream of AR gene:
@@ -234,6 +242,7 @@ docker run -v /local/folder:/data chrismaherlab/sv-hotspot sv-hotspot -g hg38 -C
 * Note, the -v flags map your local filesystem locations to a “location” within the Docker image. Therefore, you need to change ```/local/folder```to your local folder on your machine. This folder must contain the "<b>test_data</b>" folder. The final output will be sent to this folder as well. Use ```"$PWD"``` in case you want to use the current directroy. 
 * Please note that you need to provide the absolute path for ```/local/folder```. 
 * ```/data``` is a folder on the image container used to receive the input data that was mapped by -v flag. The SV-HotSpot pipeline is configured with this folder and it has to be provided the same way as in the command above. 
+
 <!---
 * For users running Docker on Windows using Docker Toolbox, please note that you need to share your local driver with VirtualBox VM to be able to mount any folder from it into a Docker container. Instructions on how to perform that can be found in [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/) installation instructions page. An additional instructions can be found [here](https://headsigned.com/posts/mounting-docker-volumes-with-docker-toolbox-for-windows/) as well.   
 -->
