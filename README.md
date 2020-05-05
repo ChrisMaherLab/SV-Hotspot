@@ -29,6 +29,7 @@ install.packages(RCircos)
 install.packages(stringr)
 install.packages(ggsignif)
 ```
+SV-HotSpot uses bedTools (https://github.com/arq5x/bedtools2) for various overlapping and counting procedures, which should also be installed and made available as command lines.
 
 
 ### Preparing Input 
@@ -78,7 +79,7 @@ All other parameters are optional and a default value was assigned to each (run 
 Given the large quantities of data generated in ChIP-Seq, most computational analyses face significant challenges processing this large magnitude of data. Therefore, it is recommended that you average ChIP-seq data using a window of size range from 1-10k and provided in the format mentioned above.
 -->
 
-### Running SV-Hotspot
+### Running SV-HotSpot
 Assume PATH_TO_SV_HOTSPOT is the local directory where SV-HotSpot was installed, the following command runs SV-HotSpot on the mCRPC test data provided by SV-HotSpot. The test data are specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 ```
@@ -159,7 +160,7 @@ There are two main output files:
 1. Peaks files for each chromosome and their corresponding figures. These files are located in the ``peaks`` folder. 
 2. UCSC custom track files. These files are located in ``peaks/ucsc_custom_track_files``. These files can be viewed on the UCSC Genome Browser.  
 
-### Plot Peaks (Hotspot sites)
+### Plot Peaks (hotspot sites)
 In some cases when the number of detected peaks is high, it is impractical to plot all peaks as this process takes long time. Thus, we set the tool to plot only the top # of peaks (default is 10). In case you need to increase/decrease this number, you need to provide this parameter ```--plot-top-peaks=#``` with the number of peaks required. Set this parameter to 0 in case you do not want to plot any peaks. 
 
 To plot peak(s), we provided a script for this process. You just need to provide the peak name(s), SV file, the results directory, the expression, and copy number data with the remaining parameters shown above. Peak names must be separated by comma. To show the usage page of this command type the following command: 
