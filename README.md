@@ -99,7 +99,53 @@ PATH_TO_SV_HOTSPOT/src/sv-hotspot.pl -o OUTPUT \
 
 ```
 
-Results will be written to OUTPUT/sv-hotspot-output directory specified in the command.
+More SV-HotSpot command line paramters:
+
+```
+USAGE:
+      sv-hotspot.pl [OPTIONS] -g/--genome <genomeName> --sv <structuralVariants>
+
+      NOTE:
+	(1) Genome name should be one of the UCSC genome releases (https://genome.ucsc.edu/FAQ/FAQreleases.html#release1). 
+            - Built-in Genomes: hg18, hg19, hg38, mm9, mm10, dm3, dm6, rn5, rn6.
+            - Please refer to the documentation in case your genome is not listed above. 
+	(2) Structutal variants file should be in "BEDPE" format.
+	(3) Gene expression data and copy number segments are required to visualize hotspot regions.
+	(4) Region of interest file(s) (e.g. promoters, enhancers, chip-seq, etc.) should be in "BED" format
+
+OPTIONS:
+	-w/--sliding-win-size		sliding window size	<int>		[ sliding window size. default: 100kb ]
+	-s/--sliding-win-step		sliding window step 	<int>		[ sliding window step. default: 1kb ]
+	-a/--annot			annotation file 	<filename>	[ an annotation file in "BED" format ]
+	-e/--exp			expression file 	<filename>	[ expression file in a "matrix" format ]
+	-c/--cn				Copy number file 	<filename>	[ copy number segments in BED format ]
+	-W/--peakPick-window-size	peak calling window 	<int>		[ peakPick window size. default: 100bp ]
+	-m/--peakPick-min-sd		peak calling min. SD	<int>		[ peakPick standard deviation cutoff. default: 5 ]
+	-t/--pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to call peaks. default: 10 ]
+	-o/--output			output directory	<string>	[ results output directory. default: ./ ]
+	-p/--pval			pvalue cuttoff		<float>		[ pvalue threshold used for significance. default: 0.05 ]
+	-G/--genes-of-int		list of genes		<filename>	[ list of genes of interest to be used for visualization ]
+	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" format separated by comma ]
+	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
+	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
+	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
+	--merge-pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to merge similar peaks. default: 5 ]
+	--stop-merge-num-peaks		number of peaks		<int>		[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]
+	-k/--num-nearby-genes		Number nearby genes	<int>		[ number of up/downstream genes to the peak. default: 1 ]
+	--t-amp				amplification threshold	<float/int>	[ amplification cutoff. default: 2.8 ]
+	--t-del				deletion threshold	<float/int>	[ deletion cutoff. default: 0.5 ]
+	--stat-test			statistical test	<string>	[ statistical test used for comparison (wilcox.test or t.test). default: wilcox.test ]
+	--chip-cov			chip-seq coverage	<filename>	[ chip-seq coverage file in "BED" foramt ]
+	--chip-cov-lbl			chip-seq coverage label	<string>	[ label used for chip-seq coverage ]
+	--plot-top-peaks		plot top # peaks	<int>		[ number of top peaks to plot. default: top 10 ]
+	--left-ext			size of left extension	<int>		[ size of the left extension of the peak. default: 0bp ]
+	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
+	--genes-to-plot			genes names		<string>	[ names of genes to show on the plot. default: none.
+										  If no genes were provided, all genes in the peak will be plotted ]
+	--plot-layout			plot orientation	<string>	[ orientation of the peak plot (wide or narrow). default: narrow ]
+ ```
+
+Results will be written to a subdirectory named sv-hotspot-output inside OUTPUT directory specified in the command.
 
 ### Output 
 There are two main output files: 
@@ -179,50 +225,6 @@ To test the image, run the following command which shows the usage of this tool:
 ```
 docker run chrismaherlab/sv-hotspot sv-hotspot
 ```
-
-```
-USAGE:
-      sv-hotspot.pl [OPTIONS] -g/--genome <genomeName> --sv <structuralVariants>
-
-      NOTE:
-	(1) Genome name should be one of the UCSC genome releases (https://genome.ucsc.edu/FAQ/FAQreleases.html#release1). 
-            - Built-in Genomes: hg18, hg19, hg38, mm9, mm10, dm3, dm6, rn5, rn6.
-            - Please refer to the documentation in case your genome is not listed above. 
-	(2) Structutal variants file should be in "BEDPE" format.
-	(3) Gene expression data and copy number segments are required to visualize hotspot regions.
-	(4) Region of interest file(s) (e.g. promoters, enhancers, chip-seq, etc.) should be in "BED" format
-
-OPTIONS:
-	-w/--sliding-win-size		sliding window size	<int>		[ sliding window size. default: 100kb ]
-	-s/--sliding-win-step		sliding window step 	<int>		[ sliding window step. default: 1kb ]
-	-a/--annot			annotation file 	<filename>	[ an annotation file in "BED" format ]
-	-e/--exp			expression file 	<filename>	[ expression file in a "matrix" format ]
-	-c/--cn				Copy number file 	<filename>	[ copy number segments in BED format ]
-	-W/--peakPick-window-size	peak calling window 	<int>		[ peakPick window size. default: 100bp ]
-	-m/--peakPick-min-sd		peak calling min. SD	<int>		[ peakPick standard deviation cutoff. default: 5 ]
-	-t/--pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to call peaks. default: 10 ]
-	-o/--output			output directory	<string>	[ results output directory. default: ./ ]
-	-p/--pval			pvalue cuttoff		<float>		[ pvalue threshold used for significance. default: 0.05 ]
-	-G/--genes-of-int		list of genes		<filename>	[ list of genes of interest to be used for visualization ]
-	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" format separated by comma ]
-	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
-	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
-	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
-	--merge-pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to merge similar peaks. default: 5 ]
-	--stop-merge-num-peaks		number of peaks		<int>		[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]
-	-k/--num-nearby-genes		Number nearby genes	<int>		[ number of up/downstream genes to the peak. default: 1 ]
-	--t-amp				amplification threshold	<float/int>	[ amplification cutoff. default: 2.8 ]
-	--t-del				deletion threshold	<float/int>	[ deletion cutoff. default: 0.5 ]
-	--stat-test			statistical test	<string>	[ statistical test used for comparison (wilcox.test or t.test). default: wilcox.test ]
-	--chip-cov			chip-seq coverage	<filename>	[ chip-seq coverage file in "BED" foramt ]
-	--chip-cov-lbl			chip-seq coverage label	<string>	[ label used for chip-seq coverage ]
-	--plot-top-peaks		plot top # peaks	<int>		[ number of top peaks to plot. default: top 10 ]
-	--left-ext			size of left extension	<int>		[ size of the left extension of the peak. default: 0bp ]
-	--right-ext			size of right extension	<int>		[ size of the right extension of the peak. default: 0bp ]
-	--genes-to-plot			genes names		<string>	[ names of genes to show on the plot. default: none.
-										  If no genes were provided, all genes in the peak will be plotted ]
-	--plot-layout			plot orientation	<string>	[ orientation of the peak plot (wide or narrow). default: narrow ]
- ```
  
 ### How to run SV-HotSpot using Docker?
 We have provided an example data available in "test_data" folder specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
