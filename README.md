@@ -126,7 +126,7 @@ OPTIONS:
 	-G/--genes-of-int		list of genes		<filename>	[ list of genes of interest to be used for visualization ]
 	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" format separated by comma ]
 	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
-	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
+	-S/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
 	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
 	--merge-pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to merge similar peaks. default: 5 ]
 	--stop-merge-num-peaks		number of peaks		<int>		[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]
