@@ -176,50 +176,99 @@ pileUp2 <- function(x, chrom, left, right, svtypes=c('DUP','DEL')){
 ################################# FUNCTION TO PLOT SVs EXPRESSION #########################################
 plot.exp <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, gene, pk) {
   
-  ##################### plot the expression for SV samples (SVs vs non-SVs) ###############################
-  pval = (wilcox.test(g.exp[g.exp$sample.status=="SVs", 'gene.exp'], g.exp[g.exp$sample.status=="non-SVs", 'gene.exp']))$p.value
-  #pval= sprintf(pval, fmt="%#.5f")
-  pval.txt = sprintf("p = %.1g", pval)
-  pval = signif(pval, digits=3)
-
-  g.exp$sample.status <- factor(g.exp$sample.status, levels=c('non-SVs', 'SVs'))
-  max.exp = max(log2(g.exp$gene.exp+1))
-  e1 <- ggplot(g.exp, aes(x=sample.status, y=log2(gene.exp+1))) 
-  e1 <- e1 + geom_boxplot(aes(fill=sample.status), outlier.shape=NA, outlier.size=0.5) + geom_jitter(position=position_jitter(0.3), shape=1, size=0.75) + theme_bw() 
-  e1 <- e1 + labs(x='', y=paste(gene, 'expression'))# + ggtitle(paste0('\n',gene, ' expression in SV\nand non-SV samples'))
-  e1 <- e1 + ggtitle('All samples')
+  ##################### plot the expression for aLL SV samples (SVs types vs non-SVs) ###############################
+  if (length(g.exp[g.exp$sample %in% nonSV.pats, 'gene.exp']) > 0 ) {
+    SVs.exp = data.frame(grp = "SVs", exp = g.exp[g.exp$sample.status=="SVs", 'gene.exp'])
+    nonSVs.exp = data.frame(grp = "non-SVs", exp = g.exp[g.exp$sample %in% nonSV.pats, 'gene.exp'])
+    
+    if (length(BND.pats) > 0 & length(g.exp[g.exp$sample %in% BND.pats, 'gene.exp']) > 0) {BND.exp.n = data.frame(grp = "BND", exp = g.exp[g.exp$sample %in% BND.pats, 'gene.exp'])} else {BND.exp.n=NULL}
+    if (length(DUP.pats) > 0 & length(g.exp[g.exp$sample %in% DUP.pats, 'gene.exp']) > 0) {DUP.exp.n = data.frame(grp = "DUP", exp = g.exp[g.exp$sample %in% DUP.pats, 'gene.exp'])} else {DUP.exp.n=NULL}
+    if (length(INS.pats) > 0 & length(g.exp[g.exp$sample %in% INS.pats, 'gene.exp']) > 0) {INS.exp.n = data.frame(grp = "INS", exp = g.exp[g.exp$sample %in% INS.pats, 'gene.exp'])} else {INS.exp.n=NULL}
+    if (length(DEL.pats) > 0 & length(g.exp[g.exp$sample %in% DEL.pats, 'gene.exp']) > 0) {DEL.exp.n = data.frame(grp = "DEL", exp = g.exp[g.exp$sample %in% DEL.pats, 'gene.exp'])} else {DEL.exp.n=NULL}
+    if (length(INV.pats) > 0 & length(g.exp[g.exp$sample %in% INV.pats, 'gene.exp']) > 0) {INV.exp.n = data.frame(grp = "INV", exp = g.exp[g.exp$sample %in% INV.pats, 'gene.exp'])} else {INV.exp.n=NULL}
+    
+    svtype.exp = do.call('rbind', list(nonSVs.exp, SVs.exp, BND.exp.n, DUP.exp.n, INS.exp.n, DEL.exp.n, INV.exp.n))
+    svtype.exp$grp <- factor(svtype.exp$grp, levels=c('non-SVs', 'SVs', 'BND','DUP', 'INS','DEL', 'INV'))
+  } else {
+    svtype.exp <- NULL
+  }
+  
+  sv.grps.n = as.data.frame(combn(as.character(unique(svtype.exp$grp)),2), stringsAsFactors = F)
+  idxs <- as.data.frame(which(sv.grps.n =="non-SVs", arr.ind=TRUE))
+  sv.grps.n <- sv.grps.n[,idxs$col]
+  svCMPlist = as.list(sv.grps.n[,1:ncol(sv.grps.n)])
+  
+  title.size1 = length(levels(factor(svtype.exp$grp))) * 3.5
+  if (title.size1 <= 7) { title.size = 12 }
+  
+  lbls.n = c(paste0("non-SVs\n(n=",nrow(nonSVs.exp),")"), paste0("SVs\n(n=",nrow(SVs.exp),")"), 
+             paste0("BND\n(n=",nrow(BND.exp.n),")"), 
+             paste0("DUP\n(n=",nrow(DUP.exp.n),")"), paste0("INS\n(n=",nrow(INS.exp.n),")"),
+             paste0("DEL\n(n=",nrow(DEL.exp.n),")"), paste0("INV\n(n=",nrow(INV.exp.n),")"))
+  lbls.n = grep(paste(as.character(unique(svtype.exp$grp)), collapse="|"), lbls.n, value=TRUE)
+  
+  max.exp = max(log2(svtype.exp$exp+1))
+  e1 <- ggplot(svtype.exp, aes(x=grp, y=log2(exp+1))) + geom_boxplot(aes(fill=grp), outlier.shape=NA, outlier.size=0.5) 
+  e1 <- e1 + geom_jitter(position=position_jitter(0.3), shape=1, size=0.75) + theme_bw() 
+  e1 <- e1 + labs(x='', y=paste(g, 'expression')) + ggtitle('All samples')
   e1 <- e1 + theme(axis.text.x=element_text(size=11, vjust=0.5, color="black"),
                    axis.text.y=element_text(size=12, color="black"), 
                    axis.title.y=element_text(size=12),
-                   #panel.background=element_blank(),
-                   plot.title = element_text(size = 12, hjust=0.5, color="black", face="plain"),
+                   #panel.background=element_rect(color="black"),
+                   plot.title = element_text(size = 14, hjust=0.5, color="black", face="bold"),
                    legend.position="none",
                    panel.border = element_rect(linetype='solid', color='black'),
                    plot.margin=unit(c(1,1,1,5), 'mm')
   )
-  e1 = e1 + scale_fill_manual(name="", values =c("non-SVs"="gray", "SVs"="orange2"))
-  e1 = e1 + scale_x_discrete(labels=c(paste0("None\n(n=",nrow(g.exp[g.exp$sample.status=="non-SVs",]),")"), paste0("SVs\n(n=",nrow( g.exp[g.exp$sample.status=="SVs",]),")")))
-  #e1 = e1 + geom_signif(comparisons=list(c('non-SVs','SVs')))
-  e1 = e1 + annotate("text", x = 1.5, y = max.exp*1.1, label = pval.txt, cex=4, hjust=0.5)
+  e1 = e1 + scale_fill_manual(name="", values =c("non-SVs"="gray", "SVs"="orange2", "BND"="#2ca25f", "DUP"="#b53f4d", "INS"="#fec44f","DEL"="#2c7fb8","INV"="#c994c7"))
+  e1 = e1 + scale_x_discrete(labels=lbls.n)
   e1 = e1 + scale_y_continuous(expand=c(0.05,0.05*max.exp))
+  e1 = e1 + geom_signif(comparisons= svCMPlist, step_increase=0.1, textsize = 4, map_signif_level=function(p)sprintf("p = %.2g", p), show.legend=F)
+  
+  # pval = (wilcox.test(g.exp[g.exp$sample.status=="SVs", 'gene.exp'], g.exp[g.exp$sample.status=="non-SVs", 'gene.exp']))$p.value
+  # #pval= sprintf(pval, fmt="%#.5f")
+  # pval.txt = sprintf("p = %.1g", pval)
+  # pval = signif(pval, digits=3)
+  # 
+  # g.exp$sample.status <- factor(g.exp$sample.status, levels=c('non-SVs', 'SVs'))
+  # max.exp = max(log2(g.exp$gene.exp+1))
+  # e1 <- ggplot(g.exp, aes(x=sample.status, y=log2(gene.exp+1))) 
+  # e1 <- e1 + geom_boxplot(aes(fill=sample.status), outlier.shape=NA, outlier.size=0.5) + geom_jitter(position=position_jitter(0.3), shape=1, size=0.75) + theme_bw() 
+  # e1 <- e1 + labs(x='', y=paste(gene, 'expression'))# + ggtitle(paste0('\n',gene, ' expression in SV\nand non-SV samples'))
+  # e1 <- e1 + ggtitle('All samples')
+  # e1 <- e1 + theme(axis.text.x=element_text(size=11, vjust=0.5, color="black"),
+  #                  axis.text.y=element_text(size=12, color="black"), 
+  #                  axis.title.y=element_text(size=12),
+  #                  #panel.background=element_blank(),
+  #                  plot.title = element_text(size = 12, hjust=0.5, color="black", face="plain"),
+  #                  legend.position="none",
+  #                  panel.border = element_rect(linetype='solid', color='black'),
+  #                  plot.margin=unit(c(1,1,1,5), 'mm')
+  # )
+  # e1 = e1 + scale_fill_manual(name="", values =c("non-SVs"="gray", "SVs"="orange2"))
+  # e1 = e1 + scale_x_discrete(labels=c(paste0("None\n(n=",nrow(g.exp[g.exp$sample.status=="non-SVs",]),")"), paste0("SVs\n(n=",nrow( g.exp[g.exp$sample.status=="SVs",]),")")))
+  # #e1 = e1 + geom_signif(comparisons=list(c('non-SVs','SVs')))
+  # e1 = e1 + annotate("text", x = 1.5, y = max.exp*1.1, label = pval.txt, cex=4, hjust=0.5)
+  # e1 = e1 + scale_y_continuous(expand=c(0.05,0.05*max.exp))
   
   ###################### plot the expression for SV samples (SV types vs non-SVs) ########################
   if (length(g.exp[g.exp$sample %in% nonSV.pats & g.exp$gene.cn.status=="neut", 'gene.exp']) > 0 ) {
+    SVs.exp = data.frame(grp = "SVs", exp = g.exp[g.exp$sample.status=="SVs" & g.exp$gene.cn.status=="neut", 'gene.exp'])
     nonSVs.exp = data.frame(grp = "non-SVs", exp = g.exp[g.exp$sample %in% nonSV.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])
+    
     if (length(BND.pats) > 0 & length(g.exp[g.exp$sample %in% BND.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {BND.exp.n = data.frame(grp = "BND", exp = g.exp[g.exp$sample %in% BND.pats & g.exp$gene.cn.status=="neut" , 'gene.exp'])} else {BND.exp.n=NULL}
     if (length(DUP.pats) > 0 & length(g.exp[g.exp$sample %in% DUP.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {DUP.exp.n = data.frame(grp = "DUP", exp = g.exp[g.exp$sample %in% DUP.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {DUP.exp.n=NULL}
     if (length(INS.pats) > 0 & length(g.exp[g.exp$sample %in% INS.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {INS.exp.n = data.frame(grp = "INS", exp = g.exp[g.exp$sample %in% INS.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {INS.exp.n=NULL}
     if (length(DEL.pats) > 0 & length(g.exp[g.exp$sample %in% DEL.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {DEL.exp.n = data.frame(grp = "DEL", exp = g.exp[g.exp$sample %in% DEL.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {DEL.exp.n=NULL}
     if (length(INV.pats) > 0 & length(g.exp[g.exp$sample %in% INV.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {INV.exp.n = data.frame(grp = "INV", exp = g.exp[g.exp$sample %in% INV.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {INV.exp.n=NULL}
     
-    svtype.exp = do.call('rbind', list(nonSVs.exp, BND.exp.n, DUP.exp.n, INS.exp.n, DEL.exp.n, INV.exp.n))
-    svtype.exp$grp <- factor(svtype.exp$grp, levels=c('non-SVs', 'BND','DUP', 'INS','DEL', 'INV'))
+    svtype.exp = do.call('rbind', list(nonSVs.exp, SVs.exp, BND.exp.n, DUP.exp.n, INS.exp.n, DEL.exp.n, INV.exp.n))
+    svtype.exp$grp <- factor(svtype.exp$grp, levels=c('non-SVs', 'SVs', 'BND','DUP', 'INS','DEL', 'INV'))
   } else {
     svtype.exp <- NULL
   }
- 
   
-  ######### plot SVs types for neutral samples only ######
+  ## plot 
   if (!is.null(svtype.exp)) {
     ### prepare comarison list
     sv.grps.n = as.data.frame(combn(as.character(unique(svtype.exp$grp)),2), stringsAsFactors = F)
@@ -230,32 +279,85 @@ plot.exp <- function (g.exp, BND.pats,DUP.pats,INS.pats,DEL.pats,INV.pats, gene,
     title.size1 = length(levels(factor(svtype.exp$grp))) * 3.5
     if (title.size1 <= 7) { title.size = 12 }
     
-    lbls.n = c(paste0("non-SVs\n(n=",nrow(nonSVs.exp),")"), paste0("BND\n(n=",nrow(BND.exp.n),")"), 
+    lbls.n = c(paste0("non-SVs\n(n=",nrow(nonSVs.exp),")"), paste0("SVs\n(n=",nrow(SVs.exp),")"), 
+               paste0("BND\n(n=",nrow(BND.exp.n),")"), 
                paste0("DUP\n(n=",nrow(DUP.exp.n),")"), paste0("INS\n(n=",nrow(INS.exp.n),")"),
                paste0("DEL\n(n=",nrow(DEL.exp.n),")"), paste0("INV\n(n=",nrow(INV.exp.n),")"))
     lbls.n = grep(paste(as.character(unique(svtype.exp$grp)), collapse="|"), lbls.n, value=TRUE)
-    neut.title = paste0(gene, ' expression by SV type in peak ', pk,'\n(CN neutral samples only)')
-    neut.title = 'Gene is CN-neutral'
+    
+    #neut.title = paste0(g, ' expression by SV type in peak ', pk,'\n(CN neutral samples only)')
     max.exp = max(log2(svtype.exp$exp+1))
     e2 <- ggplot(svtype.exp, aes(x=grp, y=log2(exp+1))) + geom_boxplot(aes(fill=grp), outlier.shape=NA, outlier.size=0.5) 
     e2 <- e2 + geom_jitter(position=position_jitter(0.3), shape=1, size=0.75) + theme_bw() 
-    e2 <- e2 + labs(x='', y=paste(gene, 'expression')) + ggtitle(neut.title)
+    e2 <- e2 + labs(x='', y=paste(g, 'expression')) + ggtitle('Gene is CN-neutral')
     e2 <- e2 + theme(axis.text.x=element_text(size=11, vjust=0.5, color="black"),
                      axis.text.y=element_text(size=12, color="black"), 
                      axis.title.y=element_text(size=12),
                      #panel.background=element_rect(color="black"),
-                     plot.title = element_text(size = 12, hjust=0.5, color="black", face="plain"),
+                     plot.title = element_text(size = 14, hjust=0.5, color="black", face="bold"),
                      legend.position="none",
                      panel.border = element_rect(linetype='solid', color='black'),
                      plot.margin=unit(c(1,1,1,5), 'mm')
-               )
-    e2 = e2 + scale_fill_manual(name="", values =c("non-SVs"="gray", "BND"="#2ca25f", "DUP"="#b53f4d", "INS"="#fec44f","DEL"="#2c7fb8","INV"="#c994c7"))
-    e2 = e2 + scale_x_discrete(labels=sub('non-SVs', 'None', lbls.n))
+    )
+    e2 = e2 + scale_fill_manual(name="", values =c("non-SVs"="gray", "SVs"="orange2", "BND"="#2ca25f", "DUP"="#b53f4d", "INS"="#fec44f","DEL"="#2c7fb8","INV"="#c994c7"))
+    e2 = e2 + scale_x_discrete(labels=lbls.n)
     e2 = e2 + scale_y_continuous(expand=c(0.05,0.05*max.exp))
-    e2 = e2 + geom_signif(comparisons= svCMPlist, step_increase=0.1, textsize = 4, map_signif_level=function(p)sprintf("p = %.1g", p), show.legend=F)
+    e2 = e2 + geom_signif(comparisons= svCMPlist, step_increase=0.1, textsize = 4, map_signif_level=function(p)sprintf("p = %.2g", p), show.legend=F)
   } else {
     e2 <- NULL
   }
+  # if (length(g.exp[g.exp$sample %in% nonSV.pats & g.exp$gene.cn.status=="neut", 'gene.exp']) > 0 ) {
+  #   nonSVs.exp = data.frame(grp = "non-SVs", exp = g.exp[g.exp$sample %in% nonSV.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])
+  #   if (length(BND.pats) > 0 & length(g.exp[g.exp$sample %in% BND.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {BND.exp.n = data.frame(grp = "BND", exp = g.exp[g.exp$sample %in% BND.pats & g.exp$gene.cn.status=="neut" , 'gene.exp'])} else {BND.exp.n=NULL}
+  #   if (length(DUP.pats) > 0 & length(g.exp[g.exp$sample %in% DUP.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {DUP.exp.n = data.frame(grp = "DUP", exp = g.exp[g.exp$sample %in% DUP.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {DUP.exp.n=NULL}
+  #   if (length(INS.pats) > 0 & length(g.exp[g.exp$sample %in% INS.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {INS.exp.n = data.frame(grp = "INS", exp = g.exp[g.exp$sample %in% INS.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {INS.exp.n=NULL}
+  #   if (length(DEL.pats) > 0 & length(g.exp[g.exp$sample %in% DEL.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {DEL.exp.n = data.frame(grp = "DEL", exp = g.exp[g.exp$sample %in% DEL.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {DEL.exp.n=NULL}
+  #   if (length(INV.pats) > 0 & length(g.exp[g.exp$sample %in% INV.pats & g.exp$gene.cn.status=="neut" , 'gene.exp']) > 0) {INV.exp.n = data.frame(grp = "INV", exp = g.exp[g.exp$sample %in% INV.pats & g.exp$gene.cn.status=="neut", 'gene.exp'])} else {INV.exp.n=NULL}
+  #   
+  #   svtype.exp = do.call('rbind', list(nonSVs.exp, BND.exp.n, DUP.exp.n, INS.exp.n, DEL.exp.n, INV.exp.n))
+  #   svtype.exp$grp <- factor(svtype.exp$grp, levels=c('non-SVs', 'BND','DUP', 'INS','DEL', 'INV'))
+  # } else {
+  #   svtype.exp <- NULL
+  # }
+  # 
+  # 
+  # ######### plot SVs types for neutral samples only ######
+  # if (!is.null(svtype.exp)) {
+  #   ### prepare comarison list
+  #   sv.grps.n = as.data.frame(combn(as.character(unique(svtype.exp$grp)),2), stringsAsFactors = F)
+  #   idxs <- as.data.frame(which(sv.grps.n =="non-SVs", arr.ind=TRUE))
+  #   sv.grps.n <- sv.grps.n[,idxs$col]
+  #   svCMPlist = as.list(sv.grps.n[,1:ncol(sv.grps.n)])
+  #   
+  #   title.size1 = length(levels(factor(svtype.exp$grp))) * 3.5
+  #   if (title.size1 <= 7) { title.size = 12 }
+  #   
+  #   lbls.n = c(paste0("non-SVs\n(n=",nrow(nonSVs.exp),")"), paste0("BND\n(n=",nrow(BND.exp.n),")"), 
+  #              paste0("DUP\n(n=",nrow(DUP.exp.n),")"), paste0("INS\n(n=",nrow(INS.exp.n),")"),
+  #              paste0("DEL\n(n=",nrow(DEL.exp.n),")"), paste0("INV\n(n=",nrow(INV.exp.n),")"))
+  #   lbls.n = grep(paste(as.character(unique(svtype.exp$grp)), collapse="|"), lbls.n, value=TRUE)
+  #   neut.title = paste0(gene, ' expression by SV type in peak ', pk,'\n(CN neutral samples only)')
+  #   neut.title = 'Gene is CN-neutral'
+  #   max.exp = max(log2(svtype.exp$exp+1))
+  #   e2 <- ggplot(svtype.exp, aes(x=grp, y=log2(exp+1))) + geom_boxplot(aes(fill=grp), outlier.shape=NA, outlier.size=0.5) 
+  #   e2 <- e2 + geom_jitter(position=position_jitter(0.3), shape=1, size=0.75) + theme_bw() 
+  #   e2 <- e2 + labs(x='', y=paste(gene, 'expression')) + ggtitle(neut.title)
+  #   e2 <- e2 + theme(axis.text.x=element_text(size=11, vjust=0.5, color="black"),
+  #                    axis.text.y=element_text(size=12, color="black"), 
+  #                    axis.title.y=element_text(size=12),
+  #                    #panel.background=element_rect(color="black"),
+  #                    plot.title = element_text(size = 12, hjust=0.5, color="black", face="plain"),
+  #                    legend.position="none",
+  #                    panel.border = element_rect(linetype='solid', color='black'),
+  #                    plot.margin=unit(c(1,1,1,5), 'mm')
+  #              )
+  #   e2 = e2 + scale_fill_manual(name="", values =c("non-SVs"="gray", "BND"="#2ca25f", "DUP"="#b53f4d", "INS"="#fec44f","DEL"="#2c7fb8","INV"="#c994c7"))
+  #   e2 = e2 + scale_x_discrete(labels=sub('non-SVs', 'None', lbls.n))
+  #   e2 = e2 + scale_y_continuous(expand=c(0.05,0.05*max.exp))
+  #   e2 = e2 + geom_signif(comparisons= svCMPlist, step_increase=0.1, textsize = 4, map_signif_level=function(p)sprintf("p = %.1g", p), show.legend=F)
+  # } else {
+  #   e2 <- NULL
+  # }
    
   ####################### plot gene expression incorporating copy number #########################################
   #if (is.cn.avail) {
@@ -878,7 +980,7 @@ cat('done.\n')
 #chip.seq = 0
 if (chip.seq != 0) {
   is.chip.avail = TRUE 
-  chiph = 2
+  chiph = 3 # previous value = 2
   cat('Reading chip-seq coverage data...') 
   if (file.exists(chip.seq) ) {
     chip_seq <- read.table(chip.seq, header =T, sep="\t", stringsAsFactors = F, check.names=F)
@@ -1082,22 +1184,22 @@ for (k in 1:length(pks.to.plot)) {
     ### set the layout matrix (version 1 with two columns)
     mat = matrix(ncol=2, nrow=n)
     mat[, 1] = 1:(n)
-    mat[, 2] = c(rep(n+1,1), rep(n+2,2), rep(n+3, n-3))
+    mat[, 2] = c(rep(n+1,2), rep(n+2,2), rep(n+3, n-4))
 
 
     ### set the height 
-    cnh = 4
-    ddh = 4
-    svh1 = 4
-    svh2 = 4
+    cnh =3 #4
+    ddh =3 #4
+    svh1 =3 #4
+    svh2 =3 #4
     geneh = 1 
     #boxp = 5
     myheights = c(cnh, ddh, svh1,svh2, chiph, roih, geneh)
     mywidths = c(3, plot.ex[["ColWidth"]])
     #mywidths = c(1.5, plot.ex[["w1"]], plot.ex[["w2"]])
     #mywidths[2] = mywidths[2]*1.1
-    plot.height = sum(myheights)*0.45
-    plot.width = 7
+    plot.height = sum(myheights)*0.60
+    plot.width = 8 
     plot.ncols = 2
 
     # layout for expression plot at bottom (wide format)
@@ -1105,12 +1207,13 @@ for (k in 1:length(pks.to.plot)) {
       mat = matrix(ncol=3, nrow=(n+1))
       mat[1:n,] = matrix(rep(1:n,3), ncol=3)
       mat[n+1,] = seq(n+1,n+3)
-      myheights = c(myheights, 7)
-      mywidths = c(1,1.5,1.5)
+      #myheights = c(myheights, 8)
+      myheights = c(4,4,4,4,2, roih, geneh, 8)
+      mywidths = c(2,2,2)
       p.reg[[n+2]] = p.reg[[n+2]] + ylab(NULL)
       p.reg[[n+3]] = p.reg[[n+3]] + ylab(NULL)
       # fit a letter size paper
-      plot.width = 8
+      plot.width = 12 #8
       plot.height = 11
       plot.ncols = 3
     }
