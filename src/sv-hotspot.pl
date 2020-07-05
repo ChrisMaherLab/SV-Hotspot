@@ -593,7 +593,7 @@ sub usage
    print("\t-G/--genes-of-int\t\tlist of genes\t\t<filename>\t[ list of genes of interest to be used for visualization ]\n");
    print("\t-r/--region-of-int\t\tregion(s) of interest\t<filename>\t[ region of interest file(s) in \"BED\" format separated by comma ]\n");
    print("\t-C/--chrom\t\t\tchromosome name \t<string>\t[ chromosome name used to detect hotspots. default: ALL ]\n");
-   print("\t-t/--sv-type\t\t\tstructural variant type\t<string>\t[ SV type used to detect hotspots. default: ALL ]\n");
+   print("\t-S/--sv-type\t\t\tstructural variant type\t<string>\t[ SV type used to detect hotspots. default: ALL ]\n");
    print("\t-d/--merge-dist-size\t\tdistance size\t\t<int>\t\t[ distance cutoff used to merge adjacent peaks. default: 10kb ]\n");
    print("\t--merge-pct-samples\t\tpercentage of samples\t<int>\t\t[ percentage of samples cutoff to merge similar peaks. default: 5 ]\n");
    print("\t--stop-merge-num-peaks\t\tnumber of peaks\t\t<int>\t\t[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]\n");
