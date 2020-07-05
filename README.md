@@ -83,7 +83,7 @@ Given the large quantities of data generated in ChIP-Seq, most computational ana
 Assume PATH_TO_SV_HOTSPOT is the local directory where SV-HotSpot was installed, the following command runs SV-HotSpot on the mCRPC test data provided by SV-HotSpot. The test data are specifically for identifying SV hotspots affecting androgen receptor (AR) gene. To read more about this study, please refer to this [Cell paper](https://www.cell.com/cell/abstract/S0092-8674(18)30842-0).
 
 ```
-PATH_TO_SV_HOTSPOT/src/sv-hotspot.pl -o OUTPUT \
+perl PATH_TO_SV_HOTSPOT/src/sv-hotspot.pl -o OUTPUT \
 	-g hg38 -C chrX \
 	--sv PATH_TO_SV_HOTSPOT/test_data/sv.bedpe \
 	-e PATH_TO_SV_HOTSPOT/test_data/exp.tsv \
@@ -126,7 +126,7 @@ OPTIONS:
 	-G/--genes-of-int		list of genes		<filename>	[ list of genes of interest to be used for visualization ]
 	-r/--region-of-int		region(s) of interest	<filename>	[ region of interest file(s) in "BED" format separated by comma ]
 	-C/--chrom			chromosome name 	<string>	[ chromosome name used to detect hotspots. default: ALL ]
-	-t/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
+	-S/--sv-type			structural variant type	<string>	[ SV type used to detect hotspots. default: ALL ]
 	-d/--merge-dist-size		distance size		<int>		[ distance cutoff used to merge adjacent peaks. default: 10kb ]
 	--merge-pct-samples		percentage of samples	<int>		[ percentage of samples cutoff to merge similar peaks. default: 5 ]
 	--stop-merge-num-peaks		number of peaks		<int>		[ number of peaks cutoff to stop merging adjacent peaks. default: 0 ]
