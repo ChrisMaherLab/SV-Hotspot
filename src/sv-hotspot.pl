@@ -58,6 +58,7 @@ my $merge_pct_samples = 5;
 my $stop_merge_num_peaks = 0;
 my $genes_to_show='none';
 my $plot_layout="narrow";
+my $pre_filter='';
 
 GetOptions
 (
@@ -92,7 +93,8 @@ GetOptions
     'merge-pct-samples=i' => \$merge_pct_samples,
     'stop-merge-num-peaks=i' => \$stop_merge_num_peaks,
     'genes-to-plot=s' => \$genes_to_show,
-    'plot-layout=s' => \$plot_layout
+    'plot-layout=s' => \$plot_layout,
+    'pre-filter=s' => \$pre_filter
     
 );
 
@@ -530,7 +532,8 @@ sub determine_association
    print "-------------------------------------------------------------------------------------\n";
 
    if ($expr_file & $cn_file) {
-     system ("Rscript $TOOL_PATH/src/determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome $TOOL_PATH");
+     #system ("Rscript $TOOL_PATH/src/determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome $TOOL_PATH");
+     system ("Rscript $TOOL_PATH/src/determine_gene_association_v2.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $pre_filter");
    } else {
      print "To determine the association between SVs and gene expression, both expression and copy number data are required. \n";
      return(); 
@@ -603,6 +606,7 @@ sub usage
    print("\t--stat-test\t\t\tstatistical test\t<string>\t[ statistical test used for comparison (wilcox.test or t.test). default: wilcox.test ]\n");
    print("\t--chip-cov\t\t\tchip-seq coverage\t<filename>\t[ chip-seq coverage file in \"BED\" foramt ]\n");
    print("\t--chip-cov-lbl\t\t\tchip-seq coverage label\t<string>\t[ label used for chip-seq coverage ]\n");
+   print("\t--pre-filter\t\t\texpression pre-filter\t<string>\t[ expression pre-filter based on min-exp/min-num-samples. Ex. --pre-filter '10/5' ]\n");
    #print("\t--roi-lbl\t\t\tregion of int. label(s)\t<string>\t[ labels used for region(s) of interest separated by comma  ]\n");
    print("\t--plot-top-peaks\t\tplot top # peaks\t<int>\t\t[ number of top peaks to plot. default: top 10 ]\n");
    print("\t--left-ext\t\t\tsize of left extension\t<int>\t\t[ size of the left extension of the peak. default: 0bp ]\n");
