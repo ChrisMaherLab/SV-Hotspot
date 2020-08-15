@@ -19,6 +19,7 @@ stat_test = args[7]
 GsOI <- args[8]
 genome = args[9]
 tool.path = args[10]
+#pre.fitler = args[8]
 
 ### determine t-test used 
 if (!stat_test %in% c('wilcox.test', 't.test')) {
@@ -26,25 +27,35 @@ if (!stat_test %in% c('wilcox.test', 't.test')) {
 }
 s_test = eval(parse(text = stat_test))
 
+############################ Fisher's method to combine p-values ##############################
+# Fisher's combination
+# Fisher p
+fisher.p <- function(pvals, max.p=1){
+  pvals = pvals[!is.na(pvals)]
+  return(pchisq( -2*sum(log(pvals)), df=length(pvals), lower.tail=FALSE))
+}
+
 ############################ Function to select the top peaks for each gene ##############################
 pickTopPeaks <- function (peaks, genes, total_samples) {
-  ### extract all genes 
+  ### extract all genes
   assoc.genes <- as.character(unique(genes$Gene))
   
-  ### function to extract the top peak 
+  ### function to extract the top peak
   selectTopPeak <- function (pks, by='pvalue') {
+    
     if (by == 'pvalue'){
-        gg = genes[genes$Peak.name %in% pks,]
-        gg = gg[order(gg$Min.pval),]
-        # if there are two peaks with same p-value (which is rare), only one is chosen
-        # TODO: also sort by pct. samples after p-value
-        return(gg$Peak.name[1])
+      gg = genes[genes$Peak.name %in% pks,]
+      gg = gg[order(gg$Fisher.FDR),]
+      #gg = gg[order(gg$Min.pval),]
+      # if there are two peaks with same p-value (which is rare), only one is chosen
+      # TODO: also sort by pct. samples after p-value
+      return(gg$Peak.name[1])
     }
-
-    # if not ranking by pvalue, rank by percent samples
+    
+    # if not ranking by fdr, rank by percent samples
     top.peak <- peaks[peaks$Peak.name %in% pks, c('Peak.name', 'Start', 'End', 'Percentage.SV.samples')]
     top.peak2 <- top.peak[top.peak$Percentage.SV.samples == max(top.peak$Percentage.SV.samples), 'Peak.name']
-
+    
     if (length(top.peak2) > 1) {
       top.peak$len <- top.peak$End - top.peak$Start
       top.peak2 <- top.peak[top.peak$len == min(top.peak$len), 'Peak.name']
@@ -54,19 +65,18 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
     }
     return (top.peak2)
   }
-
   
   filtered.res <- NULL
   for (i in 1:length(assoc.genes)) {
     g <- assoc.genes[i]
-    ### extract peaks assoicated with the gene 
-    gene.peaks <- as.character(unique(genes[genes$Gene==g, 'Peak.name'])) 
+    ### extract peaks assoicated with the gene
+    gene.peaks <- as.character(unique(genes[genes$Gene==g, 'Peak.name']))
     if (length(gene.peaks) == 1) {
-      dd <- data.frame(Gene=g, Peak.name = gene.peaks)
+      dd <- data.frame(Gene=g, Peak.name = gene.peaks, Peak.family = gene.peaks)
       filtered.res <- rbind(filtered.res, dd)
       next
     }
-    ### loop through al peaks and compare 
+    ### loop through al peaks and compare
     all.pairs = as.data.frame(t(combn(as.character(gene.peaks),2)), stringsAsFactors = F)
     colnames(all.pairs) <- c('peak1', 'peak2')
     all.pairs$pval <- 0
@@ -77,31 +87,31 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
       ov <- length(intersect(p1.sample, p2.sample))
       ss <- total_samples - (length(p1.sample) - ov) - (length(p2.sample) - ov) - ov
       
-      test.mat <-matrix(c(ov, length(p1.sample) - ov, 
+      test.mat <-matrix(c(ov, length(p1.sample) - ov,
                           length(p2.sample) - ov,  ss), nrow = 2,
                         dimnames = list(Peak1 = c("yes", "no"),
                                         Peak2 = c("yes", "no")))
       test.pval <- fisher.test(test.mat, alternative = "two.sided")$p.value
       
       all.pairs$pval[j] <- test.pval
-      if (test.pval < 0.05) { 
+      if (test.pval < 0.05) {
         all.pairs$status[j] <- 'D'
       } else {
         all.pairs$status[j] <- 'I'
       }
       
-    }  ## end of all pairs 
+    }  ## end of all pairs
     
     ### determine the status of the peaks
     if (nrow(all.pairs[all.pairs$status=="I", ])==0) {
-      topPeak <- selectTopPeak(gene.peaks) 
-      d <- data.frame(Gene=g, Peak.name = topPeak)
+      topPeak <- selectTopPeak(gene.peaks)
+      d <- data.frame(Gene=g, Peak.name = topPeak, Peak.family = paste(gene.peaks, collapse = ","))
       filtered.res <- rbind(filtered.res, d)
     } else {
       dep.peaks <- all.pairs[all.pairs$status=="D", c('peak1', 'peak2')]
       dep.peaks <- unique(c(dep.peaks$peak1, dep.peaks$peak2))
-      topPeak <- selectTopPeak(gene.peaks) 
-      d <- data.frame(Gene=g, Peak.name = topPeak)
+      topPeak <- selectTopPeak(gene.peaks)
+      d <- data.frame(Gene=g, Peak.name = topPeak, Peak.family = paste(gene.peaks, collapse = ","))
       filtered.res <- rbind(filtered.res, d)
       
       indep.peaks <- all.pairs[all.pairs$status=="I", c('peak1', 'peak2')]
@@ -110,21 +120,24 @@ pickTopPeaks <- function (peaks, genes, total_samples) {
       ### loop through the indepdendent peaks and check if they are not in the dependent group
       for (k in 1:length(indep.peaks)) {
         if (!indep.peaks[k] %in% dep.peaks) {
-          d2 <- data.frame(Gene=g, Peak.name = indep.peaks[k])
+          d2 <- data.frame(Gene=g, Peak.name = indep.peaks[k], Peak.family = indep.peaks[k])
           filtered.res <- rbind(filtered.res, d2)
         }
         
-      } ## end of independent peaks 
+      } ## end of independent peaks
       
-    }  ## end of ELSE 
+    }  ## end of ELSE
     
-  }    ## end of all genes 
+  }    ## end of all genes
   
-  ### filter and write results 
+  ### filter and write results
   annot.pks.final <- peaks[peaks$Peak.name %in% filtered.res$Peak.name, ]
-  write.table(annot.pks.final, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
   genes.final <- merge(genes, filtered.res, sort =F)
-  write.table(genes.final, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+  
+  rt = list()
+  rt$peaks = annot.pks.final
+  rt$genes = genes.final
+  return(rt)
 }
 ##########################################################################################################
 
@@ -321,11 +334,13 @@ if (!"cn.call" %in% colnames(cn_file)) {
 #### read peaks with copy number file
 pks.cn <-read.table(paste0(out.dir,'/processed_data/peaks_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
 colnames(pks.cn) <- c('p.chr', 'p.start', 'p.stop', 'p.name', 'p.id', 'num.samples', 'pct.samples', 'samples',
-                      'cn.chr', 'cn.start', 'cn.stop', 'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
+                       'cn.chr', 'cn.start', 'cn.stop', 'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
 
 #### read genes with copy number file
 genes.cn <- read.table(paste0(out.dir,'/processed_data/genes_with_cn.bed'), header=F, sep='\t', quote='', stringsAsFactors=F)
 colnames(genes.cn) <- c('g.chr', 'g.start', 'g.stop', 'gene', 'score', 'strand', 'cn.chr', 'cn.start', 'cn.stop', 'sample', 'seg.cn', 'cn.call','dist', 'cn.value')
+genes.cn = genes.cn[, c('gene', 'sample', 'cn.call')]
+genes.cn = genes.cn[!duplicated(genes.cn[, c('gene', 'sample')]),]
 cat('done.\n')
 
 ### read annotated peaks summary file 
@@ -500,24 +515,39 @@ for (i in 1:nrow(res)){
   
 }   ### end of peaks 
 
-#### compute FDR and write all results 
-#fdr.res = p.adjust(all.genes.res$min.pval, method = "BH")
-#all.genes.res$FDR = fdr.res
+#### compute FDR and write all results
+pval.cols <- colnames(all.genes.res)[grepl('PValue', colnames(all.genes.res))]
+all.genes.res$Fisher.combined.PValue = apply(all.genes.res[, pval.cols], 1, function(r) fisher.p(r))
+all.genes.res$Fisher.FDR = p.adjust(all.genes.res$Fisher.combined.PValue, method='BH')
+
+### write all results 
 write.table(all.genes.res, file=paste0(out.dir, '/processed_data/de_results_for_all_genes.tsv'), sep="\t", quote=F, row.names=F)
 
 #### extract significant genes using min p-value threshold
-sig.genes = all.genes.res[all.genes.res$Min.pval < pval, ]
-sig.genes <- sig.genes[order(sig.genes$Min.pval), ]
+sig.genes = all.genes.res[all.genes.res$Fisher.FDR < 0.05 & all.genes.res$Min.pval <= 0.05, ]
+sig.genes <- sig.genes[order(sig.genes$Fisher.FDR), ]
+#sig.genes = all.genes.res[all.genes.res$Min.pval < pval, ]
+#sig.genes <- sig.genes[order(sig.genes$Min.pval), ]
 
 ### merge and write resulls
 if (nrow(sig.genes) > 0 ) {
+   
    final.res <- aggregate(Gene ~ Peak.name, data=sig.genes, FUN=paste, collapse='|')
    colnames(final.res) <- c('Peak.name', 'Associated.genes')
    final.res <- merge(res, final.res, sort =F)
    final.res <- final.res[order(final.res$Percentage.SV.samples, decreasing = T), ]
    
    #### filter results by selecting the top peaks based on the significance of overlap 
-   pickTopPeaks(final.res, sig.genes, length(samples.with.sv))
+   #pickTopPeaks(final.res, sig.genes, length(samples.with.sv))
+   #### filter results by selecting the top peaks based on the significance of overlap
+   top.peaks = pickTopPeaks(final.res, sig.genes, length(samples.with.sv)) #length(samples.with.sv)) ## length(samples.with.sv)) == 101
+   
+   #### write results 
+   write.table(top.peaks$peaks, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
+   
+   cols = colnames(top.peaks$genes)[!colnames(top.peaks$genes) %in% c("Peak.name", "Gene", "Peak.family")]
+   top.peaks$genes = top.peaks$genes[,c("Peak.name", "Gene", "Peak.family", cols)]
+   write.table(top.peaks$genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
 
 } else {
    cat(paste("No associated genes were detected using p-value cutoff of", pval, "\n"))   
