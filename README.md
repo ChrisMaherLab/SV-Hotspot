@@ -375,7 +375,7 @@ conda deactivate
 
 ## How to cite SV-HotSpot?
 
-Coming soon .... 
+Eteleeb, A.M., Quigley, D.A., Zhao, S.G. et al. SV-HotSpot: detection and visualization of hotspots targeted by structural variants associated with gene expression. Sci Rep 10, 15890 (2020). https://doi.org/10.1038/s41598-020-71168-7
 
 ## Contact
 Abdallah Eteleeb: eteleeb@wustl.edu
