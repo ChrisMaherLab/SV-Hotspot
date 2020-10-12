@@ -252,7 +252,21 @@ prep <- function(x){
 e = prep(z)
 en = prep(zn)
 rownames(en) = paste0(rownames(en), '_gneut')
-if (!all(colnames(e) == colnames(en))){stop('ERR: cols mismatch!')}
+#if (!all(colnames(e) == colnames(en))){stop('ERR: cols mismatch!')}
+if (ncol(e) != ncol(en) || any(colnames(e) != colnames(en))){
+    all.samples = unique(sub('(.none$|.sv$)', '', c(colnames(e), colnames(en))))
+    all.cols = c(paste0(all.samples, '.none'), paste0(all.samples, '.sv'))
+    for (col in setdiff(all.cols, colnames(e))){
+        e = cbind(e,NA); colnames(e)[ncol(e)] = col
+    }
+    for (col in setdiff(all.cols, colnames(en))){
+        en = cbind(en,NA); colnames(en)[ncol(en)] = col
+    }
+    e = e[, all.cols]
+    en = en[, all.cols]
+    #message('WARN: cols mismatch!')
+}
+
 e = rbind(e,en)
 
 # sample grouping
@@ -302,30 +316,32 @@ fisher.p <- function(pvals, max.p=1){
 x = test[, c('Peak.name', 'Gene', 'tag', 'pval')]
 x$id = rownames(x)
 x = dcast(x, Peak.name + Gene  ~ tag, value.var='pval')
-colnames(x)[3:14] = paste0(colnames(x)[3:14], '.pval')
-x$min.pval = apply(x[, 3:14], 1, function(r) min(r, na.rm=T))
+nn = ncol(x) # max = 14
+colnames(x)[3:nn] = paste0(colnames(x)[3:nn], '.pval')
+x$min.pval = apply(x[, 3:nn], 1, function(r) min(r, na.rm=T))
 x$min.fdr = p.adjust(x$min.pval, method='BH')
 
 ## combine pvalues using Fisher's method
-x$fisher.pval = apply(x[, 3:14], 1, function(r) fisher.p(r))
+x$fisher.pval = apply(x[, 3:nn], 1, function(r) fisher.p(r))
 x$fisher.fdr = p.adjust(x$fisher.pval, method='BH')
 z = x
 
 # aggregate logfc
 x = dcast(test, Peak.name + Gene  ~ tag, value.var='logfc')
-colnames(x)[3:14] = paste0(colnames(x)[3:14], '.logfc')
+colnames(x)[3:nn] = paste0(colnames(x)[3:nn], '.logfc')
 fc = x
 
 # group mean.exp
 x = dcast(test, Peak.name + Gene  ~ tag, value.var='mean.grp1.expr')
-colnames(x)[3:14] = paste0(colnames(x)[3:14], '.mean_expr')
+colnames(x)[3:nn] = paste0(colnames(x)[3:nn], '.mean_expr')
 grp1.mean.expr = x
 
 # base group mean.exp
 x = dcast(test,#test[test$tag %in% c('sv', 'sv_gneut'),],
           Peak.name + Gene  ~ tag, value.var='mean.grp0.expr')
 x$nosv_gneut.mean_expr = rowMeans(x[, grepl('_gneut', colnames(x))], na.rm=T)
-x$nosv.mean_expr = rowMeans(x[, c('dup', 'del', 'bnd', 'inv', 'ins', 'sv')], na.rm=T)
+x$nosv.mean_expr = rowMeans(x[, colnames(x) %in%
+	c('dup', 'del', 'bnd', 'inv', 'ins', 'sv')], na.rm=T)
 x = x[, c('Peak.name', 'Gene', 'nosv.mean_expr', 'nosv_gneut.mean_expr')]
 grp0.mean.expr = x
 
@@ -360,6 +376,9 @@ write.table(top.peaks$peaks, file=paste0(out.dir, '/annotated_peaks_summary.tsv'
 
 cols = colnames(top.peaks$genes)[!colnames(top.peaks$genes) %in% c("Peak.name", "Gene", "Peak.family")]
 top.peaks$genes = top.peaks$genes[,c("Peak.name", "Gene", "Peak.family", cols)]
-write.table(top.peaks$genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+# rename Peak.family col to more appropriate name (ie. Peaks.in.family)
+zzz = top.peaks$genes; colnames(zzz)[colnames(zzz) == 'Peak.family'] = 'Peaks.in.family'
+write.table(zzz, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+#write.table(top.peaks$genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
 
 
