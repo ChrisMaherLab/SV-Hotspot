@@ -198,6 +198,10 @@ if (file.exists((exp.file))) {
       z = rbind(z, dummy)
   }
   z = merge(z,x)
+  if (nrow(z) == 0){
+      stop('ERROR: Fail to merge SVs and expression.
+This could be due to different sample naming between SV bedpe and expresion matrix/file\n')
+  }
   z$pkgid = paste0(z$Peak.name, '/', z$Gene)
   z$Gene = NULL; z$Peak.name = NULL
   colnames(z)[2] = 'status'
