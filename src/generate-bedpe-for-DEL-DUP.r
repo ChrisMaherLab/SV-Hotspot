@@ -12,9 +12,15 @@ if (file.exists((sv.file))) {
   sv <- read.table(sv.file, header =T, sep="\t", stringsAsFactors = F, check.names=F)
   sv$sample = sub('/.*$', '', sv$name)
   sv$svtype = sub('^.*/', '', sv$name)
-  sv = sv[sv$svtype %in% c('DUP', 'DEL'),]
+  sv = sv[sv$svtype %in% c('DUP', 'DEL') & sv$chrom1 == sv$chrom2,]
   sv$pos1 = floor((sv$start1 + sv$end1)/2)
   sv$pos2 = ceiling((sv$start2 + sv$end2)/2)
+  # swap ends if pos1 >= pos2
+  swap = sv$pos1 >= sv$pos2
+  if (any(swap)){
+    sv$pos2[swap] = floor((sv$start1 + sv$end1)/2)[swap]
+    sv$pos1[swap] = ceiling((sv$start2 + sv$end2)/2)[swap]
+  }
   ### extract the final file 
   sv = sv[,c('chrom1', 'pos1', 'pos2', 'name', 'score', 'strand1')]
 } else {

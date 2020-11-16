@@ -533,7 +533,9 @@ sub determine_association
 
    if ($expr_file & $cn_file) {
      #system ("Rscript $TOOL_PATH/src/determine_gene_association.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $genes_of_int $genome $TOOL_PATH");
-     system ("Rscript $TOOL_PATH/src/determine_gene_association_v2.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $pre_filter");
+     my $acmd = "Rscript $TOOL_PATH/src/determine_gene_association_v2.r $output_dir $expr_file $cn_file $t_amp $t_del $pvalue $t_stat $pre_filter";
+     print "CMD to run: $acmd\n";
+     system ($acmd);
    } else {
      print "To determine the association between SVs and gene expression, both expression and copy number data are required. \n";
      return(); 

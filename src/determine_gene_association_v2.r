@@ -6,6 +6,16 @@ library(reshape2)
 
 args = commandArgs(T)
 
+# debug
+# run here: /gscmnt/gc5105/research/hdang/tmp
+# dockit chrismaherlab/sv-hotspot
+#args = unlist(strsplit('/gscmnt/gc5105/research/hdang/SV-HotSpot/code/SV-Hotspot/src/determine_gene_association_v2.r ooo/sv-hotspot-output /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_exp_release28/PRAD-CA.exp.res.tsv /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_cna_release28/PRAD-CA.res.cna.tsv 2.99 1.35 0.05 wilcox.test', ' '))[-1]
+#args = unlist(strsplit('aaa/sv-hotspot-output /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_exp_release28/PAEN-AU.exp.res.tsv /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_cna_release28/PAEN-AU.res.cna.tsv 2.99 1.35 0.05 wilcox.test', ' '))
+
+#args = unlist(strsplit('/gscmnt/gc5105/research/hdang/SV-HotSpot/code/SV-Hotspot/src/determine_gene_association_v2.r aaa/sv-hotspot-output /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_exp_release28/PAEN-AU.exp.res.tsv /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_cna_release28/PAEN-AU.res.cna.tsv 2.99 1.35 0.05 wilcox.test', ' '))[-1]
+
+#args = unlist(strsplit('/gscmnt/gc5105/research/hdang/SV-HotSpot/code/SV-Hotspot/src/determine_gene_association_v2.r bbb/sv-hotspot-output /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_exp_release28/PRAD-CA.exp.res.tsv /gscmnt/gc6127/research/dqpham/project/SV_pancan/SV_cna_release28/PRAD-CA.res.cna.tsv 2.99 1.35 0.05 wilcox.test', ' '))[-1]
+
 out.dir = args[1]
 exp.file = args[2]
 cn.file = args[3]
@@ -160,6 +170,19 @@ x = unique(x)
 z = merge(x, p2g)
 cat('done.\n')
 
+
+#stop('DEBUG0')
+
+# need to create a dummy data frame for
+# samples w/o any SVs within reported peaks
+nosv.samples = setdiff(samples.with.sv, z$sample)
+if (length(nosv.samples) > 0){
+    dummy = data.frame(Peak.name='dummy', sv.type='del', sample=nosv.samples,
+        Gene='dummy', stringsAsFactors=F)
+}else{dummy = NULL}
+#z = rbind(z, dummy)
+
+
 ### read expression file 
 cat('Reading expression data...')
 if (file.exists((exp.file))) {
@@ -170,6 +193,10 @@ if (file.exists((exp.file))) {
   colnames(x) = c('Gene', 'sample', 'gene.exp')
   x$sample = as.character(x$sample)
   e = x
+  if (!is.null(dummy)){
+      dummy$Gene = e$Gene[1] #take a random gene for dummy df
+      z = rbind(z, dummy)
+  }
   z = merge(z,x)
   z$pkgid = paste0(z$Peak.name, '/', z$Gene)
   z$Gene = NULL; z$Peak.name = NULL
@@ -181,12 +208,14 @@ if (file.exists((exp.file))) {
 cat('done.\n')
 
 ### create df for sv samples
-sv = z
+sv = z[!grepl('dummy', z$pkgid),]
 sv$status = 'sv'
 sv = unique(sv)
 
+#stop('DEBUG1')
+
 # identify nonSV samples 
-a = dcast(pkgid~sample, data=z, value.var='status')
+a = dcast(pkgid~sample, data=z, value.var='status', fun.aggregate=length)
 a = melt(a, id.var='pkgid')
 colnames(a) = c('pkgid', 'sample', 'svcnt')
 a$sample = as.character(a$sample)
@@ -195,7 +224,10 @@ a$status = 'nosv'
 a$Gene = sub('^.*/(.*)$', '\\1', a$pkgid)
 a = merge(a, e)
 a = a[, colnames(z)]
+z = z[!grepl('dummy', z$pkgid),]
 z = rbind(z,sv,a)
+
+#stop()
 
 #### read copy number data and overlap with peaks and genes 
 cat('Reading copy number data and overlap with genes...')
@@ -222,11 +254,18 @@ cn = cn[!duplicated(cn[, c('gene', 'sample')]),]
 cat('done.\n')
 
 cat('Preparing data for statistical test...')
+
+# catch a bug if cn neut is not provided
+if (!('neut' %in% z$cn.call)){
+}
+
 ### identify copy neutral
 zn = z
 zn$gene = sub('^.*/(.*)$', '\\1', zn$pkgid)
 zn = merge(zn, cn, all.x=T)
 zn = zn[which(zn$cn.call == 'neut'),]
+
+
 
 ### prepare data matrix for vectorization of the statistical test
 ### this is a sparse matrix that has twice the number of total samples
@@ -248,6 +287,7 @@ prep <- function(x){
     return(e)
 }
 
+#stop('DEBUG')
 
 e = prep(z)
 en = prep(zn)
@@ -361,24 +401,28 @@ res = read.table(paste0(out.dir, '/processed_data/annotated_peaks_summary.tsv'),
 
 ##### extract significant genes 
 sig.genes = fisher.res[fisher.res$fisher.fdr < pval & fisher.res$min.pval <= pval, ]
-sig.genes <- sig.genes[order(sig.genes$fisher.fdr), ]
 
-final.res <- aggregate(Gene ~ Peak.name, data=sig.genes, FUN=paste, collapse='|')
-colnames(final.res) <- c('Peak.name', 'Associated.genes')
-final.res <- merge(res, final.res, sort =F)
-final.res <- final.res[order(final.res$Percentage.SV.samples, decreasing = T), ]
+if (nrow(sig.genes) == 0){
+    cat('No peak found to be associated with gene expression\n')
+}else{
+    sig.genes <- sig.genes[order(sig.genes$fisher.fdr), ]
 
-#### filter results by selecting the top peaks based on the significance of overlap
-top.peaks = pickTopPeaks(final.res, sig.genes, length(samples.with.sv)) #length(samples.with.sv)) ## length(samples.with.sv)) == 101
+    final.res <- aggregate(Gene ~ Peak.name, data=sig.genes, FUN=paste, collapse='|')
+    colnames(final.res) <- c('Peak.name', 'Associated.genes')
+    final.res <- merge(res, final.res, sort =F)
+    final.res <- final.res[order(final.res$Percentage.SV.samples, decreasing = T), ]
 
-#### write results 
-write.table(top.peaks$peaks, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
+    #### filter results by selecting the top peaks based on the significance of overlap
+    top.peaks = pickTopPeaks(final.res, sig.genes, length(samples.with.sv)) #length(samples.with.sv)) ## length(samples.with.sv)) == 101
 
-cols = colnames(top.peaks$genes)[!colnames(top.peaks$genes) %in% c("Peak.name", "Gene", "Peak.family")]
-top.peaks$genes = top.peaks$genes[,c("Peak.name", "Gene", "Peak.family", cols)]
-# rename Peak.family col to more appropriate name (ie. Peaks.in.family)
-zzz = top.peaks$genes; colnames(zzz)[colnames(zzz) == 'Peak.family'] = 'Peaks.in.family'
-write.table(zzz, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
-#write.table(top.peaks$genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+    #### write results 
+    write.table(top.peaks$peaks, file=paste0(out.dir, '/annotated_peaks_summary.tsv'), sep="\t", quote=F, row.names=F)
 
+    cols = colnames(top.peaks$genes)[!colnames(top.peaks$genes) %in% c("Peak.name", "Gene", "Peak.family")]
+    top.peaks$genes = top.peaks$genes[,c("Peak.name", "Gene", "Peak.family", cols)]
+    # rename Peak.family col to more appropriate name (ie. Peaks.in.family)
+    zzz = top.peaks$genes; colnames(zzz)[colnames(zzz) == 'Peak.family'] = 'Peaks.in.family'
+    write.table(zzz, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
+    #write.table(top.peaks$genes, file=paste0(out.dir, '/genes.associated.with.SVs.tsv'), sep="\t", quote=F, row.names=F)
 
+}

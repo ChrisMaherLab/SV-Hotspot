@@ -47,6 +47,7 @@ countSamples <- function(x, svtype='ALL'){
     }
     z = z[, 1:4]
     
+    
     # make sure each sample is reported only once for each window
     z = z[!duplicated(z),]
 
