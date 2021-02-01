@@ -320,7 +320,7 @@ SV-HotSpot also provides whole genome level visualization of hotspot sites. The 
            Rscript plot_whole_genome.r /path/to/sv-hotspot-output /path/to/annotations \
                                         hg38 TRUE chr1,chrX,chr21 ERG,AR,PTEN TRUE png out
 ```
-
+<!---
 ## SV-HotSpot Conda Installation
 The SV-HotSpot is available as a conda package. To install it via `conda`, try the following:
 
@@ -366,7 +366,7 @@ sv-hotspot.pl -g hg38 -C chrX -o SV-HOTSPOT-BIOCONDA-TEST \
 conda deactivate
 
 ```
-
+-->
 
 ##
 ## References
