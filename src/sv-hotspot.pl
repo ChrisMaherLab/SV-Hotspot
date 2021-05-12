@@ -477,8 +477,9 @@ sub identify_peaks
    ### split the result by chromosme 
    print "Splitting the overlapped file by chromosome\n";
    system ("rm -rf $output_dir/processed_data/segments_with_bps_per_chr; mkdir $output_dir/processed_data/segments_with_bps_per_chr");
-   system("awk '{print \$0 >> \"$output_dir/processed_data/segments_with_bps_per_chr/\"\$1\".bed\"}' $output_dir/processed_data/genome.segments.with.bps.bed");
-
+   #system("awk '{print \$0 >> \"$output_dir/processed_data/segments_with_bps_per_chr/\"\$1\".bed\"}' $output_dir/processed_data/genome.segments.with.bps.bed");
+   system("awk -F'\\t' '{print > (\"$output_dir/processed_data/segments_with_bps_per_chr/\"\$1\".bed\") }' $output_dir/processed_data/genome.segments.with.bps.bed");
+   
    ### extract chromosme file names and summarize counts 
    system ("rm -rf $output_dir/processed_data/counts; mkdir $output_dir/processed_data/counts");
 
